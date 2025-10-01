@@ -1,0 +1,38 @@
+# Vagrantfile - crée 4 conteneurs docker, IP statiques et variable NODE_ID
+Vagrant.configure("2") do |config|
+  config.vm.define "controller" do |ctrl|
+    # Un conteneur de contrôle éventuel (optionnel)
+  end
+
+  # Paramètres communs
+  base_ip = "172.28.128."    # sous-réseau privé utilisé pour les containers
+  starting = 11              # on attribuera .11 .12 .13 .14
+
+  (0..3).each do |i|
+    name = "node#{i+1}"
+    ip = base_ip + (starting + i).to_s
+    node_id = (i+1).to_s
+
+    config.vm.define name do |node|
+      # No config.vm.box because we use docker provider
+      node.vm.provider "docker" do |d|
+        d.build_dir = "."            # build l'image depuis le Dockerfile ci-dessus
+        d.name = "lab_#{name}"
+        d.remains_running = true
+        d.has_ssh = true
+        # map SSH to unique host port (optionnel, utile si tu veux SSH depuis l'hôte)
+        d.ports = ["127.0.0.1:22#{10 + i}:22"]  # 2210, 2211, 2212, 2213
+      end
+
+      # réseau privé (Vagrant le convertira en réseau Docker et attribuera l'IP)
+      node.vm.network "private_network", ip: ip
+
+      # transmettre la variable d'environnement NODE_ID au container via env
+      node.vm.provision "shell", inline: <<-SHELL
+        # export NODE_ID pour que entrypoint le lise
+        # Vagrant passe ça via docker create -> env, mais on ajoute un fichier fallback
+        echo "#{node_id}" > .node_id_for_vagrant
+      SHELL
+    end
+  end
+end
