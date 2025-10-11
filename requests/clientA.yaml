@@ -1,0 +1,11 @@
+client_id: clientA
+count: 4
+subnet_cidr: 172.28.10.0/24
+bastion_port: 22211
+packages:
+  - nginx
+  - git
+  - curl
+roles:
+  - web
+  - base

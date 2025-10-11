@@ -1,0 +1,12 @@
+FROM ubuntu:22.04
+RUN apt-get update && \
+    apt-get install -y openssh-server sudo curl && \
+    useradd -m -s /bin/bash vagrant && echo 'vagrant:vagrant' | chpasswd && \
+    mkdir -p /home/vagrant/.ssh /var/run/sshd && \
+    curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub \
+      -o /home/vagrant/.ssh/authorized_keys && \
+    chmod 700 /home/vagrant/.ssh && chmod 600 /home/vagrant/.ssh/authorized_keys && \
+    chown -R vagrant:vagrant /home/vagrant/.ssh && \
+    echo 'vagrant ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/99-vagrant
+EXPOSE 22
+CMD ["/usr/sbin/sshd","-D"]
