@@ -9,6 +9,8 @@ web/
 ├── app.py                # Script principal de l’application Flask
 ├── requirement.txt       # Liste des dépendances Python
 ├── templates/            # Dossier des templates HTML (Jinja2)
+├── static/               # Dossier des styles et javascript
+├── utils/                # Dossier des outils  
 ```
 
 ## Initialisation de l’application
@@ -19,8 +21,8 @@ web/
 
 ```bash
 python -v venv venv
-source myenv/bin/activate  # For Unix/Linux
-.\myenv\Scripts\activate  # For Windows
+source venv/bin/activate  # For Unix/Linux
+.\venv\Scripts\activate  # For Windows
 ```
 
 2. **Installer les dépendances** :
@@ -40,5 +42,6 @@ L’application sera accessible sur `http://localhost:5000` (par défaut).
 
 ## Notes
 - Les templates HTML doivent être placés dans le dossier `templates/`.
-- Les styles css sont dans le dossier `static\css`
+- Les styles css sont dans le dossier `static/css`
 - Modifiez `requirement.txt` pour ajouter ou mettre à jour les dépendances nécessaires.
+- Les tables de database sont crées dans le dossier `instance/` qui est ignore par `.gitignore`
