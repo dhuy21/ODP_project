@@ -1,0 +1,31 @@
+{% extends "layout.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<style>
+  header { display: none; }
+</style>
+<div class="container mt-5" style="max-width: 400px;">
+  <h4 class="mb-3">Login</h4>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% for category, message in messages %}
+      <div class="alert alert-{{ category }}">{{ message }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <form method="POST">
+    <div class="mb-3">
+      <label>Username</label>
+      <input type="text" name="username" class="form-control" required>
+    </div>
+    <div class="mb-3">
+      <label>Password</label>
+      <input type="password" name="password" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary w-100">Login</button>
+  </form>
+  <p>Don't have an account? 
+    <a href="{{ url_for('auth.register') }}">Register here</a>
+  </p>
+</div>
+{% endblock %}
