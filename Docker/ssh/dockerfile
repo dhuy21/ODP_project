@@ -1,12 +1,26 @@
+# Man_project/Docker/Dockerfile
 FROM ubuntu:22.04
-RUN apt-get update && \
-    apt-get install -y openssh-server sudo curl && \
-    useradd -m -s /bin/bash vagrant && echo 'vagrant:vagrant' | chpasswd && \
+ARG DEBIAN_FRONTEND=noninteractive
+
+# Étape APT robuste
+RUN set -eux; \
+    apt-get -o Acquire::Retries=5 -o Acquire::http::Timeout=20 update && \
+    apt-get -y --no-install-recommends install \
+        openssh-server sudo curl ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# User vagrant + clés
+RUN useradd -m -s /bin/bash vagrant && echo 'vagrant:vagrant' | chpasswd && \
     mkdir -p /home/vagrant/.ssh /var/run/sshd && \
     curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub \
       -o /home/vagrant/.ssh/authorized_keys && \
     chmod 700 /home/vagrant/.ssh && chmod 600 /home/vagrant/.ssh/authorized_keys && \
     chown -R vagrant:vagrant /home/vagrant/.ssh && \
-    echo 'vagrant ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/99-vagrant
+    echo 'vagrant ALL=(ALL) NOPASSWD: ALL' > /etc/sudoers.d/99-vagrant && \
+    chmod 0440 /etc/sudoers.d/99-vagrant
+
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
 EXPOSE 22
-CMD ["/usr/sbin/sshd","-D"]
+CMD ["/usr/local/bin/entrypoint.sh"]
