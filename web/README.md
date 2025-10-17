@@ -20,7 +20,7 @@ web/
 1.5 **Créez un environnement virtuel pour isoler les dépendances**(Optionnel)
 
 ```bash
-python -v venv venv
+python -m venv venv
 source venv/bin/activate  # For Unix/Linux
 .\venv\Scripts\activate  # For Windows
 ```
