@@ -20,26 +20,30 @@ cid   = d.get('client_id','clientX')
 cnt   = int(d.get('count',1))
 sub   = d.get('subnet_cidr','172.28.50.0/24')
 pkgs  = ",".join(d.get('packages',[]))
+base_port = d.get('base_port', 2200)  # Get base port from config
 print(f'CLIENT_ID="{cid}"')
 print(f'COUNT="{cnt}"')
 print(f'SUBNET="{sub}"')
 print(f'PKGS_CSV="{pkgs}"')
+print(f'BASE_PORT="{base_port}"')
 PY
 )"
 
 NET_NAME="internet-${CLIENT_ID}"
 IMAGE_TAG="labnode:${CLIENT_ID}"
 
+echo "==> Clean up existing resources"
+# Remove existing containers for this client
+docker rm -f $(docker ps -a -q --filter "label=client=${CLIENT_ID}") 2>/dev/null || true
+
+# Remove existing network for this client
+docker network rm "${NET_NAME}" 2>/dev/null || true
+
 echo "==> Build image"
 docker build -t "${IMAGE_TAG}" --platform=linux/arm64 -f ./Docker/ssh/Dockerfile ./Docker/ssh
 
-echo "==> Create network ${NET_NAME} (${SUBNET}) if needed"
-if ! docker network inspect "${NET_NAME}" >/dev/null 2>&1; then
-  docker network create --subnet "${SUBNET}" "${NET_NAME}"
-fi
-
-echo "==> Clean up existing containers"
-docker rm -f $(docker ps -a -q --filter "label=client=${CLIENT_ID}") 2>/dev/null || true
+echo "==> Create network ${NET_NAME} (${SUBNET})"
+docker network create --subnet "${SUBNET}" "${NET_NAME}"
 
 echo "==> Start ${COUNT} containers"
 mkdir -p Ansible "handoff/${CLIENT_ID}"
@@ -52,7 +56,7 @@ HOST_START=10   # .11, .12, ... pour les nœuds
 for i in $(seq 1 "${COUNT}"); do
   NAME="${CLIENT_ID}-node${i}"
   IP="${BASE_PREFIX}.$((HOST_START+i))"
-  HOST_PORT=$((2199+i))  # 2200, 2201, ...
+  HOST_PORT=$((BASE_PORT+i-1))  # Use BASE_PORT instead of fixed 2199
 
   echo "   - ${NAME} -> ${IP} (ssh: localhost:${HOST_PORT})"
 

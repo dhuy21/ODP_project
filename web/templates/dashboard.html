@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Your Infrastructure</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome {{ username }}</h1>
+        <div class="instance-grid">
+            {% set subnet_octet = (username|hash % 250) %}
+            {% for i in range(vm_count) %}
+            <div class="instance-card">
+                <h3>{{ username }}-vm{{ i + 1 }}</h3>
+                <p>IP: 172.28.{{ subnet_octet }}.{{ 11 + i }}</p>
+                <a href="/terminal/{{ username }}/{{ i + 1 }}" target="_blank" class="button">
+                    Access Terminal
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</body>
+</html>

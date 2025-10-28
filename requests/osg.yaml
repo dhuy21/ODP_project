@@ -1,0 +1,12 @@
+base_port: 3580
+client_id: osg
+count: 5
+packages:
+- nginx
+- git
+- vim
+password: test
+roles:
+- base
+subnet_cidr: 172.28.138.0/24
+username: osg
