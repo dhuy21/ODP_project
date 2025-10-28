@@ -131,6 +131,7 @@ def terminal(username, node_id):
 @socketio.on('connect_ssh')
 def handle_ssh_connection(data):
     try:
+        print(f"SSH connection request received: {data}")
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         
@@ -138,46 +139,75 @@ def handle_ssh_connection(data):
         base_port = 2200 + (username_hash * 10)
         port = base_port + int(data['node_id']) - 1
         
-        print(f"Connecting to: 127.0.0.1:{port} as {data['username']}")
+        print(f"Attempting SSH connection to 127.0.0.1:{port}")
         
         try:
+            # First try with the provided user credentials
             ssh.connect(
                 '127.0.0.1',
                 port=port,
                 username=data['username'],
-                password=data['password']
+                password=data['password'],
+                look_for_keys=False,
+                allow_agent=False,
+                timeout=10
             )
-        except:
-            ssh.connect(
-                '127.0.0.1',
-                port=port,
-                username='vagrant',
-                key_filename=os.path.expanduser('~/.vagrant.d/insecure_private_key')
-            )
+            print(f"Connected as user {data['username']}")
+        except Exception as user_auth_error:
+            print(f"User auth failed: {str(user_auth_error)}")
+            # Fall back to vagrant user
+            try:
+                ssh.connect(
+                    '127.0.0.1',
+                    port=port,
+                    username='vagrant',
+                    key_filename=os.path.expanduser('~/.vagrant.d/insecure_private_key'),
+                    timeout=10
+                )
+                print("Connected as vagrant user")
+            except Exception as vagrant_auth_error:
+                print(f"Vagrant auth failed: {str(vagrant_auth_error)}")
+                raise
+
+        # Get interactive shell
+        channel = ssh.invoke_shell(
+            term='xterm',
+            width=80,
+            height=24
+        )
         
-        channel = ssh.invoke_shell(term='xterm', width=80, height=24)
+        # Important: Set non-blocking mode
         channel.setblocking(0)
         
+        # Store the connection
         session_id = request.sid
         ssh_connections[session_id] = {
             'client': ssh,
             'channel': channel
         }
         
+        # Send initial newline to get prompt
+        channel.send('\n')
+        
         def read_output():
             while True:
                 if session_id not in ssh_connections:
+                    print(f"Session {session_id} ended")
                     break
+                    
                 try:
                     if channel.recv_ready():
                         output = channel.recv(1024).decode('utf-8', 'ignore')
+                        print(f"Sending output to client: {len(output)} bytes")
                         socketio.emit('output', {'data': output}, room=session_id)
                 except Exception as e:
                     print(f"Error reading from channel: {e}")
                     break
+                    
                 socketio.sleep(0.01)
         
         socketio.start_background_task(read_output)
+        print("SSH connection and shell established successfully")
         
     except Exception as e:
         print(f"SSH Connection Error: {str(e)}")
@@ -191,6 +221,7 @@ def handle_input(data):
         try:
             channel.send(data['data'])
         except Exception as e:
+            print(f"Error sending input: {str(e)}")
             emit('error', {'message': str(e)})
 
 @socketio.on('resize')

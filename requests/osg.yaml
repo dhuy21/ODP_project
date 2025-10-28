@@ -1,6 +1,6 @@
-base_port: 3580
+base_port: 2830
 client_id: osg
-count: 5
+count: 3
 packages:
 - nginx
 - git
@@ -8,5 +8,5 @@ packages:
 password: test
 roles:
 - base
-subnet_cidr: 172.28.138.0/24
+subnet_cidr: 172.28.63.0/24
 username: osg
