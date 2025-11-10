@@ -8,7 +8,7 @@ Accès SSH (depuis cette machine) :
 -  -> ssh vagrant@127.0.0.1 -p 2832 
 
 Clé privée Vagrant :
-/Users/mehdiouseggua/.vagrant.d/insecure_private_key
+~/.vagrant.d/insecure_private_key
 
 Provisionnement :
   ansible -i Ansible/inventory.ini osg -m ping

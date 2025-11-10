@@ -32,6 +32,22 @@ PY
 NET_NAME="internet-${CLIENT_ID}"
 IMAGE_TAG="labnode:${CLIENT_ID}"
 
+# Auto-detect platform architecture
+ARCH="$(uname -m)"
+case "${ARCH}" in
+  x86_64|amd64)
+    PLATFORM="linux/amd64"
+    ;;
+  aarch64|arm64)
+    PLATFORM="linux/arm64"
+    ;;
+  *)
+    echo "Warning: Unknown architecture ${ARCH}, defaulting to linux/amd64"
+    PLATFORM="linux/amd64"
+    ;;
+esac
+echo "==> Detected architecture: ${ARCH} -> Using platform: ${PLATFORM}"
+
 echo "==> Clean up existing resources"
 # Remove existing containers for this client
 docker rm -f $(docker ps -a -q --filter "label=client=${CLIENT_ID}") 2>/dev/null || true
@@ -40,7 +56,7 @@ docker rm -f $(docker ps -a -q --filter "label=client=${CLIENT_ID}") 2>/dev/null
 docker network rm "${NET_NAME}" 2>/dev/null || true
 
 echo "==> Build image"
-docker build -t "${IMAGE_TAG}" --platform=linux/arm64 -f ./Docker/ssh/Dockerfile ./Docker/ssh
+docker build -t "${IMAGE_TAG}" --platform="${PLATFORM}" -f ./Docker/ssh/Dockerfile ./Docker/ssh
 
 echo "==> Create network ${NET_NAME} (${SUBNET})"
 docker network create --subnet "${SUBNET}" "${NET_NAME}"
