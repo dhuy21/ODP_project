@@ -1,10 +1,7 @@
 {% extends "layout.html" %}
 {% block title %}Login{% endblock %}
 {% block content %}
-<style>
-  header { display: none; }
-</style>
-<div class="container mt-5" style="max-width: 400px;">
+<div class="container mt-5">
   <h4 class="mb-3">Login</h4>
 
   {% with messages = get_flashed_messages(with_categories=true) %}
