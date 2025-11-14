@@ -14,7 +14,6 @@ const fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
 
 term.open(document.getElementById('terminal'));
-fitAddon.fit();
 
 const socket = io({
     transports: ['websocket'],
@@ -29,10 +28,11 @@ socket.on('connect', () => {
     console.log(`Attempting connection to ${username}-node${node_id}`);
     
     socket.emit('connect_ssh', {
-        username: sessionStorage.getItem('username'),
+        username: username,
         password: sessionStorage.getItem('password'),
         node_id: node_id
     });
+    fitAddon.fit();
 });
 
 term.onData(data => {

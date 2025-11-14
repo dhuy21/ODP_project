@@ -57,7 +57,7 @@ def provision():
         # Run allocates.sh to create containers
         print(f"Creating VMs with {script_path}")
         result = subprocess.run(
-            ['/bin/bash', script_path, config_file],
+            [script_path, config_file],
             capture_output=True,
             text=True,
             cwd=project_dir
@@ -93,17 +93,21 @@ def provision():
             '-e', f'packages={",".join(config["packages"])}',
             '-vv'  # Increase verbosity
         ]
-        
+        my_env = os.environ.copy()
+        my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
+
         print(f"Running Ansible with command: {' '.join(ansible_cmd)}")
         ansible_result = subprocess.run(
             ansible_cmd,
             capture_output=True,
             text=True,
-            cwd=project_dir
+            cwd=project_dir,
+            env=my_env
         )
         
         if ansible_result.returncode != 0:
             print(f"Ansible Error: {ansible_result.stderr}")
+            print(f"Ansible STDOUT: {ansible_result.stdout}")
             # Don't fail here, just log the error
             print(f"Proceeding to dashboard despite Ansible error")
         
