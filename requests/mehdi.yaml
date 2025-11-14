@@ -1,0 +1,12 @@
+base_port: 2550
+client_id: mehdi
+count: 3
+packages:
+- nginx
+- git
+- vim
+password: test
+roles:
+- base
+subnet_cidr: 172.28.35.0/24
+username: mehdi

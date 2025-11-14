@@ -1,0 +1,12 @@
+base_port: 3140
+client_id: mehdiosg
+count: 4
+packages:
+- nginx
+- git
+- vim
+password: test
+roles:
+- base
+subnet_cidr: 172.28.94.0/24
+username: mehdiosg

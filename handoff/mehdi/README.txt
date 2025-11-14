@@ -1,11 +1,11 @@
 Client: mehdi
-Network: internet-mehdi (172.28.80.0/24)
+Network: internet-mehdi (172.28.35.0/24)
 
 Accès SSH (depuis cette machine) :
-- mehdi-node1 -> ssh vagrant@127.0.0.1 -p 3000
-- mehdi-node2 -> ssh vagrant@127.0.0.1 -p 3001
-- mehdi-node3 -> ssh vagrant@127.0.0.1 -p 3002
--  -> ssh vagrant@127.0.0.1 -p 3002 
+- mehdi-node1 -> ssh vagrant@127.0.0.1 -p 2550
+- mehdi-node2 -> ssh vagrant@127.0.0.1 -p 2551
+- mehdi-node3 -> ssh vagrant@127.0.0.1 -p 2552
+-  -> ssh vagrant@127.0.0.1 -p 2552 
 
 Clé privée Vagrant :
 ~/.vagrant.d/insecure_private_key
