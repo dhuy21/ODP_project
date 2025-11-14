@@ -1,0 +1,32 @@
+body {
+  font-family: Arial, sans-serif;
+  padding: 0;
+  margin: 0;
+}
+
+h1 {
+  color: #2c3e50;
+}
+
+.extra-rounded {
+  border-radius: 3rem;
+}
+
+/* Gradient backgrounds */
+.gradient-purple {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Icon sizes */
+.icon-xl {
+  font-size: 4rem;
+}
+
+.icon-lg {
+  font-size: 3rem;
+}
+
+/* Icon colors */
+.icon-primary {
+  color: #667eea;
+}

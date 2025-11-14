@@ -1,0 +1,103 @@
+{% extends "layout.html" %}
+
+{% block title %}Accueil{% endblock %}
+
+{% block content %}
+<div class="container-fluid p-0 ">
+  <!-- Hero Section -->
+  <section class="hero-section text-white text-center py-5 gradient-purple">
+    <div class="container">
+      <h1 class="display-3 fw-bold mb-4">Bienvenue sur ODP Project</h1>
+      <p class="lead mb-5">Gérez vos machines virtuelles facilement et efficacement</p>
+      {% if not user_is_logged_in %}
+      <div class="d-flex gap-3 justify-content-center">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5">Commencer</a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-5">Se connecter</a>
+      </div>
+      {% else %}
+      <div>
+        <a href="{{ url_for('main.dashboard') }}" class="btn btn-light btn-lg px-5">Accéder au Dashboard</a>
+      </div>
+      {% endif %}
+    </div>
+  </section>
+
+  <!-- Features Section -->
+  <section class="py-5 bg-light">
+    <div class="container">
+      <h2 class="text-center mb-5 fw-bold">Nos Fonctionnalités</h2>
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center p-4">
+              <div class="mb-3">
+                <i class="bi bi-server icon-xl icon-primary"></i>
+              </div>
+              <h4 class="card-title mb-3">Gestion de VMs</h4>
+              <p class="card-text text-muted">Créez, démarrez et arrêtez vos machines virtuelles en quelques clics</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center p-4">
+              <div class="mb-3">
+                <i class="bi bi-speedometer2 icon-xl icon-primary"></i>
+              </div>
+              <h4 class="card-title mb-3">Monitoring en temps réel</h4>
+              <p class="card-text text-muted">Surveillez les performances et l'état de vos VMs instantanément</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-md-4">
+          <div class="card h-100 shadow-sm border-0">
+            <div class="card-body text-center p-4">
+              <div class="mb-3">
+                <i class="bi bi-shield-check icon-xl icon-primary"></i>
+              </div>
+              <h4 class="card-title mb-3">Sécurisé</h4>
+              <p class="card-text text-muted">Vos données et machines sont protégées avec les derniers standards de sécurité</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Stats Section -->
+  <section class="py-5">
+    <div class="container">
+      <div class="row text-center">
+        <div class="col-md-4 mb-4">
+          <h2 class="display-4 fw-bold text-primary">99.9%</h2>
+          <p class="text-muted">Disponibilité</p>
+        </div>
+        <div class="col-md-4 mb-4">
+          <h2 class="display-4 fw-bold text-primary">24/7</h2>
+          <p class="text-muted">Support</p>
+        </div>
+        <div class="col-md-4 mb-4">
+          <h2 class="display-4 fw-bold text-primary">100+</h2>
+          <p class="text-muted">Utilisateurs satisfaits</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Section -->
+  {% if not user_is_logged_in %}
+  <section class="py-5  w-50 mx-auto">
+    <div class="container bg-dark p-5 extra-rounded shadow-lg">
+      <div class="text-white text-center">
+        <h2 class="mb-4">Prêt à commencer ?</h2>
+        <p class="lead mb-4">Créez votre compte gratuitement et commencez à gérer vos VMs dès aujourd'hui</p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5">S'inscrire maintenant</a>
+      </div>
+    </div>
+  </section>
+  {% endif %}
+</div>
+{% endblock %}
+
