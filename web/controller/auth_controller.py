@@ -9,7 +9,7 @@ class AuthController:
         if user and user.check_password(password):
             session['user_id'] = user.id
             flash('Connexion reussie.')
-            return redirect(url_for('main.index'))
+            return redirect(url_for('main.dashboard'))
         else:
             flash('Nom d\'utilisateur ou mot de passe incorrect.')
             return redirect(url_for('auth.login'))
