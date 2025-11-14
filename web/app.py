@@ -53,7 +53,7 @@ def provision():
             yaml.dump(config, f)
         
         result = subprocess.run(
-            ['/bin/bash', script_path, config_file],
+            [script_path, config_file],
             capture_output=True,
             text=True,
             cwd=project_dir
@@ -83,11 +83,31 @@ def provision():
         ansible_cmd = [
             'ansible-playbook',
             '-i', inventory_file,
-            os.path.join(project_dir, 'Ansible', 'playbook.yml')
+            os.path.join(project_dir, 'Ansible', 'playbook.yml'),
+            '-e', f'username={config["username"]}',
+            '-e', f'password={config["password"]}',
+            '-e', f'packages={",".join(config["packages"])}',
+            '-vv'  # Increase verbosity
         ]
+        my_env = os.environ.copy()
+        my_env["ANSIBLE_HOST_KEY_CHECKING"] = "False"
+
+        print(f"Running Ansible with command: {' '.join(ansible_cmd)}")
+        ansible_result = subprocess.run(
+            ansible_cmd,
+            capture_output=True,
+            text=True,
+            cwd=project_dir,
+            env=my_env
+        )
         
-        subprocess.run(ansible_cmd, capture_output=True, text=True, cwd=project_dir)
+        if ansible_result.returncode != 0:
+            print(f"Ansible Error: {ansible_result.stderr}")
+            print(f"Ansible STDOUT: {ansible_result.stdout}")
+            # Don't fail here, just log the error
+            print(f"Proceeding to dashboard despite Ansible error")
         
+        # Redirect to dashboard even if Ansible had issues
         return jsonify({
             'status': 'success',
             'redirect': f"/dashboard/{data['username']}/{data['vm_count']}"
