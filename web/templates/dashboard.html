@@ -10,7 +10,7 @@
       <div class="card-body">
         <h5 class="card-title">Ubuntu 24.04</h5>
         <p class="card-text">VM Ubuntu 24.04 LTS, idéale pour le développement et les serveurs modernes.</p>
-        <a href="#" class="btn btn-primary">Get this VM</a>
+        <a href="#" class="btn btn-primary" data-vm="ubuntu-24-04">Get this VM</a>
       </div>
     </div>
   </div>
@@ -19,7 +19,7 @@
       <div class="card-body">
         <h5 class="card-title">Debian 12</h5>
         <p class="card-text">VM Debian 12 stable, parfaite pour l’hébergement et la sécurité.</p>
-        <a href="#" class="btn btn-primary">Get this VM</a>
+        <a href="#" class="btn btn-primary" data-vm="debian-12">Get this VM</a>
       </div>
     </div>
   </div>
@@ -28,9 +28,121 @@
       <div class="card-body">
         <h5 class="card-title">CentOS Stream 9</h5>
         <p class="card-text">VM CentOS Stream 9, adaptée aux environnements d’entreprise et aux tests.</p>
-        <a href="#" class="btn btn-primary">Get this VM</a>
+        <a href="#" class="btn btn-primary" data-vm="centos-stream-9">Get this VM</a>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Modal pour la sélection de VM -->
+<div class="modal fade" id="vmModal" tabindex="-1" aria-labelledby="vmModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="vmModalLabel">Sélection de la VM</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="vmForm">
+        <div class="modal-body">
+          <div id="vmAlert" class="d-none" role="alert"></div>
+          <p>Vous avez sélectionné la VM: <strong><span id="selectedVm"></span></strong></p>
+          <p>Créez votre compte pour accéder à cette VM et spécifiez les paquets à installer.</p>
+
+          <input type="hidden" id="vmInput" name="vm">
+
+          <div class="mb-3">
+            <label for="usernameInput" class="form-label">Nom d'utilisateur</label>
+            <input type="text" class="form-control" id="usernameInput" name="username" required placeholder="ex: monutilisateur">
+          </div>
+
+          <div class="mb-3">
+            <label for="passwordInput" class="form-label">Mot de passe</label>
+            <input type="password" class="form-control" id="passwordInput" name="password" required placeholder="Choisissez un mot de passe">
+          </div>
+
+          <div class="mb-3">
+            <label for="packagesInput" class="form-label">Paquets à installer (séparés par des virgules)</label>
+            <input type="text" class="form-control" id="packagesInput" name="packages" placeholder="ex: nginx, docker, git">
+            <div class="form-text">Laisser vide si aucun paquet additionnel n'est requis.</div>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          <button id="vmSubmitBtn" type="submit" class="btn btn-primary">Créer le compte et provisionner</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const buttons = document.querySelectorAll('a.btn-primary');
+    const vmForm = document.getElementById('vmForm');
+    const vmInput = document.getElementById('vmInput');
+    const selectedSpan = document.getElementById('selectedVm');
+    const submitBtn = document.getElementById('vmSubmitBtn');
+    const alertBox = document.getElementById('vmAlert');
+
+    buttons.forEach(button => {
+      button.addEventListener('click', function(event) {
+        event.preventDefault();
+        const vmName = this.getAttribute('data-vm');
+        selectedSpan.textContent = vmName;
+        vmInput.value = vmName;
+        const vmModal = new bootstrap.Modal(document.getElementById('vmModal'));
+        vmModal.show();
+      });
+    });
+
+    vmForm.addEventListener('submit', async function(e) {
+      e.preventDefault();
+      alertBox.classList.add('d-none');
+
+      const username = document.getElementById('usernameInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      const packages = document.getElementById('packagesInput').value.trim();
+      const vm = vmInput.value;
+
+      if (!username || !password) {
+        showAlert('Veuillez renseigner un nom d’utilisateur et un mot de passe.', 'danger');
+        return;
+      }
+
+      submitBtn.disabled = true;
+      const originalHtml = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Création...';
+
+      try {
+        const res = await fetch('/provision_vm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ vm, username, password, packages })
+        });
+
+        if (res.ok) {
+          const data = await res.json().catch(() => ({}));
+          showAlert(data.message || 'Requête envoyée. Vous recevrez des instructions par email.', 'success');
+          vmForm.reset();
+          selectedSpan.textContent = '';
+        } else {
+          const err = await res.json().catch(() => null);
+          showAlert((err && err.message) ? err.message : 'Une erreur est survenue lors de la création.', 'danger');
+        }
+      } catch (err) {
+        showAlert('Impossible de contacter le serveur.', 'danger');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalHtml;
+      }
+    });
+
+    function showAlert(message, type) {
+      alertBox.className = `alert alert-${type}`;
+      alertBox.textContent = message;
+      alertBox.classList.remove('d-none');
+    }
+  });
+</script>
 {% endblock %}
