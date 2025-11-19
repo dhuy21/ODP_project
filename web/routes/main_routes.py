@@ -31,7 +31,7 @@ def accueil():
 @login_required
 def user_dashboard():
     """Dashboard utilisateur - délègue au contrôleur"""
-    return DashboardController.get_user_dashboard()
+    return render_template('user-dashboard.html', user_is_logged_in=True, vms=vms)
 @main_bp.route('/vm/<vm_id>', methods=['POST'])
 @login_required
 def get_vm(vm_id):
