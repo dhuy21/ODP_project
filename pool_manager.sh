@@ -6,6 +6,22 @@ POOL_NETWORK="pool-network"
 POOL_SUBNET="172.30.0.0/24"
 POOL_BASE_PORT=3000
 STATE_FILE="/tmp/pool_state.json"
+# --- Auto-detect platform architecture ---
+ARCH="$(uname -m)"
+case "${ARCH}" in
+  x86_64|amd64)
+    PLATFORM="linux/amd64"
+    echo "==> Detected architecture: Intel/AMD (Windows/Linux)"
+    ;;
+  aarch64|arm64)
+    PLATFORM="linux/arm64"
+    echo "==> Detected architecture: Apple Silicon (Mac M1/M2/M3)"
+    ;;
+  *)
+    echo "Warning: Unknown architecture ${ARCH}, defaulting to linux/amd64"
+    PLATFORM="linux/amd64"
+    ;;
+esac
 
 # Initialize pool
 init_pool() {
@@ -16,7 +32,7 @@ init_pool() {
         docker network create --subnet "${POOL_SUBNET}" "${POOL_NETWORK}"
     
     # Build base image
-    docker build -t pool-node:latest --platform=linux/arm64 -f ./Docker/ssh/Dockerfile ./Docker/ssh
+    docker build -t pool-node:latest --platform="${PLATFORM}" -f ./Docker/ssh/Dockerfile ./Docker/ssh
     
     # Initialize state file
     echo "{}" > "${STATE_FILE}"

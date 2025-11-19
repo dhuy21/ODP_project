@@ -12,7 +12,6 @@ const fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
 
 term.open(document.getElementById("terminal"));
-fitAddon.fit();
 
 const socket = io();
 
@@ -28,6 +27,9 @@ socket.on("connect", () => {
     node_name: node_name,
     password: sessionStorage.getItem("password"),
   });
+  setTimeout(() => {
+    fitAddon.fit();
+  }, 100);
 });
 
 term.onData((data) => {
