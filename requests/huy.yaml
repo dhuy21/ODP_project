@@ -1,0 +1,12 @@
+base_port: 4670
+client_id: huy
+count: 2
+packages:
+- nginx
+- git
+- vim
+password: '12345'
+roles:
+- base
+subnet_cidr: 172.28.247.0/24
+username: huy

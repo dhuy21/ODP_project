@@ -29,7 +29,7 @@ source venv/bin/activate  # For Unix/Linux
 
 Ouvrez un terminal dans le dossier `web` et lancez :
 ```bash
-pip install -r requirement.txt
+pip install -r requirements.txt
 ```
 
 3. **Lancer l’application** :

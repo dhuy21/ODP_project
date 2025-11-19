@@ -1,0 +1,33 @@
+---
+- name: Configure client nodes
+  hosts: all
+  become: yes
+  gather_facts: yes
+  
+  tasks:
+    - name: Update apt cache
+      apt:
+        update_cache: yes
+        cache_valid_time: 3600
+      
+    - name: Create user account
+      user:
+        name: "{{ username }}"
+        password: "{{ password | password_hash('sha512') }}"
+        shell: /bin/bash
+        createhome: yes
+        state: present
+      when: username is defined and password is defined
+
+    - name: Add user to sudo group
+      user:
+        name: "{{ username }}"
+        groups: sudo
+        append: yes
+      when: username is defined
+
+    - name: Install required packages
+      apt:
+        name: "{{ packages.split(',') }}"
+        state: present
+      when: packages is defined

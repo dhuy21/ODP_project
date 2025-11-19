@@ -1,0 +1,38 @@
+{% extends "layout.html" %}
+
+{% block title %}Request VM{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <div class="container">
+        <h1>Infrastructure as a Service Platform</h1>
+        
+        <form id="provisionForm">
+            <div class="form-group">
+                <label>Username</label>
+                <input type="text" name="username" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Password</label>
+                <input type="password" name="password" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Number of VMs</label>
+                <input type="number" name="vm_count" min="1" max="10" required>
+            </div>
+            
+            <div class="form-group">
+                <label>Packages (comma-separated)</label>
+                <input type="text" name="packages" value="nginx,git,vim">
+            </div>
+            
+            <button type="submit">Create Infrastructure</button>
+        </form>
+        
+        <div id="result"></div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+
+{% endblock %}

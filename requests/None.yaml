@@ -1,0 +1,8 @@
+base_port: null
+client_id: null
+count: '2'
+packages: nginx,git,vim
+password: '12345'
+roles: null
+subnet_cidr: null
+username: huy

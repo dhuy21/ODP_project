@@ -1,0 +1,12 @@
+base_port: 2790
+client_id: dinhhuydeptrai
+count: 2
+packages:
+- nginx
+- git
+- vim
+password: qwerty
+roles:
+- base
+subnet_cidr: 172.28.59.0/24
+username: dinhhuydeptrai
