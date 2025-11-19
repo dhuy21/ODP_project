@@ -1,24 +1,61 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Your Infrastructure</title>
+    <title>Your Infrastructure - {{ username }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
     <div class="container">
         <h1>Welcome {{ username }}</h1>
+        
+        <div class="access-info">
+            <h2>Your Allocated Resources</h2>
+            <p>You have been allocated {{ vm_count }} container(s) from the pool.</p>
+            <p><strong>Username:</strong> {{ username }}</p>
+            <p><strong>SSH Access:</strong> Use the terminal buttons below</p>
+        </div>
+        
         <div class="instance-grid">
-            {% set subnet_octet = (username|hash % 250) %}
-            {% for i in range(vm_count) %}
+            {% for node in nodes %}
             <div class="instance-card">
-                <h3>{{ username }}-vm{{ i + 1 }}</h3>
-                <p>IP: 172.28.{{ subnet_octet }}.{{ 11 + i }}</p>
-                <a href="/terminal/{{ username }}/{{ i + 1 }}" target="_blank" class="button">
+                <h3>{{ node.name }}</h3>
+                <p>IP: {{ node.ip }}</p>
+                <p>Port: {{ node.port }}</p>
+                <p>SSH: <code>ssh {{ username }}@127.0.0.1 -p {{ node.port }}</code></p>
+                <a href="/terminal/{{ username }}/{{ node.name }}" target="_blank" class="button">
                     Access Terminal
                 </a>
             </div>
             {% endfor %}
         </div>
+        
+        <div class="release-section">
+            <h2>Release Resources</h2>
+            <p>When you're done, release your resources back to the pool:</p>
+            <button onclick="releaseResources()" class="button" style="background:#e53e3e;">
+                Release All Resources
+            </button>
+        </div>
     </div>
+    
+    <script>
+        async function releaseResources() {
+            if (!confirm('Are you sure you want to release all resources?')) {
+                return;
+            }
+            
+            const response = await fetch('/release/{{ username }}', {
+                method: 'POST'
+            });
+            
+            const data = await response.json();
+            if (data.status === 'success') {
+                alert('Resources released successfully!');
+                window.location.href = '/';
+            } else {
+                alert('Error: ' + data.message);
+            }
+        }
+    </script>
 </body>
 </html>

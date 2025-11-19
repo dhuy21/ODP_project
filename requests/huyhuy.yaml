@@ -1,0 +1,12 @@
+base_port: 3250
+client_id: huyhuy
+count: 3
+packages:
+- nginx
+- git
+- vim
+password: test
+roles:
+- base
+subnet_cidr: 172.28.105.0/24
+username: huyhuy

@@ -1,0 +1,12 @@
+base_port: 3240
+client_id: tri
+count: 4
+packages:
+- nginx
+- git
+- vim
+password: tri
+roles:
+- base
+subnet_cidr: 172.28.104.0/24
+username: tri
