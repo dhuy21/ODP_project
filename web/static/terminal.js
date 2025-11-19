@@ -12,6 +12,7 @@ const fitAddon = new FitAddon.FitAddon();
 term.loadAddon(fitAddon);
 
 term.open(document.getElementById("terminal"));
+fitAddon.fit();
 
 const socket = io();
 
@@ -27,7 +28,6 @@ socket.on("connect", () => {
     node_name: node_name,
     password: sessionStorage.getItem("password"),
   });
-  fitAddon.fit();
 });
 
 term.onData((data) => {
@@ -48,14 +48,4 @@ window.addEventListener("resize", () => {
     cols: term.cols,
     rows: term.rows,
   });
-});
-
-// Debug connection issues
-socket.on("connect_error", (error) => {
-  console.error("Connection error:", error);
-});
-
-socket.on("disconnect", () => {
-  console.log("Disconnected from server");
-  term.write("\r\n\x1b[31mDisconnected. Attempting to reconnect...\x1b[0m\r\n");
 });
