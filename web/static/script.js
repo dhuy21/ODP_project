@@ -13,12 +13,14 @@ document.getElementById('provisionForm').addEventListener('submit', async (e) =>
         username: form.username.value,
         password: form.password.value,
         vm_count: form.vm_count.value,
+        duration: form.duration.value,
         packages: form.packages.value
     };
     
-    // Store credentials for terminal use
+    // Store credentials and duration for terminal use
     sessionStorage.setItem('username', data.username);
     sessionStorage.setItem('password', data.password);
+    sessionStorage.setItem('duration', data.duration);
     
     try {
         const response = await fetch('/provision', {

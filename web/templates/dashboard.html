@@ -3,6 +3,33 @@
 <head>
     <title>Your Infrastructure - {{ username }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        let expiryTimestamp = {{ expiry_timestamp if expiry_timestamp else 0 }};
+        
+        function updateCountdown() {
+            if (expiryTimestamp === 0) return;
+            
+            const now = Math.floor(Date.now() / 1000);
+            const remaining = expiryTimestamp - now;
+            
+            if (remaining <= 0) {
+                document.getElementById('countdown').innerHTML = '<span style="color:red">EXPIRED - Your resources have been released</span>';
+                setTimeout(() => window.location.href = '/', 3000);
+                return;
+            }
+            
+            const hours = Math.floor(remaining / 3600);
+            const minutes = Math.floor((remaining % 3600) / 60);
+            const seconds = remaining % 60;
+            
+            document.getElementById('countdown').textContent = 
+                `${hours}h ${minutes}m ${seconds}s remaining`;
+            
+            setTimeout(updateCountdown, 1000);
+        }
+        
+        window.onload = updateCountdown;
+    </script>
 </head>
 <body>
     <div class="container">
@@ -12,6 +39,8 @@
             <h2>Your Allocated Resources</h2>
             <p>You have been allocated {{ vm_count }} container(s) from the pool.</p>
             <p><strong>Username:</strong> {{ username }}</p>
+            <p><strong>Duration:</strong> {{ duration }} minutes</p>
+            <p><strong>Time Remaining:</strong> <span id="countdown">Calculating...</span></p>
             <p><strong>SSH Access:</strong> Use the terminal buttons below</p>
         </div>
         
@@ -30,8 +59,8 @@
         </div>
         
         <div class="release-section">
-            <h2>Release Resources</h2>
-            <p>When you're done, release your resources back to the pool:</p>
+            <h2>Release Resources Early</h2>
+            <p>If you're done before the time expires, you can release your resources:</p>
             <button onclick="releaseResources()" class="button" style="background:#e53e3e;">
                 Release All Resources
             </button>

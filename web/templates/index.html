@@ -33,6 +33,20 @@
             </div>
             
             <div class="form-group">
+                <label>Reservation Duration</label>
+                <select name="duration" required>
+                    <option value="1">1 minute</option>
+                    <option value="60" selected>1 hour</option>
+                    <option value="120">2 hours</option>
+                    <option value="180">3 hours</option>
+                    <option value="360">6 hours</option>
+                    <option value="720">12 hours</option>
+                    <option value="1440">24 hours</option>
+                </select>
+                <small>Your containers will be automatically released after this duration</small>
+            </div>
+            
+            <div class="form-group">
                 <label>Software Packages (comma-separated)</label>
                 <input type="text" name="packages" value="nginx,git,vim" placeholder="nginx,git,vim">
                 <small>These packages will be installed on your VMs</small>

@@ -76,12 +76,20 @@ def provision():
     username = data['username']
     password = data['password']
     vm_count = int(data['vm_count'])
+    duration = int(data.get('duration', 60))  # Duration in minutes
     packages = data['packages'].split(',') if data['packages'] else []
     
     try:
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         
         # Check available containers first
+        status_result = subprocess.run(
+            ['./pool_manager.sh', 'check-expired'],
+            capture_output=True,
+            text=True,
+            cwd=project_dir
+        )
+        
         status_result = subprocess.run(
             ['./pool_manager.sh', 'status'],
             capture_output=True,
@@ -98,9 +106,9 @@ def provision():
                 'message': f'Not enough containers available. You need {vm_count} but only {free_count} are free.'
             })
         
-        # Allocate containers from pool
+        # Allocate containers from pool with duration
         result = subprocess.run(
-            ['./pool_manager.sh', 'allocate', username, str(vm_count), username, password],
+            ['./pool_manager.sh', 'allocate', username, str(vm_count), username, password, str(duration)],
             capture_output=True,
             text=True,
             cwd=project_dir
@@ -115,15 +123,16 @@ def provision():
                 'message': 'Failed to allocate containers'
             })
         
-        # Parse allocated nodes
+        # Parse allocated nodes and expiry time
         allocated_nodes = []
+        expiry_time = None
+        
         for line in result.stdout.split('\n'):
             if 'Allocated' in line:
-                # Parse: "   - Allocated pool-node-1 (172.30.0.11:3000)"
                 parts = line.strip().split()
                 if len(parts) >= 4:
-                    node_name = parts[2]  # pool-node-1
-                    ip_port = parts[3].strip('()')  # 172.30.0.11:3000
+                    node_name = parts[2]
+                    ip_port = parts[3].strip('()')
                     if ':' in ip_port:
                         ip, port = ip_port.split(':')
                         
@@ -132,6 +141,10 @@ def provision():
                             'port': port,
                             'ip': ip
                         })
+                        
+                        # Extract expiry time from the line
+                        if 'until' in line:
+                            expiry_time = line.split('until')[1].strip()
         
         if not allocated_nodes:
             return jsonify({
@@ -139,7 +152,6 @@ def provision():
                 'message': 'Failed to parse allocated containers'
             })
         
-        # Wait for containers to be ready
         time.sleep(2)
         
         # Create inventory for Ansible
@@ -155,7 +167,7 @@ def provision():
             if packages:
                 f.write(f"packages={','.join(packages)}\n")
         
-        # Run Ansible to configure if packages or user requested
+        # Run Ansible to configure
         if packages or username or password:
             ansible_cmd = [
                 'ansible-playbook',
@@ -177,7 +189,9 @@ def provision():
         client_allocations[username] = {
             'nodes': allocated_nodes,
             'username': username,
-            'password': password
+            'password': password,
+            'duration': duration,
+            'expiry': expiry_time
         }
         
         return jsonify({
@@ -198,11 +212,18 @@ def provision():
 def dashboard(username, vm_count):
     allocation = client_allocations.get(username, {})
     nodes = allocation.get('nodes', [])
+    duration = allocation.get('duration', 60)
+    
+    # Calculate expiry timestamp
+    import time
+    expiry_timestamp = int(time.time()) + (duration * 60)
     
     return render_template('dashboard.html', 
                          username=username, 
                          vm_count=vm_count,
-                         nodes=nodes)
+                         nodes=nodes,
+                         duration=duration,
+                         expiry_timestamp=expiry_timestamp)
 
 @app.route('/release/<username>', methods=['POST'])
 def release_resources(username):
