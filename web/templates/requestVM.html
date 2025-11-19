@@ -1,10 +1,9 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>IaaS Platform</title>
+{% extends "layout.html" %}
+
+{% block title %}Request VM{% endblock %}
+
+{% block content %}
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
     <div class="container">
         <h1>Infrastructure as a Service Platform</h1>
         
@@ -35,5 +34,5 @@
         <div id="result"></div>
     </div>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+
+{% endblock %}

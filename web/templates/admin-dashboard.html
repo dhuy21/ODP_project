@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+    <div class="container">
+        <h1>Welcome {{ username }}</h1>
+        <div class="instance-grid">
+            {% set subnet_octet = (username|hash % 250) %}
+            {% if vm_count > 0 %}
+                {% for i in range(vm_count) %}
+                <div class="instance-card">
+                    <h3>{{ username }}-vm{{ i + 1 }}</h3>
+                    <p>IP: 172.28.{{ subnet_octet }}.{{ 11 + i }}</p>
+                    <a href="/terminal/{{ username }}/{{ i + 1 }}" target="_blank" class="button">
+                        Access Terminal
+                    </a>
+                </div>
+                {% endfor %}
+            {% else %}
+                <p>No VMs found for {{ username }}</p>
+                <a href="{{ url_for('provision.request_vm') }}" class="button">Request VM for {{ username }}</a>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
