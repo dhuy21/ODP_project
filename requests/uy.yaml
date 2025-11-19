@@ -1,0 +1,12 @@
+base_port: 2340
+client_id: uy
+count: 2
+packages:
+- nginx
+- git
+- vim
+password: '12345'
+roles:
+- base
+subnet_cidr: 172.28.14.0/24
+username: uy

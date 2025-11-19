@@ -17,7 +17,8 @@ def register():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        return AuthController.register_user(username, password)
+        role = request.form['role']
+        return AuthController.register_user(username, password, role)
     return render_template('register.html')
 
 @auth_bp.route('/logout')

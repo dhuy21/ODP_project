@@ -1,0 +1,11 @@
+client_id: clientA
+count: 3                  # 3 machines à créer
+subnet_cidr: 172.28.10.0/24
+bastion_port: 22222       
+packages:
+  - nginx
+  - git
+  - vim
+roles:
+  - base
+  - web

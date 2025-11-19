@@ -1,0 +1,45 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.define "node1" do |node|
+    node.vm.provider "docker" do |d|
+      d.image = "labnode:22.04"   # <— remplacer l'ancien d.build_dir
+      d.name  = "lab_node1"
+      d.ports = ["127.0.0.1:2200:22"]
+      d.volumes = ["#{File.dirname(__FILE__)}:/vagrant"]
+      
+      # Add platform specification for Apple Silicon
+      d.create_args = ["--platform=linux/arm64"]
+      
+      # Enable stdin for interactive docker commands
+      d.has_ssh = true
+      d.remains_running = true
+    end
+  end
+  
+  # Define nodes 2 and 3
+  config.vm.define "node2" do |node|
+    node.vm.provider "docker" do |d|
+      d.image = "labnode:22.04"
+      d.name  = "lab_node2"
+      d.ports = ["127.0.0.1:2201:22"]
+      d.volumes = ["#{File.dirname(__FILE__)}:/vagrant"]
+      d.create_args = ["--platform=linux/arm64"]
+      d.has_ssh = true
+      d.remains_running = true
+    end
+  end
+  
+  config.vm.define "node3" do |node|
+    node.vm.provider "docker" do |d|
+      d.image = "labnode:22.04"
+      d.name  = "lab_node3"
+      d.ports = ["127.0.0.1:2202:22"]
+      d.volumes = ["#{File.dirname(__FILE__)}:/vagrant"]
+      d.create_args = ["--platform=linux/arm64"]
+      d.has_ssh = true
+      d.remains_running = true
+    end
+  end
+end
