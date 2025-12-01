@@ -9,6 +9,7 @@ class AuthController:
         user = User.query.filter_by(username=username).first()
         if user and user.check_password(password):
             session['user_id'] = user.id
+            session['role'] = user.role
             flash('Connexion reussie.')
             if user.is_admin:
                 return redirect(url_for('main.admin_dashboard'))
@@ -34,6 +35,7 @@ class AuthController:
     @staticmethod
     def logout_user():
         session.pop('user_id', None)
+        session.pop('role', None)
         flash('Deconnexion reussie.')
         return redirect(url_for('auth.login'))
 

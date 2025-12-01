@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, jsonify, redirect, url_for
+from flask import Blueprint, render_template, request, jsonify, redirect, url_for, session
 from middlewares.auth import login_required
 from controller.dashboard_controller import DashboardController
 
@@ -16,22 +16,22 @@ vms = [
 
 @main_bp.route('/aboutus')
 def aboutus():
-    return render_template('aboutus.html')
+    return render_template('aboutus.html', role=session.get('role'))
 
 @main_bp.route('/')
 @login_required
 def dashboard():
-    return render_template('dashboard.html', user_is_logged_in=True, vms=vms)
+    return render_template('dashboard.html', role=session.get('role'), vms=vms)
 
 @main_bp.route('/acceuil')
 def accueil():
-    return render_template('accueil.html')
+    return render_template('accueil.html', role=session.get('role'))
 
 @main_bp.route('/user-dashboard')
 @login_required
 def user_dashboard():
     """Dashboard utilisateur - délègue au contrôleur"""
-    return render_template('user-dashboard.html', user_is_logged_in=True, vms=vms)
+    return render_template('user-dashboard.html', role=session.get('role'), vms=vms)
 @main_bp.route('/vm/<vm_id>', methods=['POST'])
 @login_required
 def get_vm(vm_id):
