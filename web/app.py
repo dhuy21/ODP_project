@@ -77,6 +77,15 @@ def dashboard_home():
     # Get pool status
     try:
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        # Run health check
+        subprocess.run(
+            ['./pool_manager.sh', 'health-check'],
+            capture_output=True,
+            text=True,
+            cwd=project_dir
+        )
+        
         result = subprocess.run(
             ['./pool_manager.sh', 'status'],
             capture_output=True,
@@ -86,7 +95,7 @@ def dashboard_home():
         
         free_count = 0
         for line in result.stdout.split('\n'):
-            if 'free' in line and 'pool-node-' in line and 'allocated' not in line:
+            if 'free' in line and 'pool-node-' in line and 'allocated' not in line and 'error' not in line:
                 free_count += 1
         
         available = free_count
@@ -97,8 +106,17 @@ def dashboard_home():
     # Get user's reservations
     reservations = user_db.get_user_reservations(username)
     
-    # Get active reservations
-    active_reservations = [r for r in reservations if r.get('status') == 'active']
+    # Check health of active reservations
+    active_reservations = []
+    for r in reservations:
+        if r.get('status') == 'active':
+            # Check if containers still exist
+            if not check_reservation_health(username, r):
+                # Mark as deleted
+                user_db.update_reservation_status(username, r['id'], 'deleted')
+                r['status'] = 'deleted'
+            else:
+                active_reservations.append(r)
     
     return render_template('dashboard_home.html', 
                          username=username,
@@ -493,6 +511,30 @@ def handle_disconnect():
 def timestamp_to_date(timestamp):
     from datetime import datetime
     return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
+
+def check_reservation_health(username, reservation):
+    """Check if reservation's containers are still running"""
+    try:
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        
+        for node in reservation.get('nodes', []):
+            node_name = node['name']
+            
+            # Check if container is running
+            result = subprocess.run(
+                ['docker', 'ps', '-q', '-f', f'name=^{node_name}$'],
+                capture_output=True,
+                text=True,
+                cwd=project_dir
+            )
+            
+            if not result.stdout.strip():
+                # Container not running - mark reservation as error
+                return False
+        
+        return True
+    except:
+        return False
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=5001)

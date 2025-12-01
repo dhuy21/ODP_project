@@ -89,8 +89,11 @@
                         <td style="padding:0.5rem;">{{ reservation.vm_count }}</td>
                         <td style="padding:0.5rem;">{{ reservation.duration }} min</td>
                         <td style="padding:0.5rem;">
-                            <span style="color:{% if reservation.status == 'active' %}#48bb78{% else %}#718096{% endif %}">
+                            <span style="color:{% if reservation.status == 'active' %}#48bb78{% elif reservation.status == 'deleted' %}#e53e3e{% else %}#718096{% endif %}">
                                 {{ reservation.status }}
+                                {% if reservation.status == 'deleted' %}
+                                ⚠️ (Containers manually deleted)
+                                {% endif %}
                             </span>
                         </td>
                         <td style="padding:0.5rem;">{{ reservation.created_at|int|timestamp_to_date }}</td>

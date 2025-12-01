@@ -339,6 +339,136 @@ PY
     done
 }
 
+# Health check - verify all containers are running
+health_check() {
+    echo "==> Performing health check"
+    
+    local missing_count=0
+    local stopped_count=0
+    
+    for i in $(seq 1 "${POOL_SIZE}"); do
+        local name="pool-node-${i}"
+        
+        # Check if container exists and is running
+        if ! docker ps -q -f name="^${name}$" | grep -q .; then
+            # Container is missing or stopped
+            if docker ps -a -q -f name="^${name}$" | grep -q .; then
+                echo "   - ${name}: STOPPED"
+                stopped_count=$((stopped_count + 1))
+            else
+                echo "   - ${name}: MISSING"
+                missing_count=$((missing_count + 1))
+            fi
+            
+            # Get client from state file
+            local client=$(python3 - "${STATE_FILE}" "${name}" <<'PY'
+import sys, json
+try:
+    with open(sys.argv[1], 'r') as f:
+        state = json.load(f)
+    print(state.get(sys.argv[2], {}).get("client", ""))
+except:
+    print("")
+PY
+)
+            
+            local status=$(python3 - "${STATE_FILE}" "${name}" <<'PY'
+import sys, json
+try:
+    with open(sys.argv[1], 'r') as f:
+        state = json.load(f)
+    print(state.get(sys.argv[2], {}).get("status", "free"))
+except:
+    print("free")
+PY
+)
+            
+            # If container was allocated, mark it as error
+            if [ "${status}" = "allocated" ] && [ -n "${client}" ]; then
+                echo "      WARNING: Container was allocated to ${client}"
+                
+                # Mark as error in state file
+                python3 - "${STATE_FILE}" "${name}" "error" "${client}" "0" <<'PY'
+import sys, json
+state_file, name, status, client, expiry = sys.argv[1:6]
+try:
+    with open(state_file, 'r') as f:
+        state = json.load(f)
+except:
+    state = {}
+state[name] = {"status": status, "client": client, "expiry": 0}
+with open(state_file, 'w') as f:
+    json.dump(state, f)
+PY
+            fi
+        fi
+    done
+    
+    if [ $((missing_count + stopped_count)) -gt 0 ]; then
+        echo ""
+        echo "==> Health check FAILED:"
+        echo "    - Missing containers: ${missing_count}"
+        echo "    - Stopped containers: ${stopped_count}"
+        echo ""
+        echo "Run './pool_manager.sh recover' to attempt automatic recovery"
+        return 1
+    else
+        echo "==> Health check PASSED: All ${POOL_SIZE} containers are running"
+        return 0
+    fi
+}
+
+# Recover missing or stopped containers
+recover_pool() {
+    echo "==> Attempting to recover pool"
+    
+    for i in $(seq 1 "${POOL_SIZE}"); do
+        local name="pool-node-${i}"
+        local ip="172.30.0.$((10+i))"
+        local port=$((POOL_BASE_PORT+i-1))
+        
+        # Check if container is running
+        if docker ps -q -f name="^${name}$" | grep -q .; then
+            echo "   - ${name}: OK"
+            continue
+        fi
+        
+        # Check if container exists but stopped
+        if docker ps -a -q -f name="^${name}$" | grep -q .; then
+            echo "   - ${name}: Restarting..."
+            docker start "${name}" >/dev/null
+        else
+            echo "   - ${name}: Recreating..."
+            
+            # Remove from state first
+            docker rm -f "${name}" 2>/dev/null || true
+            
+            # Recreate container
+            docker run -d --restart unless-stopped \
+                --name "${name}" \
+                --network "${POOL_NETWORK}" --ip "${ip}" \
+                -p "127.0.0.1:${port}:22" \
+                pool-node:latest >/dev/null
+        fi
+        
+        # Reset to free state
+        python3 - "${STATE_FILE}" "${name}" "free" "" "0" <<'PY'
+import sys, json
+state_file, name, status, client, expiry = sys.argv[1:6]
+try:
+    with open(state_file, 'r') as f:
+        state = json.load(f)
+except:
+    state = {}
+state[name] = {"status": status, "client": client, "expiry": int(expiry)}
+with open(state_file, 'w') as f:
+    json.dump(state, f)
+PY
+    done
+    
+    echo "==> Recovery complete"
+}
+
 # Main command handler
 case "${1:-}" in
     init)
@@ -353,17 +483,25 @@ case "${1:-}" in
     check-expired)
         check_expired
         ;;
+    health-check)
+        health_check
+        ;;
+    recover)
+        recover_pool
+        ;;
     status)
         show_status
         ;;
     *)
-        echo "Usage: $0 {init|allocate|release|check-expired|status}"
+        echo "Usage: $0 {init|allocate|release|check-expired|health-check|recover|status}"
         echo ""
         echo "Commands:"
         echo "  init                                    - Initialize container pool"
-        echo "  allocate <client> <count> <user> <pass> [duration] - Allocate containers (duration in minutes, default 60)"
+        echo "  allocate <client> <count> <user> <pass> [duration] - Allocate containers"
         echo "  release <client>                        - Release client's containers"
         echo "  check-expired                           - Check and release expired allocations"
+        echo "  health-check                            - Verify all containers are running"
+        echo "  recover                                 - Recover missing/stopped containers"
         echo "  status                                  - Show pool status"
         exit 1
         ;;

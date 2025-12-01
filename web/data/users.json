@@ -60,6 +60,26 @@
           "vim"
         ],
         "status": "active"
+      },
+      {
+        "id": "840fa14a-e79e-4faa-b184-80a1f0af7e6e",
+        "created_at": 1764589781.5035038,
+        "expires_at": 1764593381.5035038,
+        "duration": 60,
+        "vm_count": 1,
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "port": "3000",
+            "ip": "172.30.0.11"
+          }
+        ],
+        "packages": [
+          "nginx",
+          "git",
+          "vim"
+        ],
+        "status": "active"
       }
     ]
   }
