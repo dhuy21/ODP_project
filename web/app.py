@@ -1,19 +1,79 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, session, redirect, url_for
 from flask_socketio import SocketIO, emit
 import paramiko
 import yaml
 import subprocess
 import os
 import time
+import uuid
+from functools import wraps
+
+# Import user database
+import sys
+sys.path.append(os.path.dirname(__file__))
+from models.user import UserDatabase
 
 app = Flask(__name__)
+app.secret_key = 'your-secret-key-change-this-in-production'  # Change this!
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins="*")
 
 ssh_connections = {}
-client_allocations = {}  # Track client allocations
+client_allocations = {}
+user_db = UserDatabase()
+
+# Login required decorator
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @app.route('/')
 def index():
+    if 'username' in session:
+        return redirect(url_for('dashboard_home'))
+    return redirect(url_for('login'))
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'GET':
+        return render_template('register.html')
+    
+    data = request.json
+    result = user_db.register_user(
+        data['username'],
+        data['email'],
+        data['password']
+    )
+    
+    return jsonify(result)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'GET':
+        return render_template('login.html')
+    
+    data = request.json
+    result = user_db.login_user(data['username'], data['password'])
+    
+    if result['status'] == 'success':
+        session['username'] = result['user']
+        session['logged_in'] = True
+    
+    return jsonify(result)
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+@app.route('/dashboard')
+@login_required
+def dashboard_home():
+    username = session['username']
+    
     # Get pool status
     try:
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -24,10 +84,9 @@ def index():
             cwd=project_dir
         )
         
-        # Count containers with status=free
         free_count = 0
         for line in result.stdout.split('\n'):
-            if 'free' in line and 'pool-node-' in line:
+            if 'free' in line and 'pool-node-' in line and 'allocated' not in line:
                 free_count += 1
         
         available = free_count
@@ -35,11 +94,21 @@ def index():
         print(f"Error getting pool status: {e}")
         available = 0
     
-    return render_template('index.html', available_containers=available)
+    # Get user's reservations
+    reservations = user_db.get_user_reservations(username)
+    
+    # Get active reservations
+    active_reservations = [r for r in reservations if r.get('status') == 'active']
+    
+    return render_template('dashboard_home.html', 
+                         username=username,
+                         available_containers=available,
+                         reservations=reservations,
+                         active_reservations=active_reservations)
 
 @app.route('/pool/status', methods=['GET'])
+@login_required
 def pool_status():
-    """Get current pool status"""
     try:
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         result = subprocess.run(
@@ -49,7 +118,6 @@ def pool_status():
             cwd=project_dir
         )
         
-        # Count containers more accurately
         free_count = 0
         allocated_count = 0
         
@@ -67,34 +135,37 @@ def pool_status():
             'allocated': allocated_count
         })
     except Exception as e:
-        print(f"Error: {e}")
         return jsonify({'status': 'error', 'message': str(e)})
 
 @app.route('/provision', methods=['POST'])
+@login_required
 def provision():
     data = request.json
-    username = data['username']
-    password = data['password']
+    username = session['username']
+    vm_password = data['password']
     vm_count = int(data['vm_count'])
-    duration = int(data.get('duration', 60))  # Duration in minutes
-    packages = data['packages'].split(',') if data['packages'] else []
+    duration = int(data.get('duration', 60))
+    packages = data.get('packages', '').strip()
     
     try:
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         
-        # Check available containers first
-        status_result = subprocess.run(
+        # Check and release expired containers first
+        subprocess.run(
             ['./pool_manager.sh', 'check-expired'],
             capture_output=True,
             text=True,
-            cwd=project_dir
+            cwd=project_dir,
+            timeout=5
         )
         
+        # Check available containers
         status_result = subprocess.run(
             ['./pool_manager.sh', 'status'],
             capture_output=True,
             text=True,
-            cwd=project_dir
+            cwd=project_dir,
+            timeout=5
         )
         
         free_count = sum(1 for line in status_result.stdout.split('\n') 
@@ -106,129 +177,173 @@ def provision():
                 'message': f'Not enough containers available. You need {vm_count} but only {free_count} are free.'
             })
         
-        # Allocate containers from pool with duration
+        # Generate unique reservation ID
+        reservation_id = str(uuid.uuid4())
+        
+        print(f"[DEBUG] Allocating {vm_count} containers for {username}")
+        
+        # Allocate containers (pool_manager.sh creates the user)
         result = subprocess.run(
-            ['./pool_manager.sh', 'allocate', username, str(vm_count), username, password, str(duration)],
+            ['./pool_manager.sh', 'allocate', username, str(vm_count), username, vm_password, str(duration)],
             capture_output=True,
             text=True,
-            cwd=project_dir
+            cwd=project_dir,
+            timeout=30
         )
         
-        print(f"Allocation output: {result.stdout}")
-        print(f"Allocation errors: {result.stderr}")
+        print(f"[DEBUG] Allocation stdout: {result.stdout}")
+        if result.stderr:
+            print(f"[DEBUG] Allocation stderr: {result.stderr}")
         
         if result.returncode != 0:
             return jsonify({
                 'status': 'error',
-                'message': 'Failed to allocate containers'
+                'message': f'Failed to allocate containers: {result.stderr}'
             })
         
-        # Parse allocated nodes and expiry time
+        # Parse allocated nodes
         allocated_nodes = []
-        expiry_time = None
         
         for line in result.stdout.split('\n'):
-            if 'Allocated' in line:
-                parts = line.strip().split()
-                if len(parts) >= 4:
-                    node_name = parts[2]
-                    ip_port = parts[3].strip('()')
+            if 'Allocated' in line and '(' in line:
+                try:
+                    parts = line.strip().split()
+                    node_name = parts[2]  # pool-node-X
+                    ip_port = parts[3].strip('()')  # 172.30.0.11:3000
+                    
                     if ':' in ip_port:
                         ip, port = ip_port.split(':')
-                        
                         allocated_nodes.append({
                             'name': node_name,
                             'port': port,
                             'ip': ip
                         })
-                        
-                        # Extract expiry time from the line
-                        if 'until' in line:
-                            expiry_time = line.split('until')[1].strip()
+                        print(f"[DEBUG] Parsed node: {node_name} at {ip}:{port}")
+                except Exception as e:
+                    print(f"[DEBUG] Failed to parse line: {line} - {e}")
+                    continue
         
         if not allocated_nodes:
             return jsonify({
                 'status': 'error',
-                'message': 'Failed to parse allocated containers'
+                'message': 'Failed to parse allocated containers. Check server logs.'
             })
         
-        time.sleep(2)
+        print(f"[DEBUG] Successfully allocated {len(allocated_nodes)} nodes")
         
-        # Create inventory for Ansible
-        inventory_file = os.path.join(project_dir, 'Ansible', f'inventory_{username}.ini')
-        with open(inventory_file, 'w') as f:
-            f.write(f"[{username}]\n")
-            for node in allocated_nodes:
-                f.write(f"{node['name']} ansible_host=127.0.0.1 ansible_port={node['port']} ")
-                f.write(f"ansible_user=vagrant ansible_ssh_private_key_file={os.path.expanduser('~/.vagrant.d/insecure_private_key')}\n")
-            f.write(f"\n[{username}:vars]\n")
-            f.write(f"username={username}\n")
-            f.write(f"password={password}\n")
-            if packages:
-                f.write(f"packages={','.join(packages)}\n")
-        
-        # Run Ansible to configure
-        if packages or username or password:
-            ansible_cmd = [
-                'ansible-playbook',
-                '-i', inventory_file,
-                'Ansible/playbook.yml'
-            ]
+        # Install packages in background ONLY if packages specified
+        if packages:
+            package_list = [p.strip() for p in packages.split(',') if p.strip()]
             
-            ansible_result = subprocess.run(
-                ansible_cmd,
-                capture_output=True,
-                text=True,
-                cwd=project_dir
-            )
-            
-            if ansible_result.returncode != 0:
-                print(f"Ansible warning: {ansible_result.stderr}")
+            if package_list:
+                print(f"[DEBUG] Will install packages: {package_list}")
+                
+                # Create inventory for Ansible
+                inventory_file = os.path.join(project_dir, 'Ansible', f'inventory_{username}.ini')
+                with open(inventory_file, 'w') as f:
+                    f.write(f"[{username}]\n")
+                    for node in allocated_nodes:
+                        f.write(f"{node['name']} ansible_host=127.0.0.1 ansible_port={node['port']} ")
+                        f.write(f"ansible_user={username} ansible_ssh_pass={vm_password} ")
+                        f.write(f"ansible_become_pass={vm_password}\n")
+                    f.write(f"\n[{username}:vars]\n")
+                    f.write(f"ansible_ssh_common_args='-o StrictHostKeyChecking=no'\n")
+                    f.write(f"packages={','.join(package_list)}\n")
+                
+                # Run Ansible in background (completely non-blocking)
+                def run_ansible_background():
+                    try:
+                        print(f"[ANSIBLE] Starting package installation for {username}")
+                        ansible_result = subprocess.run(
+                            ['ansible-playbook', '-i', inventory_file, 'Ansible/playbook.yml'],
+                            capture_output=True,
+                            text=True,
+                            cwd=project_dir,
+                            timeout=300  # 5 minutes max
+                        )
+                        if ansible_result.returncode == 0:
+                            print(f"[ANSIBLE] Successfully installed packages for {username}")
+                        else:
+                            print(f"[ANSIBLE] Failed to install packages: {ansible_result.stderr}")
+                    except Exception as e:
+                        print(f"[ANSIBLE] Error: {e}")
+                
+                import threading
+                threading.Thread(target=run_ansible_background, daemon=True).start()
         
-        # Store allocation info
+        # Save reservation to database
+        reservation_data = {
+            'id': reservation_id,
+            'created_at': time.time(),
+            'expires_at': time.time() + (duration * 60),
+            'duration': duration,
+            'vm_count': vm_count,
+            'nodes': allocated_nodes,
+            'packages': package_list if packages else [],
+            'status': 'active'
+        }
+        
+        user_db.add_reservation(username, reservation_data)
+        
+        # Store allocation info in memory
         client_allocations[username] = {
             'nodes': allocated_nodes,
             'username': username,
-            'password': password,
+            'password': vm_password,
             'duration': duration,
-            'expiry': expiry_time
+            'reservation_id': reservation_id
         }
+        
+        print(f"[DEBUG] Reservation {reservation_id} created successfully")
         
         return jsonify({
             'status': 'success',
-            'redirect': f"/dashboard/{username}/{vm_count}"
+            'redirect': f"/reservation/{reservation_id}"
         })
         
+    except subprocess.TimeoutExpired:
+        print("[ERROR] Allocation timeout")
+        return jsonify({
+            'status': 'error',
+            'message': 'Allocation timeout - the system is busy, please try again'
+        })
     except Exception as e:
-        print(f"Error in provision: {str(e)}")
+        print(f"[ERROR] Provision failed: {str(e)}")
         import traceback
         traceback.print_exc()
         return jsonify({
             'status': 'error',
-            'message': str(e)
+            'message': f'Internal error: {str(e)}'
         })
 
-@app.route('/dashboard/<username>/<int:vm_count>')
-def dashboard(username, vm_count):
-    allocation = client_allocations.get(username, {})
-    nodes = allocation.get('nodes', [])
-    duration = allocation.get('duration', 60)
+@app.route('/reservation/<reservation_id>')
+@login_required
+def view_reservation(reservation_id):
+    username = session['username']
+    reservations = user_db.get_user_reservations(username)
     
-    # Calculate expiry timestamp
-    import time
-    expiry_timestamp = int(time.time()) + (duration * 60)
+    reservation = next((r for r in reservations if r['id'] == reservation_id), None)
     
-    return render_template('dashboard.html', 
-                         username=username, 
-                         vm_count=vm_count,
-                         nodes=nodes,
-                         duration=duration,
-                         expiry_timestamp=expiry_timestamp)
+    if not reservation:
+        return redirect(url_for('dashboard_home'))
+    
+    return render_template('reservation_detail.html',
+                         username=username,
+                         reservation=reservation)
 
 @app.route('/release/<username>', methods=['POST'])
+@login_required
 def release_resources(username):
-    """Release client's resources back to pool"""
+    if session['username'] != username:
+        return jsonify({
+            'status': 'error',
+            'message': 'Unauthorized'
+        })
+    
     try:
+        data = request.json
+        reservation_id = data.get('reservation_id')
+        
         project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
         
         result = subprocess.run(
@@ -237,6 +352,10 @@ def release_resources(username):
             text=True,
             cwd=project_dir
         )
+        
+        # Update reservation status
+        if reservation_id:
+            user_db.update_reservation_status(username, reservation_id, 'released')
         
         if username in client_allocations:
             del client_allocations[username]
@@ -252,7 +371,11 @@ def release_resources(username):
         })
 
 @app.route('/terminal/<username>/<node_name>')
+@login_required
 def terminal(username, node_name):
+    if session['username'] != username:
+        return redirect(url_for('dashboard_home'))
+    
     return render_template('terminal.html', username=username, node_name=node_name)
 
 @socketio.on('connect_ssh')
@@ -264,6 +387,11 @@ def handle_ssh_connection(data):
         username = data['username']
         node_name = data['node_name']
         
+        # Check if user is authorized
+        if 'username' not in session or session['username'] != username:
+            emit('error', {'message': 'Unauthorized'})
+            return
+        
         # Find node port
         allocation = client_allocations.get(username, {})
         node = next((n for n in allocation.get('nodes', []) if n['name'] == node_name), None)
@@ -274,9 +402,6 @@ def handle_ssh_connection(data):
         
         port = int(node['port'])
         
-        print(f"Connecting to {node_name} on port {port}")
-        
-        # Try with user credentials
         connected = False
         if data.get('password'):
             try:
@@ -290,11 +415,9 @@ def handle_ssh_connection(data):
                     timeout=10
                 )
                 connected = True
-                print(f"Connected as {username}")
             except Exception as e:
                 print(f"User auth failed: {e}")
         
-        # Fallback to vagrant
         if not connected:
             ssh.connect(
                 '127.0.0.1',
@@ -305,7 +428,6 @@ def handle_ssh_connection(data):
                 allow_agent=False,
                 timeout=10
             )
-            print("Connected as vagrant")
         
         channel = ssh.invoke_shell(term='xterm', width=80, height=24)
         channel.setblocking(0)
@@ -328,14 +450,12 @@ def handle_ssh_connection(data):
                         output = channel.recv(4096).decode('utf-8', 'ignore')
                         socketio.emit('output', {'data': output}, room=session_id)
                 except Exception as e:
-                    print(f"Read error: {e}")
                     break
                 socketio.sleep(0.01)
         
         socketio.start_background_task(read_output)
         
     except Exception as e:
-        print(f"SSH Error: {e}")
         emit('error', {'message': str(e)})
 
 @socketio.on('input')
@@ -356,7 +476,7 @@ def handle_resize(data):
                 width=data['cols'], 
                 height=data['rows']
             )
-        except Exception as e:
+        except:
             pass
 
 @socketio.on('disconnect')
@@ -368,6 +488,11 @@ def handle_disconnect():
         except:
             pass
         del ssh_connections[session_id]
+
+@app.template_filter('timestamp_to_date')
+def timestamp_to_date(timestamp):
+    from datetime import datetime
+    return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=5001)

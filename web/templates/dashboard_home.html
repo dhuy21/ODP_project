@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dashboard - {{ username }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h1>Welcome, {{ username }}!</h1>
+            <a href="{{ url_for('logout') }}" class="button" style="background:#e53e3e; width:auto;">Logout</a>
+        </div>
+        
+        <div class="pool-status">
+            <h2>Resource Pool Status</h2>
+            <p>Available Containers: <span id="available-count">{{ available_containers }}</span> / 10</p>
+            <button onclick="refreshPoolStatus()" class="button">Refresh Status</button>
+        </div>
+        
+        {% if active_reservations %}
+        <div class="access-info">
+            <h2>Your Active Reservations</h2>
+            {% for reservation in active_reservations %}
+            <div style="border-bottom: 1px solid #38b2ac; padding: 1rem 0;">
+                <p><strong>Reservation ID:</strong> {{ reservation.id[:8] }}...</p>
+                <p><strong>VMs:</strong> {{ reservation.vm_count }}</p>
+                <p><strong>Duration:</strong> {{ reservation.duration }} minutes</p>
+                <p><strong>Status:</strong> <span style="color:#48bb78">{{ reservation.status }}</span></p>
+                <a href="{{ url_for('view_reservation', reservation_id=reservation.id) }}" class="button" style="width:auto; display:inline-block; margin-top:0.5rem;">View Details</a>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <h2>Create New Reservation</h2>
+        <form id="provisionForm">
+            <div class="form-group">
+                <label>VM Password</label>
+                <input type="password" name="password" required placeholder="Password for VM access">
+                <small>This password will be used to access your VMs</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Number of VMs</label>
+                <input type="number" name="vm_count" min="1" max="5" required value="1">
+                <small>Maximum 5 VMs per request</small>
+            </div>
+            
+            <div class="form-group">
+                <label>Reservation Duration</label>
+                <select name="duration" required>
+                    <option value="1">1 minute</option>
+                    <option value="60" selected>1 hour</option>
+                    <option value="120">2 hours</option>
+                    <option value="180">3 hours</option>
+                    <option value="360">6 hours</option>
+                    <option value="720">12 hours</option>
+                    <option value="1440">24 hours</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label>Software Packages (comma-separated)</label>
+                <input type="text" name="packages" value="nginx,git,vim" placeholder="nginx,git,vim">
+            </div>
+            
+            <button type="submit">Create Reservation</button>
+        </form>
+        
+        <div id="result"></div>
+        
+        {% if reservations %}
+        <div class="release-section">
+            <h2>Reservation History</h2>
+            <table style="width:100%; border-collapse:collapse;">
+                <thead>
+                    <tr style="background:#edf2f7;">
+                        <th style="padding:0.5rem; text-align:left;">ID</th>
+                        <th style="padding:0.5rem; text-align:left;">VMs</th>
+                        <th style="padding:0.5rem; text-align:left;">Duration</th>
+                        <th style="padding:0.5rem; text-align:left;">Status</th>
+                        <th style="padding:0.5rem; text-align:left;">Created</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for reservation in reservations %}
+                    <tr style="border-bottom:1px solid #e2e8f0;">
+                        <td style="padding:0.5rem;">{{ reservation.id[:8] }}...</td>
+                        <td style="padding:0.5rem;">{{ reservation.vm_count }}</td>
+                        <td style="padding:0.5rem;">{{ reservation.duration }} min</td>
+                        <td style="padding:0.5rem;">
+                            <span style="color:{% if reservation.status == 'active' %}#48bb78{% else %}#718096{% endif %}">
+                                {{ reservation.status }}
+                            </span>
+                        </td>
+                        <td style="padding:0.5rem;">{{ reservation.created_at|int|timestamp_to_date }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        async function refreshPoolStatus() {
+            const response = await fetch('/pool/status');
+            const data = await response.json();
+            if (data.status === 'success') {
+                document.getElementById('available-count').textContent = data.free;
+            }
+        }
+        
+        setInterval(refreshPoolStatus, 30000);
+    </script>
+</body>
+</html>
