@@ -14,7 +14,7 @@ sys.path.append(os.path.dirname(__file__))
 from models.user import UserDatabase
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-in-production'  # Change this!
+app.secret_key = 'your-secret-key-change-this-in-production' # a faire après 
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins="*")
 
 ssh_connections = {}
