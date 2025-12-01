@@ -10,11 +10,6 @@ def aboutus():
     return render_template('aboutus.html')
 
 @main_bp.route('/')
-@login_required
-def dashboard():
-    return render_template('dashboard.html', user_is_logged_in=True)
-
-@main_bp.route('/')
 def accueil():
     return render_template('accueil.html')
 
