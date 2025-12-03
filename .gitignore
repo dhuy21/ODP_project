@@ -1,0 +1,5 @@
+Ansible/
+venv/
+web/
+handoff/
+requests/
