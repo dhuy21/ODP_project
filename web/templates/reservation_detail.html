@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Reservation Details - {{ username }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        let expiryTimestamp = {{ reservation.expires_at|int }};
+        
+        function updateCountdown() {
+            const now = Math.floor(Date.now() / 1000);
+            const remaining = expiryTimestamp - now;
+            
+            if (remaining <= 0) {
+                document.getElementById('countdown').innerHTML = '<span style="color:red">EXPIRED</span>';
+                return;
+            }
+            
+            const hours = Math.floor(remaining / 3600);
+            const minutes = Math.floor((remaining % 3600) / 60);
+            const seconds = remaining % 60;
+            
+            document.getElementById('countdown').textContent = 
+                `${hours}h ${minutes}m ${seconds}s remaining`;
+            
+            setTimeout(updateCountdown, 1000);
+        }
+        
+        window.onload = updateCountdown;
+    </script>
+</head>
+<body>
+    <div class="container">
+        <div style="display: flex; justify-content: space-between;">
+            <h1>Reservation Details</h1>
+            <a href="{{ url_for('dashboard_home') }}" class="button" style="width:auto;">Back to Dashboard</a>
+        </div>
+        
+        <div class="access-info">
+            <h2>Reservation Information</h2>
+            <p><strong>Reservation ID:</strong> {{ reservation.id }}</p>
+            <p><strong>VMs Allocated:</strong> {{ reservation.vm_count }}</p>
+            <p><strong>Duration:</strong> {{ reservation.duration }} minutes</p>
+            <p><strong>Status:</strong> <span style="color:#48bb78">{{ reservation.status }}</span></p>
+            <p><strong>Time Remaining:</strong> <span id="countdown">Calculating...</span></p>
+        </div>
+        
+        <div class="instance-grid">
+            {% for node in reservation.nodes %}
+            <div class="instance-card">
+                <h3>{{ node.name }}</h3>
+                <p>IP: {{ node.ip }}</p>
+                <p>Port: {{ node.port }}</p>
+                <p>SSH: <code>ssh {{ username }}@127.0.0.1 -p {{ node.port }}</code></p>
+                <a href="/terminal/{{ username }}/{{ node.name }}" target="_blank" class="button">
+                    Access Terminal
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        
+        {% if reservation.status == 'active' %}
+        <div class="release-section">
+            <h2>Release Resources</h2>
+            <p>If you're done, you can release your resources early:</p>
+            <button onclick="releaseResources()" class="button" style="background:#e53e3e;">
+                Release All Resources
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    
+    <script>
+        async function releaseResources() {
+            if (!confirm('Are you sure you want to release all resources?')) {
+                return;
+            }
+            
+            const response = await fetch('/release/{{ username }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    reservation_id: '{{ reservation.id }}'
+                })
+            });
+            
+            const data = await response.json();
+            if (data.status === 'success') {
+                alert('Resources released successfully!');
+                window.location.href = '/dashboard';
+            } else {
+                alert('Error: ' + data.message);
+            }
+        }
+    </script>
+</body>
+</html>

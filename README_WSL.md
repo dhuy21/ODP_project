@@ -32,8 +32,10 @@ Placez les fichiers dans `~/ODP_project`, puis :
 cd ~/ODP_project
 dos2unix allocates.sh
 dos2unix Docker/ssh/entrypoint.sh
+dos2unix pool_manager.sh
 chmod +x allocates.sh
 chmod +x Docker/ssh/entrypoint.sh
+chmod +x pool_manager.sh
 ```
 
 ### Étape 3 : Configurer la clé SSH

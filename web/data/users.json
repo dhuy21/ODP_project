@@ -1,0 +1,86 @@
+{
+  "mehditester": {
+    "email": "tester@gmail.com",
+    "password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+    "created_at": "2025-12-01T11:46:16.634808",
+    "reservations": [
+      {
+        "id": "94ffe96e-f9da-4f1a-b766-56fb72b62d69",
+        "created_at": 1764588002.6963022,
+        "expires_at": 1764591602.6963022,
+        "duration": 60,
+        "vm_count": 2,
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "port": "3000",
+            "ip": "172.30.0.11"
+          },
+          {
+            "name": "pool-node-2",
+            "port": "3001",
+            "ip": "172.30.0.12"
+          }
+        ],
+        "packages": [
+          "nginx",
+          "git",
+          "vim"
+        ],
+        "status": "active"
+      }
+    ]
+  },
+  "khalidtester": {
+    "email": "khalidtester@gmail.com",
+    "password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+    "created_at": "2025-12-01T12:33:42.529164",
+    "reservations": [
+      {
+        "id": "6cce4b85-85f6-43b2-ae3b-897d868ae7ad",
+        "created_at": 1764588844.31662,
+        "expires_at": 1764592444.31662,
+        "duration": 60,
+        "vm_count": 2,
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "port": "3000",
+            "ip": "172.30.0.11"
+          },
+          {
+            "name": "pool-node-2",
+            "port": "3001",
+            "ip": "172.30.0.12"
+          }
+        ],
+        "packages": [
+          "nginx",
+          "git",
+          "vim"
+        ],
+        "status": "active"
+      },
+      {
+        "id": "840fa14a-e79e-4faa-b184-80a1f0af7e6e",
+        "created_at": 1764589781.5035038,
+        "expires_at": 1764593381.5035038,
+        "duration": 60,
+        "vm_count": 1,
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "port": "3000",
+            "ip": "172.30.0.11"
+          }
+        ],
+        "packages": [
+          "nginx",
+          "git",
+          "vim"
+        ],
+        "status": "active"
+      }
+    ]
+  }
+}

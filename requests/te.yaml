@@ -1,0 +1,12 @@
+base_port: 3630
+client_id: te
+count: 5
+packages:
+- nginx
+- git
+- vim
+password: test
+roles:
+- base
+subnet_cidr: 172.28.143.0/24
+username: te

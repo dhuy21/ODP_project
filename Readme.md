@@ -11,3 +11,8 @@ Projet :
 
 Enoncé :
     Plateforme de provisioning et d’orchestration d’un pool de ressources conteneurisées (workers) qui permet de réserver et délivrer des ressources à des clients, de surveiller leur état, et de remplacer automatiquement les ressources manquantes afin de maintenir un niveau de service défini.
+pour lancer : 
+         ./pool_manager.sh init
+          ./pool_manager.sh status "pour voir l'état des contenaires"
+          cd web 
+          python3 app.py
