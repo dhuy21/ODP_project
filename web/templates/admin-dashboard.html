@@ -20,7 +20,7 @@
                 {% endfor %}
             {% else %}
                 <p>No VMs found for {{ username }}</p>
-                <a href="{{ url_for('provision.request_vm') }}" class="button">Request VM for {{ username }}</a>
+                <a href="{{ url_for('main.request_vm') }}" class="button">Request VM for {{ username }}</a>
             {% endif %}
         </div>
     </div>

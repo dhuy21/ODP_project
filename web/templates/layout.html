@@ -29,22 +29,28 @@
         {% endif %}
         <div class="collapse navbar-collapse">
             <ul class="navbar-nav ms-auto">
-            <li class="nav-item">
-                <a class="nav-link" href="{{ url_for('main.accueil') }}">Accueil</a>
-            </li>
             {% if role == 'user' %}
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('main.user_dashboard') }}">Dashboard</a>
             </li>
-              {% if role == 'admin' %}
-              <li class="nav-item">
-                  <a class="nav-link" href="{{ url_for('main.admin_dashboard') }}">Dashboard</a>
-              </li>
-              {% endif %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('main.request_vm') }}">Request VM</a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('auth.logout') }}">Log out</a>
             </li>
+            {% if role == 'admin' %}
+              <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('main.admin_dashboard') }}">Dashboard</a>
+              </li>
+              <li class="nav-item">
+                  <a class="nav-link" href="{{ url_for('auth.logout') }}">Log out</a>
+              </li>
+            {% endif %}
             {% else %}
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('main.accueil') }}">Accueil</a>
+            </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ url_for('auth.login') }}">Login</a>
             </li>

@@ -19,9 +19,15 @@ def aboutus():
     return render_template('aboutus.html', role=session.get('role'))
 
 @main_bp.route('/')
-@login_required
-def dashboard():
-    return render_template('dashboard.html', role=session.get('role'), vms=vms)
+def index():
+    """Page d'accueil - redirige vers le bon dashboard selon le rôle"""
+    if 'user_id' in session:
+        role = session.get('role')
+        if role == 'admin':
+            return redirect(url_for('main.admin_dashboard'))
+        else:
+            return redirect(url_for('main.user_dashboard'))
+    return redirect(url_for('main.accueil'))
 
 @main_bp.route('/acceuil')
 def accueil():
@@ -48,5 +54,11 @@ def get_vm(vm_id):
 def admin_dashboard():
     """Dashboard administrateur - délègue au contrôleur"""
     return DashboardController.get_admin_dashboard()
+
+@main_bp.route('/request-vm', methods=['GET'])
+@login_required
+def request_vm():
+    """Page de demande de VMs"""
+    return render_template('requestVM.html', role=session.get('role'))
     
 
