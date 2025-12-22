@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-POOL_SIZE=10
+POOL_SIZE=30
 POOL_NETWORK="pool-network"
 POOL_SUBNET="172.30.0.0/24"
 POOL_BASE_PORT=3000

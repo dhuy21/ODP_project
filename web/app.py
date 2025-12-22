@@ -14,7 +14,15 @@ sys.path.append(os.path.dirname(__file__))
 from models.user import UserDatabase
 
 app = Flask(__name__)
-app.secret_key = 'your-secret-key-change-this-in-production' # a faire après 
+
+# Generate a secure secret key
+import secrets
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    print("⚠️  WARNING: Using auto-generated secret key. Set SECRET_KEY environment variable for production!")
+    SECRET_KEY = secrets.token_hex(32)
+
+app.secret_key = SECRET_KEY
 socketio = SocketIO(app, async_mode='threading', cors_allowed_origins="*")
 
 ssh_connections = {}
@@ -27,6 +35,22 @@ def login_required(f):
     def decorated_function(*args, **kwargs):
         if 'username' not in session:
             return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Admin required decorator
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'username' not in session:
+            return redirect(url_for('login'))
+        
+        if not user_db.is_admin(session['username']):
+            return jsonify({
+                'status': 'error',
+                'message': 'Admin access required'
+            }), 403
+        
         return f(*args, **kwargs)
     return decorated_function
 
@@ -45,7 +69,8 @@ def register():
     result = user_db.register_user(
         data['username'],
         data['email'],
-        data['password']
+        data['password'],
+        role='user'  # Users self-register as 'user'
     )
     
     return jsonify(result)
@@ -60,6 +85,7 @@ def login():
     
     if result['status'] == 'success':
         session['username'] = result['user']
+        session['role'] = result['role']
         session['logged_in'] = True
     
     return jsonify(result)
@@ -73,6 +99,11 @@ def logout():
 @login_required
 def dashboard_home():
     username = session['username']
+    role = session.get('role', 'user')
+    
+    # Redirect admin to admin panel
+    if role == 'admin':
+        return redirect(url_for('admin_panel'))
     
     # Get pool status
     try:
@@ -110,9 +141,7 @@ def dashboard_home():
     active_reservations = []
     for r in reservations:
         if r.get('status') == 'active':
-            # Check if containers still exist
             if not check_reservation_health(username, r):
-                # Mark as deleted
                 user_db.update_reservation_status(username, r['id'], 'deleted')
                 r['status'] = 'deleted'
             else:
@@ -120,9 +149,177 @@ def dashboard_home():
     
     return render_template('dashboard_home.html', 
                          username=username,
+                         role=role,
                          available_containers=available,
                          reservations=reservations,
                          active_reservations=active_reservations)
+
+# ============ ADMIN ROUTES ============
+
+@app.route('/admin')
+@login_required
+@admin_required
+def admin_panel():
+    username = session['username']
+    
+    # Get all users
+    all_users = user_db.get_all_users()
+    
+    # Get all reservations
+    all_reservations = user_db.get_all_reservations()
+    
+    # Get pool status
+    try:
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        result = subprocess.run(
+            ['./pool_manager.sh', 'status'],
+            capture_output=True,
+            text=True,
+            cwd=project_dir
+        )
+        
+        free_count = 0
+        allocated_count = 0
+        
+        for line in result.stdout.split('\n'):
+            if 'pool-node-' in line:
+                if 'free' in line and 'allocated' not in line:
+                    free_count += 1
+                elif 'allocated' in line:
+                    allocated_count += 1
+        
+        pool_status = {
+            'total': 30,
+            'free': free_count,
+            'allocated': allocated_count
+        }
+    except Exception as e:
+        pool_status = {'total': 10, 'free': 0, 'allocated': 0}
+    
+    return render_template('admin_panel.html',
+                         username=username,
+                         users=all_users,
+                         reservations=all_reservations,
+                         pool_status=pool_status)
+
+@app.route('/admin/users', methods=['GET'])
+@login_required
+@admin_required
+def admin_get_users():
+    users = user_db.get_all_users()
+    return jsonify({'status': 'success', 'users': users})
+
+@app.route('/admin/user/create', methods=['POST'])
+@login_required
+@admin_required
+def admin_create_user():
+    data = request.json
+    result = user_db.register_user(
+        data['username'],
+        data['email'],
+        data['password'],
+        role=data.get('role', 'user')
+    )
+    return jsonify(result)
+
+@app.route('/admin/user/<username>/delete', methods=['DELETE'])
+@login_required
+@admin_required
+def admin_delete_user(username):
+    if username == 'admin':
+        return jsonify({
+            'status': 'error',
+            'message': 'Cannot delete admin user'
+        })
+    
+    if user_db.delete_user(username):
+        # Also release their containers
+        try:
+            project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            subprocess.run(
+                ['./pool_manager.sh', 'release', username],
+                capture_output=True,
+                text=True,
+                cwd=project_dir
+            )
+        except:
+            pass
+        
+        return jsonify({'status': 'success', 'message': f'User {username} deleted'})
+    
+    return jsonify({'status': 'error', 'message': 'User not found'})
+
+@app.route('/admin/user/<username>/role', methods=['PUT'])
+@login_required
+@admin_required
+def admin_update_role(username):
+    data = request.json
+    role = data.get('role', 'user')
+    
+    if role not in ['user', 'admin']:
+        return jsonify({'status': 'error', 'message': 'Invalid role'})
+    
+    if user_db.update_user_role(username, role):
+        return jsonify({'status': 'success', 'message': f'Role updated to {role}'})
+    
+    return jsonify({'status': 'error', 'message': 'User not found'})
+
+@app.route('/admin/reservation/<reservation_id>/delete', methods=['DELETE'])
+@login_required
+@admin_required
+def admin_delete_reservation(reservation_id):
+    # Find which user owns this reservation
+    all_reservations = user_db.get_all_reservations()
+    
+    reservation = next((r for r in all_reservations if r['id'] == reservation_id), None)
+    
+    if not reservation:
+        return jsonify({'status': 'error', 'message': 'Reservation not found'})
+    
+    owner = reservation['owner']
+    
+    # Release containers
+    try:
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        subprocess.run(
+            ['./pool_manager.sh', 'release', owner],
+            capture_output=True,
+            text=True,
+            cwd=project_dir
+        )
+    except Exception as e:
+        print(f"Error releasing containers: {e}")
+    
+    # Delete reservation from database
+    user_db.delete_reservation(owner, reservation_id)
+    
+    return jsonify({'status': 'success', 'message': 'Reservation deleted'})
+
+@app.route('/admin/pool/recover', methods=['POST'])
+@login_required
+@admin_required
+def admin_recover_pool():
+    try:
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        result = subprocess.run(
+            ['./pool_manager.sh', 'recover'],
+            capture_output=True,
+            text=True,
+            cwd=project_dir
+        )
+        
+        return jsonify({
+            'status': 'success',
+            'message': 'Pool recovery initiated',
+            'output': result.stdout
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        })
+
+# ============ EXISTING ROUTES (keep all your existing routes) ============
 
 @app.route('/pool/status', methods=['GET'])
 @login_required

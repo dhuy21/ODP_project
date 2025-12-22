@@ -8,7 +8,12 @@
     <div class="container">
         <div style="display: flex; justify-content: space-between; align-items: center;">
             <h1>Welcome, {{ username }}!</h1>
-            <a href="{{ url_for('logout') }}" class="button" style="background:#e53e3e; width:auto;">Logout</a>
+            <div>
+                {% if role == 'admin' %}
+                <a href="{{ url_for('admin_panel') }}" class="button" style="background:#4299e1; width:auto; margin-right:0.5rem;">Admin Panel</a>
+                {% endif %}
+                <a href="{{ url_for('logout') }}" class="button" style="background:#e53e3e; width:auto;">Logout</a>
+            </div>
         </div>
         
         <div class="pool-status">

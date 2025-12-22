@@ -1,0 +1,71 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Pool Management{% endblock %}
+{% block page_title %}Container Pool Status{% endblock %}
+
+{% block header_actions %}
+<button onclick="recoverPool()" class="btn btn-warning">
+    🔧 Recover Pool
+</button>
+<button onclick="location.reload()" class="btn btn-primary">
+    🔄 Refresh
+</button>
+{% endblock %}
+
+{% block content %}
+<!-- Pool Stats -->
+<div class="stats-grid" style="margin-bottom: 2rem;">
+    <div class="stat-card success">
+        <h3>Free Containers</h3>
+        <div class="stat-value">{{ pool_details.free_count }}</div>
+    </div>
+    <div class="stat-card">
+        <h3>Allocated</h3>
+        <div class="stat-value">{{ pool_details.allocated_count }}</div>
+    </div>
+    <div class="stat-card danger">
+        <h3>Errors</h3>
+        <div class="stat-value">{{ pool_details.error_count }}</div>
+    </div>
+    <div class="stat-card warning">
+        <h3>Stopped</h3>
+        <div class="stat-value">{{ pool_details.stopped_count }}</div>
+    </div>
+</div>
+
+<!-- Container Grid -->
+<div class="data-table-container">
+    <div class="table-header">
+        <h2>All Containers ({{ pool_details.containers|length }}/30)</h2>
+    </div>
+    
+    <div style="padding: 1.5rem;">
+        <div class="container-grid">
+            {% for container in pool_details.containers %}
+            <div class="container-card {{ container.status }}">
+                <div class="container-name">{{ container.name }}</div>
+                <div class="container-info">
+                    <div>IP: {{ container.ip }}</div>
+                    <div>Port: {{ container.port }}</div>
+                    <div>Status: 
+                        <span class="badge badge-{% if container.status == 'free' %}success{% elif container.status == 'allocated' %}info{% else %}danger{% endif %}">
+                            {{ container.status }}
+                        </span>
+                    </div>
+                    {% if container.client %}
+                    <div>Client: <strong>{{ container.client }}</strong></div>
+                    {% endif %}
+                    {% if container.expires %}
+                    <div>Expires: {{ container.expires }}</div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='admin_pool.js') }}"></script>
+{% endblock %}
