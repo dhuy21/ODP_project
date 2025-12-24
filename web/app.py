@@ -7,6 +7,7 @@ import os
 import time
 import uuid
 from functools import wraps
+import threading
 
 # Import user database
 import sys
@@ -194,6 +195,7 @@ def admin_panel():
             'allocated': allocated_count
         }
     except Exception as e:
+        print(f"Error getting pool status: {e}")
         pool_status = {'total': 10, 'free': 0, 'allocated': 0}
     
     return render_template('admin_panel.html',
@@ -483,7 +485,6 @@ def provision():
                     except Exception as e:
                         print(f"[ANSIBLE] Error: {e}")
                 
-                import threading
                 threading.Thread(target=run_ansible_background, daemon=True).start()
         
         # Save reservation to database
@@ -535,8 +536,9 @@ def provision():
 @login_required
 def view_reservation(reservation_id):
     username = session['username']
-    reservations = user_db.get_user_reservations(username)
     
+    # Get reservation from database
+    reservations = user_db.get_user_reservations(username)
     reservation = next((r for r in reservations if r['id'] == reservation_id), None)
     
     if not reservation:
@@ -593,6 +595,74 @@ def terminal(username, node_name):
     
     return render_template('terminal.html', username=username, node_name=node_name)
 
+# Background task to check expired reservations
+def check_expired_reservations_loop():
+    """Background thread that checks for expired reservations every 30 seconds"""
+    project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    
+    while True:
+        try:
+            # Run check-expired command
+            subprocess.run(
+                ['./pool_manager.sh', 'check-expired'],
+                capture_output=True,
+                text=True,
+                cwd=project_dir,
+                timeout=10
+            )
+            
+            # Update database for all expired reservations
+            all_users = user_db.load_users()
+            current_time = time.time()
+            
+            for username, user_data in all_users.items():
+                reservations = user_data.get('reservations', [])
+                for reservation in reservations:
+                    if reservation.get('status') == 'active':
+                        expires_at = reservation.get('expires_at', 0)
+                        if current_time > expires_at:
+                            print(f"[EXPIRY] Marking reservation {reservation['id'][:8]} as expired for {username}")
+                            user_db.update_reservation_status(username, reservation['id'], 'expired')
+                            
+                            # Disconnect any active SSH sessions for this user
+                            disconnect_user_sessions(username)
+            
+            print(f"[EXPIRY CHECK] Completed at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+            
+        except Exception as e:
+            print(f"[EXPIRY CHECK ERROR] {e}")
+        
+        time.sleep(30)  # Check every 30 seconds
+
+def disconnect_user_sessions(username):
+    """Disconnect all SSH sessions for a user"""
+    sessions_to_close = []
+    
+    for session_id, conn_info in ssh_connections.items():
+        # Check if this session belongs to the user
+        # We need to track username in ssh_connections
+        if conn_info.get('username') == username:
+            sessions_to_close.append(session_id)
+    
+    for session_id in sessions_to_close:
+        try:
+            ssh_connections[session_id]['channel'].send('\r\n*** Session expired - disconnecting ***\r\n')
+            ssh_connections[session_id]['client'].close()
+            del ssh_connections[session_id]
+            
+            # Emit disconnect event
+            socketio.emit('force_disconnect', 
+                         {'message': 'Your reservation has expired'}, 
+                         room=session_id)
+            
+            print(f"[DISCONNECT] Closed session {session_id} for {username}")
+        except Exception as e:
+            print(f"[DISCONNECT ERROR] {e}")
+
+# Start background thread when app starts
+expiry_checker_thread = threading.Thread(target=check_expired_reservations_loop, daemon=True)
+expiry_checker_thread.start()
+
 @socketio.on('connect_ssh')
 def handle_ssh_connection(data):
     try:
@@ -605,6 +675,26 @@ def handle_ssh_connection(data):
         # Check if user is authorized
         if 'username' not in session or session['username'] != username:
             emit('error', {'message': 'Unauthorized'})
+            return
+        
+        # Check if reservation is still active
+        reservations = user_db.get_user_reservations(username)
+        active_reservation = None
+        
+        for res in reservations:
+            if res.get('status') == 'active':
+                # Check if not expired
+                if time.time() < res.get('expires_at', 0):
+                    # Check if this node belongs to this reservation
+                    for node in res.get('nodes', []):
+                        if node['name'] == node_name:
+                            active_reservation = res
+                            break
+                    if active_reservation:
+                        break
+        
+        if not active_reservation:
+            emit('error', {'message': 'No active reservation found for this container'})
             return
         
         # Find node port
@@ -650,7 +740,10 @@ def handle_ssh_connection(data):
         session_id = request.sid
         ssh_connections[session_id] = {
             'client': ssh,
-            'channel': channel
+            'channel': channel,
+            'username': username,  # Track username for disconnect
+            'reservation_id': active_reservation['id'],
+            'expires_at': active_reservation['expires_at']
         }
         
         time.sleep(0.5)
@@ -660,12 +753,32 @@ def handle_ssh_connection(data):
             while True:
                 if session_id not in ssh_connections:
                     break
+                
                 try:
+                    # Check if reservation expired
+                    conn_info = ssh_connections.get(session_id)
+                    if conn_info and time.time() > conn_info.get('expires_at', float('inf')):
+                        # Reservation expired during session
+                        channel.send('\r\n\r\n*** YOUR RESERVATION HAS EXPIRED ***\r\n')
+                        channel.send('*** This session will be disconnected in 5 seconds ***\r\n\r\n')
+                        socketio.sleep(5)
+                        
+                        # Close connection
+                        ssh_connections[session_id]['client'].close()
+                        del ssh_connections[session_id]
+                        
+                        socketio.emit('force_disconnect', 
+                                    {'message': 'Reservation expired'}, 
+                                    room=session_id)
+                        break
+                    
                     if channel.recv_ready():
                         output = channel.recv(4096).decode('utf-8', 'ignore')
                         socketio.emit('output', {'data': output}, room=session_id)
+                        
                 except Exception as e:
                     break
+                    
                 socketio.sleep(0.01)
         
         socketio.start_background_task(read_output)
@@ -732,6 +845,37 @@ def check_reservation_health(username, reservation):
         return True
     except:
         return False
+
+@app.route('/check-my-reservations')
+@login_required
+def check_my_reservations():
+    """Check if user has any expired reservations"""
+    username = session['username']
+    reservations = user_db.get_user_reservations(username)
+    current_time = time.time()
+    
+    has_expired = False
+    
+    for reservation in reservations:
+        if reservation.get('status') == 'active':
+            if current_time > reservation.get('expires_at', 0):
+                has_expired = True
+                # Update status
+                user_db.update_reservation_status(username, reservation['id'], 'expired')
+    
+    return jsonify({
+        'status': 'success',
+        'has_expired': has_expired
+    })
+
+@app.route('/about')
+def about():
+    return render_template('aboutus.html')
+
+@app.route('/accueil')
+def accueil():
+    user_is_logged_in = 'username' in session
+    return render_template('accueil.html', user_is_logged_in=user_is_logged_in)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=5001)
