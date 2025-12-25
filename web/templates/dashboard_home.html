@@ -2,106 +2,205 @@
 <html>
 <head>
     <title>Dashboard - {{ username }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='dark_style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .user-dashboard {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            padding: 2rem;
+            background: var(--bg-card);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+        }
+        
+        .dashboard-header h1 {
+            background: var(--accent-gradient-3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .provision-form {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        
+        .reservation-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        
+        .reservation-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .reservation-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px var(--shadow);
+        }
+    </style>
 </head>
-<body>
-    <div class="container">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h1>Welcome, {{ username }}!</h1>
-            <div>
+<body style="background: var(--bg-dark);">
+    <div class="user-dashboard">
+        <div class="dashboard-header">
+            <h1>👋 Welcome, {{ username }}!</h1>
+            <div style="display:flex; gap:1rem;">
                 {% if role == 'admin' %}
-                <a href="{{ url_for('admin_panel') }}" class="button" style="background:#4299e1; width:auto; margin-right:0.5rem;">Admin Panel</a>
+                <a href="{{ url_for('admin_panel') }}" class="btn btn-primary">
+                    🚀 Admin Panel
+                </a>
                 {% endif %}
-                <a href="{{ url_for('logout') }}" class="button" style="background:#e53e3e; width:auto;">Logout</a>
+                <a href="{{ url_for('logout') }}" class="btn btn-danger">
+                    🚪 Logout
+                </a>
             </div>
         </div>
         
-        <div class="pool-status">
-            <h2>Resource Pool Status</h2>
-            <p>Available Containers: <span id="available-count">{{ available_containers }}</span> / 10</p>
-            <button onclick="refreshPoolStatus()" class="button">Refresh Status</button>
+        <!-- Pool Status -->
+        <div class="stats-grid">
+            <div class="stat-card success">
+                <h3>Available Containers</h3>
+                <div class="stat-value" id="available-count">{{ available_containers }}</div>
+            </div>
+            <div class="stat-card primary">
+                <h3>Active Reservations</h3>
+                <div class="stat-value">{{ active_reservations|length }}</div>
+            </div>
+            <div class="stat-card warning">
+                <h3>Total Reservations</h3>
+                <div class="stat-value">{{ reservations|length }}</div>
+            </div>
         </div>
         
+        <!-- Active Reservations -->
         {% if active_reservations %}
-        <div class="access-info">
-            <h2>Your Active Reservations</h2>
-            {% for reservation in active_reservations %}
-            <div style="border-bottom: 1px solid #38b2ac; padding: 1rem 0;">
-                <p><strong>Reservation ID:</strong> {{ reservation.id[:8] }}...</p>
-                <p><strong>VMs:</strong> {{ reservation.vm_count }}</p>
-                <p><strong>Duration:</strong> {{ reservation.duration }} minutes</p>
-                <p><strong>Status:</strong> <span style="color:#48bb78">{{ reservation.status }}</span></p>
-                <a href="{{ url_for('view_reservation', reservation_id=reservation.id) }}" class="button" style="width:auto; display:inline-block; margin-top:0.5rem;">View Details</a>
+        <div class="data-table-container" style="margin-top:2rem;">
+            <div class="table-header">
+                <h2>🎯 Your Active Reservations</h2>
             </div>
-            {% endfor %}
+            <div class="reservation-grid" style="padding:1.5rem;">
+                {% for reservation in active_reservations %}
+                <div class="reservation-card">
+                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:1rem;">
+                        <div>
+                            <h3 style="color:var(--text-primary); margin-bottom:0.5rem;">
+                                🖥️ {{ reservation.vm_count }} VMs
+                            </h3>
+                            <code style="font-size:0.75rem; color:var(--text-secondary);">
+                                {{ reservation.id[:12] }}...
+                            </code>
+                        </div>
+                        <span class="badge badge-success">Active</span>
+                    </div>
+                    <div style="margin-bottom:1rem; color:var(--text-secondary); font-size:0.875rem;">
+                        <div>⏱️ Duration: {{ reservation.duration }} minutes</div>
+                        <div>📦 Packages: {{ reservation.packages|join(', ') if reservation.packages else 'None' }}</div>
+                    </div>
+                    <a href="{{ url_for('view_reservation', reservation_id=reservation.id) }}" class="btn btn-primary" style="width:100%;">
+                        View Details →
+                    </a>
+                </div>
+                {% endfor %}
+            </div>
         </div>
         {% endif %}
         
-        <h2>Create New Reservation</h2>
-        <form id="provisionForm">
-            <div class="form-group">
-                <label>VM Password</label>
-                <input type="password" name="password" required placeholder="Password for VM access">
-                <small>This password will be used to access your VMs</small>
-            </div>
+        <!-- Create New Reservation -->
+        <div class="provision-form">
+            <h2 style="margin-bottom:1.5rem; background: var(--accent-gradient-3); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                ➕ Create New Reservation
+            </h2>
+            <form id="provisionForm">
+                <div class="form-group">
+                    <label>🔐 VM Password</label>
+                    <input type="password" name="password" required placeholder="Password for VM access">
+                    <small style="color:var(--text-secondary); display:block; margin-top:0.5rem;">
+                        This password will be used to access your VMs via SSH
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label>💻 Number of VMs</label>
+                    <input type="number" name="vm_count" min="1" max="5" required value="1">
+                    <small style="color:var(--text-secondary); display:block; margin-top:0.5rem;">
+                        Maximum 5 VMs per request
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label>⏱️ Reservation Duration</label>
+                    <select name="duration" required>
+                        <option value="1">1 minute (testing)</option>
+                        <option value="60" selected>1 hour</option>
+                        <option value="120">2 hours</option>
+                        <option value="180">3 hours</option>
+                        <option value="360">6 hours</option>
+                        <option value="720">12 hours</option>
+                        <option value="1440">24 hours</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label>📦 Software Packages (comma-separated)</label>
+                    <input type="text" name="packages" placeholder="nginx,git,vim">
+                    <small style="color:var(--text-secondary); display:block; margin-top:0.5rem;">
+                        Optional: These packages will be installed on your VMs
+                    </small>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width:100%;">
+                    🚀 Create Reservation
+                </button>
+            </form>
             
-            <div class="form-group">
-                <label>Number of VMs</label>
-                <input type="number" name="vm_count" min="1" max="5" required value="1">
-                <small>Maximum 5 VMs per request</small>
-            </div>
-            
-            <div class="form-group">
-                <label>Reservation Duration</label>
-                <select name="duration" required>
-                    <option value="1">1 minute</option>
-                    <option value="60" selected>1 hour</option>
-                    <option value="120">2 hours</option>
-                    <option value="180">3 hours</option>
-                    <option value="360">6 hours</option>
-                    <option value="720">12 hours</option>
-                    <option value="1440">24 hours</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label>Software Packages (comma-separated)</label>
-                <input type="text" name="packages" value="nginx,git,vim" placeholder="nginx,git,vim">
-            </div>
-            
-            <button type="submit">Create Reservation</button>
-        </form>
+            <div id="result"></div>
+        </div>
         
-        <div id="result"></div>
-        
+        <!-- Reservation History -->
         {% if reservations %}
-        <div class="release-section">
-            <h2>Reservation History</h2>
-            <table style="width:100%; border-collapse:collapse;">
+        <div class="data-table-container">
+            <div class="table-header">
+                <h2>📜 Reservation History</h2>
+            </div>
+            <table>
                 <thead>
-                    <tr style="background:#edf2f7;">
-                        <th style="padding:0.5rem; text-align:left;">ID</th>
-                        <th style="padding:0.5rem; text-align:left;">VMs</th>
-                        <th style="padding:0.5rem; text-align:left;">Duration</th>
-                        <th style="padding:0.5rem; text-align:left;">Status</th>
-                        <th style="padding:0.5rem; text-align:left;">Created</th>
+                    <tr>
+                        <th>ID</th>
+                        <th>VMs</th>
+                        <th>Duration</th>
+                        <th>Status</th>
+                        <th>Created</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for reservation in reservations %}
-                    <tr style="border-bottom:1px solid #e2e8f0;">
-                        <td style="padding:0.5rem;">{{ reservation.id[:8] }}...</td>
-                        <td style="padding:0.5rem;">{{ reservation.vm_count }}</td>
-                        <td style="padding:0.5rem;">{{ reservation.duration }} min</td>
-                        <td style="padding:0.5rem;">
-                            <span style="color:{% if reservation.status == 'active' %}#48bb78{% elif reservation.status == 'deleted' %}#e53e3e{% else %}#718096{% endif %}">
+                    <tr>
+                        <td><code>{{ reservation.id[:8] }}...</code></td>
+                        <td>{{ reservation.vm_count }}</td>
+                        <td>{{ reservation.duration }} min</td>
+                        <td>
+                            <span class="badge badge-{% if reservation.status == 'active' %}success{% elif reservation.status == 'expired' %}warning{% else %}info{% endif %}">
                                 {{ reservation.status }}
-                                {% if reservation.status == 'deleted' %}
-                                ⚠️ (Containers manually deleted)
-                                {% endif %}
                             </span>
                         </td>
-                        <td style="padding:0.5rem;">{{ reservation.created_at|int|timestamp_to_date }}</td>
+                        <td>{{ reservation.created_at|int|timestamp_to_date }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -119,6 +218,21 @@
                 document.getElementById('available-count').textContent = data.free;
             }
         }
+        
+        // Check for expired reservations
+        setInterval(async () => {
+            try {
+                const response = await fetch('/check-my-reservations');
+                const data = await response.json();
+                
+                if (data.has_expired) {
+                    alert('⚠️ One or more of your reservations has expired. Refreshing...');
+                    location.reload();
+                }
+            } catch (e) {
+                console.error('Error checking reservations:', e);
+            }
+        }, 30000);
         
         setInterval(refreshPoolStatus, 30000);
     </script>

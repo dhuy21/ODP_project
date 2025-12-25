@@ -1,96 +1,341 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Reservation Details - {{ username }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-    <script>
-        let expiryTimestamp = {{ reservation.expires_at|int }};
-        
-        function updateCountdown() {
-            const now = Math.floor(Date.now() / 1000);
-            const remaining = expiryTimestamp - now;
-            
-            if (remaining <= 0) {
-                document.getElementById('countdown').innerHTML = '<span style="color:red">EXPIRED</span>';
-                return;
-            }
-            
-            const hours = Math.floor(remaining / 3600);
-            const minutes = Math.floor((remaining % 3600) / 60);
-            const seconds = remaining % 60;
-            
-            document.getElementById('countdown').textContent = 
-                `${hours}h ${minutes}m ${seconds}s remaining`;
-            
-            setTimeout(updateCountdown, 1000);
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Details - {{ reservation.id[:8] }}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dark_style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        .reservation-detail {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            min-height: 100vh;
+            background: var(--bg-dark);
         }
         
-        window.onload = updateCountdown;
-    </script>
+        .back-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--text-secondary);
+            text-decoration: none;
+            margin-bottom: 2rem;
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-card);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .back-button:hover {
+            color: var(--text-primary);
+            transform: translateX(-4px);
+            border-color: var(--accent-primary);
+        }
+        
+        .reservation-header {
+            background: var(--bg-card);
+            padding: 2rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            margin-bottom: 2rem;
+        }
+        
+        .reservation-header h1 {
+            font-size: 2rem;
+            background: var(--accent-gradient-3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 1rem;
+        }
+        
+        .reservation-meta {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        
+        .meta-item {
+            padding: 1rem;
+            background: var(--bg-hover);
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        
+        .meta-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 0.5rem;
+        }
+        
+        .meta-value {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .nodes-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .node-card {
+            background: var(--bg-card);
+            padding: 1.5rem;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .node-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--accent-gradient-3);
+        }
+        
+        .node-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px var(--shadow);
+            border-color: var(--accent-primary);
+        }
+        
+        .node-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 1rem;
+        }
+        
+        .node-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .node-info {
+            margin-bottom: 1.5rem;
+        }
+        
+        .node-info-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+        }
+        
+        .countdown-timer {
+            background: var(--bg-hover);
+            padding: 1rem;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+        }
+        
+        .countdown-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.5rem;
+        }
+        
+        .countdown-value {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--accent-gradient-3);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .countdown-value.warning {
+            background: var(--accent-gradient-2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
-        <div style="display: flex; justify-content: space-between;">
-            <h1>Reservation Details</h1>
-            <a href="{{ url_for('dashboard_home') }}" class="button" style="width:auto;">Back to Dashboard</a>
-        </div>
+    <div class="reservation-detail">
+        <a href="{{ url_for('dashboard_home') }}" class="back-button">
+            ← Back to Dashboard
+        </a>
         
-        <div class="access-info">
-            <h2>Reservation Information</h2>
-            <p><strong>Reservation ID:</strong> {{ reservation.id }}</p>
-            <p><strong>VMs Allocated:</strong> {{ reservation.vm_count }}</p>
-            <p><strong>Duration:</strong> {{ reservation.duration }} minutes</p>
-            <p><strong>Status:</strong> <span style="color:#48bb78">{{ reservation.status }}</span></p>
-            <p><strong>Time Remaining:</strong> <span id="countdown">Calculating...</span></p>
-        </div>
-        
-        <div class="instance-grid">
-            {% for node in reservation.nodes %}
-            <div class="instance-card">
-                <h3>{{ node.name }}</h3>
-                <p>IP: {{ node.ip }}</p>
-                <p>Port: {{ node.port }}</p>
-                <p>SSH: <code>ssh {{ username }}@127.0.0.1 -p {{ node.port }}</code></p>
-                <a href="/terminal/{{ username }}/{{ node.name }}" target="_blank" class="button">
-                    Access Terminal
-                </a>
+        <div class="reservation-header">
+            <h1>🖥️ Reservation Details</h1>
+            <code style="color:var(--text-secondary); font-size:0.875rem;">
+                ID: {{ reservation.id }}
+            </code>
+            
+            {% if reservation.status == 'active' %}
+            <div class="countdown-timer">
+                <div class="countdown-label">⏱️ Time Remaining</div>
+                <div id="countdown" class="countdown-value" 
+                     data-expires="{{ reservation.expires_at }}">
+                    Calculating...
+                </div>
             </div>
-            {% endfor %}
+            {% endif %}
+            
+            <div class="reservation-meta">
+                <div class="meta-item">
+                    <div class="meta-label">Status</div>
+                    <div class="meta-value">
+                        <span class="badge badge-{% if reservation.status == 'active' %}success{% elif reservation.status == 'expired' %}warning{% else %}info{% endif %}">
+                            {{ reservation.status }}
+                        </span>
+                    </div>
+                </div>
+                
+                <div class="meta-item">
+                    <div class="meta-label">Virtual Machines</div>
+                    <div class="meta-value">{{ reservation.vm_count }}</div>
+                </div>
+                
+                <div class="meta-item">
+                    <div class="meta-label">Duration</div>
+                    <div class="meta-value">{{ reservation.duration }} min</div>
+                </div>
+                
+                <div class="meta-item">
+                    <div class="meta-label">Packages</div>
+                    <div class="meta-value" style="font-size:0.875rem;">
+                        {{ reservation.packages|join(', ') if reservation.packages else 'None' }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="data-table-container">
+            <div class="table-header">
+                <h2>💻 Your Virtual Machines</h2>
+            </div>
+            
+            <div class="nodes-grid" style="padding:1.5rem;">
+                {% for node in reservation.nodes %}
+                <div class="node-card">
+                    <div class="node-header">
+                        <div>
+                            <div class="node-name">{{ node.name }}</div>
+                            <span class="badge badge-success" style="margin-top:0.5rem;">
+                                Running
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="node-info">
+                        <div class="node-info-item">
+                            🌐 <strong>IP:</strong> {{ node.ip }}
+                        </div>
+                        <div class="node-info-item">
+                            🔌 <strong>SSH Port:</strong> {{ node.port }}
+                        </div>
+                        <div class="node-info-item">
+                            💾 <strong>Platform:</strong> Ubuntu 22.04
+                        </div>
+                    </div>
+                    
+                    {% if reservation.status == 'active' %}
+                    <a href="{{ url_for('terminal', username=username, node_name=node.name) }}" 
+                       class="btn btn-primary" style="width:100%;">
+                        🖥️ Open Terminal
+                    </a>
+                    {% else %}
+                    <button class="btn" style="width:100%; opacity:0.5; cursor:not-allowed;" disabled>
+                        🔒 Reservation Inactive
+                    </button>
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
         </div>
         
         {% if reservation.status == 'active' %}
-        <div class="release-section">
-            <h2>Release Resources</h2>
-            <p>If you're done, you can release your resources early:</p>
-            <button onclick="releaseResources()" class="button" style="background:#e53e3e;">
-                Release All Resources
+        <div class="action-buttons">
+            <button onclick="releaseReservation()" class="btn btn-danger">
+                🗑️ Release Resources
             </button>
         </div>
         {% endif %}
     </div>
     
     <script>
-        async function releaseResources() {
-            if (!confirm('Are you sure you want to release all resources?')) {
+        // Countdown timer
+        const countdownEl = document.getElementById('countdown');
+        if (countdownEl) {
+            const expiresAt = parseInt(countdownEl.dataset.expires);
+            
+            function updateCountdown() {
+                const now = Math.floor(Date.now() / 1000);
+                const remaining = expiresAt - now;
+                
+                if (remaining <= 0) {
+                    countdownEl.textContent = 'EXPIRED';
+                    countdownEl.classList.add('warning');
+                    setTimeout(() => {
+                        alert('⚠️ Your reservation has expired!');
+                        window.location.href = '{{ url_for("dashboard_home") }}';
+                    }, 2000);
+                    return;
+                }
+                
+                const hours = Math.floor(remaining / 3600);
+                const minutes = Math.floor((remaining % 3600) / 60);
+                const seconds = remaining % 60;
+                
+                countdownEl.textContent = `${hours}h ${minutes}m ${seconds}s`;
+                
+                if (remaining < 300) { // Less than 5 minutes
+                    countdownEl.classList.add('warning');
+                }
+            }
+            
+            updateCountdown();
+            setInterval(updateCountdown, 1000);
+        }
+        
+        async function releaseReservation() {
+            if (!confirm('Are you sure you want to release these resources?')) {
                 return;
             }
             
-            const response = await fetch('/release/{{ username }}', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    reservation_id: '{{ reservation.id }}'
-                })
-            });
-            
-            const data = await response.json();
-            if (data.status === 'success') {
-                alert('Resources released successfully!');
-                window.location.href = '/dashboard';
-            } else {
-                alert('Error: ' + data.message);
+            try {
+                const response = await fetch('/release/{{ username }}', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        reservation_id: '{{ reservation.id }}'
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    alert('✅ Resources released successfully!');
+                    window.location.href = '{{ url_for("dashboard_home") }}';
+                } else {
+                    alert('❌ Error: ' + result.message);
+                }
+            } catch (error) {
+                alert('❌ Error: ' + error.message);
             }
         }
     </script>

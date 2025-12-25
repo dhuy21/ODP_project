@@ -134,6 +134,106 @@
           "vim"
         ],
         "status": "expired"
+      },
+      {
+        "id": "6c50585f-cf71-4972-a81d-422f6b3b9a67",
+        "created_at": 1766691155.5863092,
+        "expires_at": 1766691215.5863092,
+        "duration": 1,
+        "vm_count": 4,
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "port": "3000",
+            "ip": "172.30.0.11"
+          },
+          {
+            "name": "pool-node-2",
+            "port": "3001",
+            "ip": "172.30.0.12"
+          },
+          {
+            "name": "pool-node-3",
+            "port": "3002",
+            "ip": "172.30.0.13"
+          },
+          {
+            "name": "pool-node-4",
+            "port": "3003",
+            "ip": "172.30.0.14"
+          }
+        ],
+        "packages": [
+          "nginx",
+          "openssh-client",
+          "git"
+        ],
+        "status": "expired"
+      },
+      {
+        "id": "7b05fb5d-5c07-40e4-87cd-2003205636ec",
+        "created_at": 1766692848.337062,
+        "expires_at": 1766696448.337062,
+        "duration": 60,
+        "vm_count": 4,
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "port": "3000",
+            "ip": "172.30.0.11"
+          },
+          {
+            "name": "pool-node-2",
+            "port": "3001",
+            "ip": "172.30.0.12"
+          },
+          {
+            "name": "pool-node-3",
+            "port": "3002",
+            "ip": "172.30.0.13"
+          },
+          {
+            "name": "pool-node-4",
+            "port": "3003",
+            "ip": "172.30.0.14"
+          }
+        ],
+        "packages": [],
+        "status": "active"
+      }
+    ]
+  },
+  "tester": {
+    "email": "tster@gmail.com",
+    "password": "4813494d137e1631bba301d5acab6e7bb7aa74ce1185d456565ef51d737677b2",
+    "role": "user",
+    "created_at": "2025-12-24T03:28:39.061656",
+    "reservations": [
+      {
+        "id": "a8ece45f-e193-40ea-b838-e51930d68dcc",
+        "created_at": 1766543350.453919,
+        "expires_at": 1766543410.45392,
+        "duration": 1,
+        "vm_count": 3,
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "port": "3000",
+            "ip": "172.30.0.11"
+          },
+          {
+            "name": "pool-node-2",
+            "port": "3001",
+            "ip": "172.30.0.12"
+          },
+          {
+            "name": "pool-node-3",
+            "port": "3002",
+            "ip": "172.30.0.13"
+          }
+        ],
+        "packages": [],
+        "status": "expired"
       }
     ]
   }

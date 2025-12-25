@@ -55,11 +55,72 @@ def admin_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-@app.route('/')
-def index():
-    if 'username' in session:
-        return redirect(url_for('dashboard_home'))
-    return redirect(url_for('login'))
+@app.route('/home')
+@login_required
+def home():
+    """Main home page after login"""
+    username = session['username']
+    role = session.get('role', 'user')
+    
+    # Get pool status
+    try:
+        project_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        result = subprocess.run(
+            ['./pool_manager.sh', 'status'],
+            capture_output=True,
+            text=True,
+            cwd=project_dir
+        )
+        
+        free_count = 0
+        for line in result.stdout.split('\n'):
+            if 'free' in line and 'pool-node-' in line and 'allocated' not in line and 'error' not in line:
+                free_count += 1
+        
+        available = free_count
+    except Exception as e:
+        print(f"Error getting pool status: {e}")
+        available = 0
+    
+    # Get user's reservations
+    reservations = user_db.get_user_reservations(username)
+    active_reservations = [r for r in reservations if r.get('status') == 'active']
+    
+    # Generate recent activity
+    recent_activity = []
+    for reservation in sorted(reservations, key=lambda x: x.get('created_at', 0), reverse=True)[:5]:
+        activity_type = reservation.get('status', 'unknown')
+        created_time = reservation.get('created_at', 0)
+        
+        from datetime import datetime
+        time_str = datetime.fromtimestamp(created_time).strftime('%Y-%m-%d %H:%M')
+        
+        if activity_type == 'active':
+            recent_activity.append({
+                'type': 'created',
+                'title': f'Created reservation with {reservation.get("vm_count")} VMs',
+                'time': time_str
+            })
+        elif activity_type == 'expired':
+            recent_activity.append({
+                'type': 'expired',
+                'title': f'Reservation expired ({reservation.get("vm_count")} VMs)',
+                'time': time_str
+            })
+        elif activity_type == 'released':
+            recent_activity.append({
+                'type': 'released',
+                'title': f'Released {reservation.get("vm_count")} VMs',
+                'time': time_str
+            })
+    
+    return render_template('home.html',
+                         username=username,
+                         role=role,
+                         available_containers=available,
+                         active_reservations=active_reservations,
+                         total_reservations=len(reservations),
+                         recent_activity=recent_activity)
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -88,6 +149,12 @@ def login():
         session['username'] = result['user']
         session['role'] = result['role']
         session['logged_in'] = True
+        
+        # Return redirect to home page (with header)
+        return jsonify({
+            'status': 'success',
+            'redirect': url_for('home')  # Changed from 'dashboard_home'
+        })
     
     return jsonify(result)
 
@@ -95,6 +162,19 @@ def login():
 def logout():
     session.clear()
     return redirect(url_for('login'))
+
+@app.route('/')
+def index():
+    """Root route - redirect based on login status"""
+    if 'username' in session:
+        return redirect(url_for('home'))
+    return redirect(url_for('accueil'))
+
+@app.route('/accueil')
+def accueil():
+    """Landing page for non-authenticated users"""
+    user_is_logged_in = 'username' in session
+    return render_template('accueil.html', user_is_logged_in=user_is_logged_in)
 
 @app.route('/dashboard')
 @login_required
@@ -870,12 +950,74 @@ def check_my_reservations():
 
 @app.route('/about')
 def about():
-    return render_template('aboutus.html')
-
-@app.route('/accueil')
-def accueil():
+    """About page"""
     user_is_logged_in = 'username' in session
-    return render_template('accueil.html', user_is_logged_in=user_is_logged_in)
+    username = session.get('username', '')
+    role = session.get('role', 'user')
+    
+    return render_template('about.html',
+                         user_is_logged_in=user_is_logged_in,
+                         username=username,
+                         role=role)
+
+@app.route('/documentation')
+@login_required
+def documentation():
+    """Documentation page"""
+    username = session['username']
+    role = session.get('role', 'user')
+    
+    return render_template('documentation.html',
+                         username=username,
+                         role=role)
+
+@app.route('/support')
+@login_required
+def support():
+    """Support page"""
+    username = session['username']
+    role = session.get('role', 'user')
+    
+    return render_template('support.html',
+                         username=username,
+                         role=role)
+
+@app.route('/privacy')
+def privacy():
+    """Privacy policy page"""
+    user_is_logged_in = 'username' in session
+    username = session.get('username', '')
+    role = session.get('role', 'user')
+    
+    return render_template('privacy.html',
+                         user_is_logged_in=user_is_logged_in,
+                         username=username,
+                         role=role)
+
+@app.route('/terms')
+def terms():
+    """Terms of service page"""
+    user_is_logged_in = 'username' in session
+    username = session.get('username', '')
+    role = session.get('role', 'user')
+    
+    return render_template('terms.html',
+                         user_is_logged_in=user_is_logged_in,
+                         username=username,
+                         role=role)
+
+@app.route('/my-reservations')
+@login_required
+def my_reservations():
+    """Page showing all user reservations"""
+    username = session['username']
+    role = session.get('role', 'user')
+    reservations = user_db.get_user_reservations(username)
+    
+    return render_template('reservations.html',
+                         username=username,
+                         role=role,
+                         reservations=reservations)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=5001)
