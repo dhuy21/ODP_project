@@ -1,5 +1,67 @@
-Ansible/
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environment
 venv/
+env/
+ENV/
+.venv
+
+# Flask
+instance/
+.webassets-cache
+*.db
+*.sqlite
+*.sqlite3
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+*.log
+
+# Project Specific
+Ansible/inventory_*.ini
+!Ansible/inventory.ini
 handoff/
 requests/
+/tmp/
+pool_state.json
+/var/
+
+# Python Cache
+web/__pycache__/
+web/*/__pycache__/
+web/*/*/__pycache__/
 web/utils/__pycache__/
+web/config/__pycache__/
+web/controller/__pycache__/
+web/middlewares/__pycache__/
+web/models/__pycache__/
+web/routes/__pycache__/
+web/services/__pycache__/
+
+# Data files (keep structure, ignore content)
+web/data/users.json
+
+# Temporary files
+*.tmp
+*.bak
+*.backup
+
+# Docker
+.docker/
+
+# Vagrant
+.vagrant/
+*.box
