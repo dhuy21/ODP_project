@@ -172,6 +172,32 @@
             margin-top: 2rem;
         }
     </style>
+    <style>
+        .stats-container {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f7fafc;
+            border-radius: 4px;
+            font-size: 0.9em;
+        }
+        .stats-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 5px 0;
+        }
+        .stats-label {
+            font-weight: 600;
+            color: #4a5568;
+        }
+        .stats-value {
+            color: #2d3748;
+            font-family: monospace;
+        }
+        .loading-stats {
+            color: #a0aec0;
+            font-style: italic;
+        }
+    </style>
 </head>
 <body>
     <div class="reservation-detail">
@@ -250,6 +276,27 @@
                         </div>
                         <div class="node-info-item">
                             💾 <strong>Platform:</strong> Ubuntu 22.04
+                        </div>
+
+                        <div class="stats-container">
+                            <div class="stats-row">
+                                <span class="stats-label">CPU Usage:</span>
+                                <span class="stats-value" id="cpu-{{ node.name }}">
+                                    <span class="loading-stats">Loading...</span>
+                                </span>
+                            </div>
+                            <div class="stats-row">
+                                <span class="stats-label">Memory:</span>
+                                <span class="stats-value" id="mem-{{ node.name }}">
+                                    <span class="loading-stats">Loading...</span>
+                                </span>
+                            </div>
+                            <div class="stats-row">
+                                <span class="stats-label">Memory %:</span>
+                                <span class="stats-value" id="mem-perc-{{ node.name }}">
+                                    <span class="loading-stats">Loading...</span>
+                                </span>
+                            </div>
                         </div>
                     </div>
                     
@@ -338,6 +385,49 @@
                 alert('❌ Error: ' + error.message);
             }
         }
+    </script>
+    <script>
+        let expiryTimestamp = {{ reservation.expires_at|int }};
+        let statsUpdateInterval;
+
+        function updateCountdown() {
+            const now = Math.floor(Date.now() / 1000);
+            setTimeout(updateCountdown, 1000);
+        }
+
+        async function updateStats() {
+            try {
+                const response = await fetch('/stats/{{ reservation.id }}');
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    Object.keys(data.stats).forEach(nodeName => {
+                        const stats = data.stats[nodeName];
+                        const cpuElem = document.getElementById(`cpu-${nodeName}`);
+                        const memElem = document.getElementById(`mem-${nodeName}`);
+                        const memPercElem = document.getElementById(`mem-perc-${nodeName}`);
+                        
+                        if (cpuElem) cpuElem.textContent = stats.cpu;
+                        if (memElem) memElem.textContent = stats.memory;
+                        if (memPercElem) memPercElem.textContent = stats.memory_percent;
+                    });
+                }
+            } catch (error) {
+                console.error('Error fetching stats:', error);
+            }
+        }
+        
+        window.onload = function() {
+            updateCountdown();
+            updateStats(); // Initial load
+            statsUpdateInterval = setInterval(updateStats, 3000); // Update every 3 seconds
+        };
+        
+        window.onbeforeunload = function() {
+            if (statsUpdateInterval) {
+                clearInterval(statsUpdateInterval);
+            }
+        };
     </script>
 </body>
 </html>

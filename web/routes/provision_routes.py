@@ -33,3 +33,9 @@ def release_resources(username):
 @login_required
 def check_my_reservations():
     return vm_controller.check_my_reservations()
+
+@provision_bp.route('/stats/<reservation_id>', methods=['GET'])
+@login_required
+def get_container_stats(reservation_id):
+    """Get container statistics for a reservation"""
+    return vm_controller.get_container_stats(reservation_id)

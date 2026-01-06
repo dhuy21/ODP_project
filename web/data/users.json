@@ -303,7 +303,56 @@
         ],
         "created_at": 1767713463.7839873,
         "expires_at": 1767717063.7839878,
-        "status": "active"
+        "status": "expired"
+      },
+      {
+        "id": "79d624b7-75d9-4fea-bd54-8fa14a49a3c1",
+        "username": "root",
+        "vm_count": 2,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          },
+          {
+            "name": "pool-node-5",
+            "ip": "172.30.0.15",
+            "port": "3004"
+          }
+        ],
+        "created_at": 1767730026.0675838,
+        "expires_at": 1767733626.067584,
+        "status": "released"
+      },
+      {
+        "id": "eb6a44ad-d871-4c61-a543-f8077e8d389b",
+        "username": "root",
+        "vm_count": 3,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-6",
+            "ip": "172.30.0.16",
+            "port": "3005"
+          },
+          {
+            "name": "pool-node-7",
+            "ip": "172.30.0.17",
+            "port": "3006"
+          },
+          {
+            "name": "pool-node-8",
+            "ip": "172.30.0.18",
+            "port": "3007"
+          }
+        ],
+        "created_at": 1767730118.712714,
+        "expires_at": 1767733718.7127144,
+        "status": "released"
       }
     ]
   }

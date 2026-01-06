@@ -3,6 +3,7 @@ from models.user import UserDatabase
 from models.vm import Reservation, VM
 from services.docker_service import DockerService
 from services.ansible_service import AnsibleService
+from services.stats_service import StatsService
 import time
 import uuid
 
@@ -13,6 +14,7 @@ class VMController:
         self.user_db = UserDatabase()
         self.docker_service = DockerService()
         self.ansible_service = AnsibleService()
+        self.stats_service = StatsService()
         self.client_allocations = {}
     
     def get_pool_status(self):
@@ -172,3 +174,32 @@ class VMController:
     def get_allocations(self):
         """Get current allocations (for backward compatibility)"""
         return self.client_allocations
+    
+    def get_container_stats(self, reservation_id):
+        """Get container statistics for a reservation"""
+        username = session['username']
+        
+        # Get reservation from database
+        reservations = self.user_db.get_user_reservations(username)
+        reservation = next((r for r in reservations if r['id'] == reservation_id), None)
+        
+        if not reservation:
+            return jsonify({
+                'status': 'error',
+                'message': 'Reservation not found'
+            })
+        
+        try:
+            # Get stats for all nodes in the reservation
+            stats = self.stats_service.get_reservation_stats(reservation.get('nodes', []))
+            
+            return jsonify({
+                'status': 'success',
+                'stats': stats
+            })
+        except Exception as e:
+            print(f"[ERROR] Failed to get container stats: {e}")
+            return jsonify({
+                'status': 'error',
+                'message': str(e)
+            })
