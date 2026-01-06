@@ -2,7 +2,7 @@
 <html>
 <head>
     <title>{% block title %}Admin Panel{% endblock %} - IaaS Platform</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='dark_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_style.css') }}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,29 +18,29 @@
             </div>
             
             <nav class="sidebar-nav">
-                <a href="{{ url_for('admin_panel') }}" class="nav-item {% if request.endpoint == 'admin_panel' %}active{% endif %}">
+                <a href="{{ url_for('main.admin_panel') }}" class="nav-item {% if request.endpoint == 'main.admin_panel' %}active{% endif %}">
                     <span class="icon">📊</span>
                     <span>Dashboard</span>
                 </a>
                 
-                <a href="{{ url_for('admin_panel') }}#users" class="nav-item">
+                <a href="{{ url_for('main.admin_panel') }}#users" class="nav-item">
                     <span class="icon">👥</span>
                     <span>User Management</span>
                 </a>
                 
-                <a href="{{ url_for('admin_panel') }}#reservations" class="nav-item">
+                <a href="{{ url_for('main.admin_panel') }}#reservations" class="nav-item">
                     <span class="icon">📋</span>
                     <span>Reservations</span>
                 </a>
                 
-                <a href="{{ url_for('admin_panel') }}#pool" class="nav-item">
+                <a href="{{ url_for('main.admin_panel') }}#pool" class="nav-item">
                     <span class="icon">🖥️</span>
                     <span>Pool Status</span>
                 </a>
             </nav>
             
             <div class="sidebar-footer">
-                <a href="{{ url_for('logout') }}" class="logout-btn">
+                <a href="{{ url_for('auth.logout') }}" class="logout-btn">
                     <span class="icon">🚪</span>
                     <span>Logout</span>
                 </a>

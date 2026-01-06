@@ -199,7 +199,7 @@
           }
         ],
         "packages": [],
-        "status": "active"
+        "status": "expired"
       }
     ]
   },
@@ -234,6 +234,76 @@
         ],
         "packages": [],
         "status": "expired"
+      }
+    ]
+  },
+  "root": {
+    "email": "root@gmail.com",
+    "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
+    "role": "user",
+    "created_at": "2026-01-06T15:55:23.659914",
+    "reservations": [
+      {
+        "id": "bd5fdecb-6cb3-4d4e-859d-0b9e94f1cda6",
+        "username": "root",
+        "vm_count": 3,
+        "duration": 60,
+        "packages": [
+          "nginx",
+          "git",
+          "vim"
+        ],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          }
+        ],
+        "created_at": 1767711694.1718693,
+        "expires_at": 1767715294.17187,
+        "status": "released"
+      },
+      {
+        "id": "f9fcb7e7-9fa4-4ccc-82e1-9da0559b806e",
+        "username": "root",
+        "vm_count": 3,
+        "duration": 60,
+        "packages": [
+          "nginx",
+          "git",
+          "vim"
+        ],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          }
+        ],
+        "created_at": 1767713463.7839873,
+        "expires_at": 1767717063.7839878,
+        "status": "active"
       }
     ]
   }

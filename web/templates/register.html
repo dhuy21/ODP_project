@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - IaaS Platform</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='dark_style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
         .register-container {
@@ -154,7 +154,7 @@
                 <p style="color:var(--text-secondary); margin-bottom:0.5rem;">
                     Already have an account?
                 </p>
-                <a href="{{ url_for('login') }}" style="color:var(--accent-primary); text-decoration:none; font-weight:600;">
+                <a href="{{ url_for('auth.login') }}" style="color:var(--accent-primary); text-decoration:none; font-weight:600;">
                     Sign in instead →
                 </a>
             </div>
