@@ -1,0 +1,23 @@
+/* Terminal Page Styles */
+
+body {
+    margin: 0;
+    padding: 0;
+    background-color: #1e1e1e;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#terminal {
+    width: 90vw;
+    height: 90vh;
+}
+
+.terminal-container {
+    padding: 10px;
+    background-color: #1e1e1e;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+}

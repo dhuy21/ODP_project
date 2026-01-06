@@ -1,0 +1,115 @@
+/* Dashboard Home Page Styles */
+
+body {
+    background: var(--bg-dark);
+}
+
+.user-dashboard {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 2rem;
+    background: var(--bg-card);
+    border-radius: 16px;
+    border: 1px solid var(--border);
+}
+
+.dashboard-header h1 {
+    background: var(--accent-gradient-3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.dashboard-header > div {
+    display: flex;
+    gap: 1rem;
+}
+
+.provision-form {
+    background: var(--bg-card);
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    margin-bottom: 2rem;
+}
+
+.provision-form h2 {
+    margin-bottom: 1.5rem;
+    background: var(--accent-gradient-3);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.provision-form .form-group small {
+    color: var(--text-secondary);
+    display: block;
+    margin-top: 0.5rem;
+}
+
+.provision-form .btn-primary {
+    width: 100%;
+}
+
+.reservation-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.reservation-grid.inline-padding {
+    padding: 1.5rem;
+}
+
+.reservation-card {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid var(--border);
+    transition: all 0.3s ease;
+}
+
+.reservation-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px var(--shadow);
+}
+
+.reservation-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.reservation-card-header h3 {
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.reservation-card-header code {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+}
+
+.reservation-card-details {
+    margin-bottom: 1rem;
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
+.reservation-card .btn-primary {
+    width: 100%;
+}
+
+.data-table-container {
+    margin-top: 2rem;
+}

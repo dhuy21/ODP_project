@@ -16,42 +16,38 @@ class SSHSession:
         self.expires_at = None
         self.connected = False
     
-    def connect(self, password=None, default_user='vagrant', default_password='vagrant'):
-        """Establish SSH connection"""
+    def connect(self, password=None, allow_admin=False):
+        """Establish SSH connection
+        
+        Args:
+            password: User's password for SSH authentication
+            allow_admin: If True, allows fallback to vagrant admin account (ADMIN ONLY!)
+        """
         try:
             self.client = paramiko.SSHClient()
             self.client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             
-            # Try user credentials first
-            if password:
-                try:
-                    self.client.connect(
-                        self.host,
-                        port=self.port,
-                        username=self.username,
-                        password=password,
-                        look_for_keys=False,
-                        allow_agent=False,
-                        timeout=10
-                    )
-                    self.connected = True
-                    return True
-                except Exception as e:
-                    print(f"User auth failed: {e}")
+            # Connect using user's credentials
+            if not password:
+                print("ERROR: No password provided for SSH connection")
+                return False
             
-            # Fall back to default vagrant credentials
-            self.client.connect(
-                self.host,
-                port=self.port,
-                username=default_user,
-                password=default_password,
-                look_for_keys=False,
-                allow_agent=False,
-                timeout=10
-            )
-            self.connected = True
-            return True
-            
+            try:
+                self.client.connect(
+                    self.host,
+                    port=self.port,
+                    username=self.username,
+                    password=password,
+                    look_for_keys=False,
+                    allow_agent=False,
+                    timeout=10
+                )
+                self.connected = True
+                print(f"✓ SSH connected as user: {self.username}")
+                return True
+                
+            except paramiko.AuthenticationException as e:
+                print(f"Authentication failed for user '{self.username}': Invalid credentials")  
         except Exception as e:
             print(f"SSH connection failed: {e}")
             return False

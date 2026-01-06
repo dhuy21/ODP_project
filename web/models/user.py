@@ -45,8 +45,36 @@ class UserDatabase:
         """Register a new user"""
         users = self.load_users()
         
+        # SECURITY: Block reserved system usernames
+        RESERVED_USERNAMES = [
+            'root', 'admin', 'vagrant', 'ubuntu', 'daemon', 'bin', 'sys', 
+            'sync', 'games', 'man', 'lp', 'mail', 'news', 'uucp', 'proxy',
+            'www-data', 'backup', 'list', 'irc', 'gnats', 'nobody', 
+            'systemd-network', 'systemd-resolve', 'messagebus', 'syslog',
+            'docker', 'sudo', 'wheel', 'operator', 'adm'
+        ]
+        
+        if username.lower() in RESERVED_USERNAMES:
+            return {
+                'status': 'error', 
+                'message': f'Username "{username}" is reserved and cannot be used. Please choose another username.'
+            }
+        
         if username in users:
             return {'status': 'error', 'message': 'Username already exists'}
+        
+        # Validate username format
+        if not username.replace('_', '').replace('-', '').isalnum():
+            return {
+                'status': 'error',
+                'message': 'Username can only contain letters, numbers, hyphens, and underscores'
+            }
+        
+        if len(username) < 3 or len(username) > 32:
+            return {
+                'status': 'error',
+                'message': 'Username must be between 3 and 32 characters'
+            }
         
         users[username] = {
             'email': email,

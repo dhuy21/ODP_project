@@ -3,27 +3,7 @@
 <head>
     <title>Web Terminal</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.css">
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background-color: #1e1e1e;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        #terminal {
-            width: 90vw;
-            height: 90vh;
-        }
-        .terminal-container {
-            padding: 10px;
-            background-color: #1e1e1e;
-            border-radius: 5px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.5);
-        }
-    </style>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/terminal.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xterm/3.14.5/xterm.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.5.0/lib/xterm-addon-fit.js"></script>

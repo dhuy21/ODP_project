@@ -202,15 +202,42 @@ PY
         if [ "${status}" = "allocated" ] && [ "${expiry}" -gt 0 ] && [ "${current_time}" -gt "${expiry}" ]; then
             echo "   - Releasing expired ${name} (client: ${client})"
             
-            # Reset container
-            docker exec "${name}" /bin/bash -c "
-                for user in \$(ls /home | grep -v vagrant); do
-                    userdel -r \$user 2>/dev/null || true
-                done
-            " >/dev/null 2>&1 || true
+            # OPTION 1: Restart container to completely reset filesystem
+            # This ensures NO data persists between reservations
+            docker restart "${name}" >/dev/null 2>&1
             
-            # Update state to free
-            python3 - "${STATE_FILE}" "${name}" "free" "" "0" <<'PY'
+            if [ $? -eq 0 ]; then
+                # Wait for container to be fully ready
+                sleep 3  # Increased for safety
+                
+                # VERIFY: Check that container is running
+                if docker ps -q -f name="^${name}$" | grep -q .; then
+                    # DEEP CLEAN: Extra safety measure
+                    docker exec "${name}" /bin/bash -c "
+                        # Remove all non-vagrant users
+                        for user in \$(ls /home 2>/dev/null | grep -v vagrant); do
+                            userdel -r \$user 2>/dev/null || true
+                        done
+                        
+                        # Clean vagrant home directory (but keep user account)
+                        rm -rf /home/vagrant/* /home/vagrant/.* 2>/dev/null || true
+                        
+                        # Restore vagrant SSH keys
+                        mkdir -p /home/vagrant/.ssh
+                        curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub -o /home/vagrant/.ssh/authorized_keys 2>/dev/null || true
+                        chmod 700 /home/vagrant/.ssh
+                        chmod 600 /home/vagrant/.ssh/authorized_keys
+                        chown -R vagrant:vagrant /home/vagrant/.ssh
+                        
+                        # Clean common data directories
+                        rm -rf /tmp/* /tmp/.* 2>/dev/null || true
+                        rm -rf /var/tmp/* 2>/dev/null || true
+                        rm -rf /opt/* 2>/dev/null || true
+                    " >/dev/null 2>&1 || true
+                fi
+                
+                # Update state to free
+                python3 - "${STATE_FILE}" "${name}" "free" "" "0" <<'PY'
 import sys, json
 state_file, name, status, client, expiry = sys.argv[1:6]
 try:
@@ -222,8 +249,11 @@ state[name] = {"status": status, "client": client, "expiry": int(expiry)}
 with open(state_file, 'w') as f:
     json.dump(state, f)
 PY
-            
-            expired_count=$((expired_count + 1))
+                
+                expired_count=$((expired_count + 1))
+            else
+                echo "   ✗ Failed to restart ${name}"
+            fi
         fi
     done
     
@@ -239,6 +269,8 @@ release_from_client() {
     local client_id=$1
     
     echo "==> Releasing containers from ${client_id}"
+    
+    local released_count=0
     
     for i in $(seq 1 "${POOL_SIZE}"); do
         local name="pool-node-${i}"
@@ -256,15 +288,47 @@ PY
 )
         
         if [ "${client}" = "${client_id}" ]; then
-            # Reset container - remove custom users
-            docker exec "${name}" /bin/bash -c "
-                for user in \$(ls /home | grep -v vagrant); do
-                    userdel -r \$user 2>/dev/null || true
-                done
-            " >/dev/null 2>&1 || true
+            echo "   - Resetting ${name} (full clean)..."
             
-            # Update state file
-            python3 - "${STATE_FILE}" "${name}" "free" "" "0" <<'PY'
+            # OPTION 1: Restart container to completely reset filesystem
+            # This ensures NO data persists between reservations
+            docker restart "${name}" >/dev/null 2>&1
+            
+            if [ $? -eq 0 ]; then
+                # Wait for container to be fully ready (SSH service started)
+                sleep 3  # Increased from 2 to 3 seconds for safety
+                
+                # VERIFY: Check that container is actually running
+                if ! docker ps -q -f name="^${name}$" | grep -q .; then
+                    echo "   ✗ ${name} failed to restart properly"
+                    continue
+                fi
+                
+                # DEEP CLEAN: Extra safety measure
+                docker exec "${name}" /bin/bash -c "
+                    # Remove all non-vagrant users
+                    for user in \$(ls /home 2>/dev/null | grep -v vagrant); do
+                        userdel -r \$user 2>/dev/null || true
+                    done
+                    
+                    # Clean vagrant home directory (but keep user account)
+                    rm -rf /home/vagrant/* /home/vagrant/.* 2>/dev/null || true
+                    
+                    # Restore vagrant SSH keys
+                    mkdir -p /home/vagrant/.ssh
+                    curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub -o /home/vagrant/.ssh/authorized_keys 2>/dev/null || true
+                    chmod 700 /home/vagrant/.ssh
+                    chmod 600 /home/vagrant/.ssh/authorized_keys
+                    chown -R vagrant:vagrant /home/vagrant/.ssh
+                    
+                    # Clean common data directories
+                    rm -rf /tmp/* /tmp/.* 2>/dev/null || true
+                    rm -rf /var/tmp/* 2>/dev/null || true
+                    rm -rf /opt/* 2>/dev/null || true
+                " >/dev/null 2>&1 || true
+                
+                # Update state file to free
+                python3 - "${STATE_FILE}" "${name}" "free" "" "0" <<'PY'
 import sys, json
 state_file, name, status, client, expiry = sys.argv[1:6]
 try:
@@ -276,10 +340,20 @@ state[name] = {"status": status, "client": client, "expiry": int(expiry)}
 with open(state_file, 'w') as f:
     json.dump(state, f)
 PY
-            
-            echo "   - Released ${name}"
+                
+                echo "   ✓ ${name} released and reset to clean state"
+                released_count=$((released_count + 1))
+            else
+                echo "   ✗ Failed to restart ${name}"
+            fi
         fi
     done
+    
+    if [ ${released_count} -gt 0 ]; then
+        echo "==> Successfully released and reset ${released_count} container(s)"
+    else
+        echo "==> No containers found for ${client_id}"
+    fi
 }
 
 # Show pool status

@@ -3,65 +3,14 @@
 <head>
     <title>Dashboard - {{ username }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_home.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .user-dashboard {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-        }
-        
-        .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 2rem;
-            padding: 2rem;
-            background: var(--bg-card);
-            border-radius: 16px;
-            border: 1px solid var(--border);
-        }
-        
-        .dashboard-header h1 {
-            background: var(--accent-gradient-3);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .provision-form {
-            background: var(--bg-card);
-            padding: 2rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            margin-bottom: 2rem;
-        }
-        
-        .reservation-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-            gap: 1.5rem;
-            margin-top: 2rem;
-        }
-        
-        .reservation-card {
-            background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-        }
-        
-        .reservation-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px var(--shadow);
-        }
-    </style>
 </head>
-<body style="background: var(--bg-dark);">
+<body>
     <div class="user-dashboard">
         <div class="dashboard-header">
             <h1>👋 Welcome, {{ username }}!</h1>
-            <div style="display:flex; gap:1rem;">
+            <div>
                 {% if role == 'admin' %}
                 <a href="{{ url_for('main.admin_panel') }}" class="btn btn-primary">
                     🚀 Admin Panel
@@ -91,29 +40,29 @@
         
         <!-- Active Reservations -->
         {% if active_reservations %}
-        <div class="data-table-container" style="margin-top:2rem;">
+        <div class="data-table-container">
             <div class="table-header">
                 <h2>🎯 Your Active Reservations</h2>
             </div>
-            <div class="reservation-grid" style="padding:1.5rem;">
+            <div class="reservation-grid inline-padding">
                 {% for reservation in active_reservations %}
                 <div class="reservation-card">
-                    <div style="display:flex; justify-content:space-between; align-items:start; margin-bottom:1rem;">
+                    <div class="reservation-card-header">
                         <div>
-                            <h3 style="color:var(--text-primary); margin-bottom:0.5rem;">
+                            <h3>
                                 🖥️ {{ reservation.vm_count }} VMs
                             </h3>
-                            <code style="font-size:0.75rem; color:var(--text-secondary);">
+                            <code>
                                 {{ reservation.id[:12] }}...
                             </code>
                         </div>
                         <span class="badge badge-success">Active</span>
                     </div>
-                    <div style="margin-bottom:1rem; color:var(--text-secondary); font-size:0.875rem;">
+                    <div class="reservation-card-details">
                         <div>⏱️ Duration: {{ reservation.duration }} minutes</div>
                         <div>📦 Packages: {{ reservation.packages|join(', ') if reservation.packages else 'None' }}</div>
                     </div>
-                    <a href="{{ url_for('provision.view_reservation', reservation_id=reservation.id) }}" class="btn btn-primary" style="width:100%;">
+                    <a href="{{ url_for('provision.view_reservation', reservation_id=reservation.id) }}" class="btn btn-primary">
                         View Details →
                     </a>
                 </div>
@@ -124,14 +73,14 @@
         
         <!-- Create New Reservation -->
         <div class="provision-form">
-            <h2 style="margin-bottom:1.5rem; background: var(--accent-gradient-3); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            <h2>
                 ➕ Create New Reservation
             </h2>
             <form id="provisionForm">
                 <div class="form-group">
                     <label>🔐 VM Password</label>
                     <input type="password" name="password" required placeholder="Password for VM access">
-                    <small style="color:var(--text-secondary); display:block; margin-top:0.5rem;">
+                    <small>
                         This password will be used to access your VMs via SSH
                     </small>
                 </div>
@@ -139,7 +88,7 @@
                 <div class="form-group">
                     <label>💻 Number of VMs</label>
                     <input type="number" name="vm_count" min="1" max="5" required value="1">
-                    <small style="color:var(--text-secondary); display:block; margin-top:0.5rem;">
+                    <small>
                         Maximum 5 VMs per request
                     </small>
                 </div>
@@ -160,12 +109,12 @@
                 <div class="form-group">
                     <label>📦 Software Packages (comma-separated)</label>
                     <input type="text" name="packages" placeholder="nginx,git,vim">
-                    <small style="color:var(--text-secondary); display:block; margin-top:0.5rem;">
+                    <small>
                         Optional: These packages will be installed on your VMs
                     </small>
                 </div>
                 
-                <button type="submit" class="btn btn-primary" style="width:100%;">
+                <button type="submit" class="btn btn-primary">
                     🚀 Create Reservation
                 </button>
             </form>
@@ -210,31 +159,6 @@
     </div>
     
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    <script>
-        async function refreshPoolStatus() {
-            const response = await fetch('/pool/status');
-            const data = await response.json();
-            if (data.status === 'success') {
-                document.getElementById('available-count').textContent = data.free;
-            }
-        }
-        
-        // Check for expired reservations
-        setInterval(async () => {
-            try {
-                const response = await fetch('/check-my-reservations');
-                const data = await response.json();
-                
-                if (data.has_expired) {
-                    alert('⚠️ One or more of your reservations has expired. Refreshing...');
-                    location.reload();
-                }
-            } catch (e) {
-                console.error('Error checking reservations:', e);
-            }
-        }, 30000);
-        
-        setInterval(refreshPoolStatus, 30000);
-    </script>
+    <script src="{{ url_for('static', filename='js/dashboard_home.js') }}"></script>
 </body>
 </html>

@@ -3,33 +3,6 @@
 <head>
     <title>Your Infrastructure - {{ username }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script>
-        let expiryTimestamp = {{ expiry_timestamp if expiry_timestamp else 0 }};
-        
-        function updateCountdown() {
-            if (expiryTimestamp === 0) return;
-            
-            const now = Math.floor(Date.now() / 1000);
-            const remaining = expiryTimestamp - now;
-            
-            if (remaining <= 0) {
-                document.getElementById('countdown').innerHTML = '<span style="color:red">EXPIRED - Your resources have been released</span>';
-                setTimeout(() => window.location.href = '/', 3000);
-                return;
-            }
-            
-            const hours = Math.floor(remaining / 3600);
-            const minutes = Math.floor((remaining % 3600) / 60);
-            const seconds = remaining % 60;
-            
-            document.getElementById('countdown').textContent = 
-                `${hours}h ${minutes}m ${seconds}s remaining`;
-            
-            setTimeout(updateCountdown, 1000);
-        }
-        
-        window.onload = updateCountdown;
-    </script>
 </head>
 <body>
     <div class="container">
@@ -61,30 +34,15 @@
         <div class="release-section">
             <h2>Release Resources Early</h2>
             <p>If you're done before the time expires, you can release your resources:</p>
-            <button onclick="releaseResources()" class="button" style="background:#e53e3e;">
+            <button onclick="releaseResources('{{ username }}')" class="button" style="background:#e53e3e;">
                 Release All Resources
             </button>
         </div>
     </div>
     
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
     <script>
-        async function releaseResources() {
-            if (!confirm('Are you sure you want to release all resources?')) {
-                return;
-            }
-            
-            const response = await fetch('/release/{{ username }}', {
-                method: 'POST'
-            });
-            
-            const data = await response.json();
-            if (data.status === 'success') {
-                alert('Resources released successfully!');
-                window.location.href = '/';
-            } else {
-                alert('Error: ' + data.message);
-            }
-        }
+        initializeDashboard({{ expiry_timestamp if expiry_timestamp else 0 }});
     </script>
 </body>
 </html>

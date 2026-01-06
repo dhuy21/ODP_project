@@ -5,96 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login - IaaS Platform</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/login.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg-dark);
-            padding: 2rem;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(102, 126, 234, 0.1) 0%, transparent 70%);
-            animation: pulse 15s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(180deg); }
-        }
-        
-        .login-box {
-            background: var(--bg-card);
-            padding: 3rem;
-            border-radius: 24px;
-            border: 1px solid var(--border);
-            box-shadow: 0 20px 60px var(--shadow);
-            max-width: 450px;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-        }
-        
-        .login-header {
-            text-align: center;
-            margin-bottom: 2rem;
-        }
-        
-        .login-header h1 {
-            font-size: 2rem;
-            font-weight: 700;
-            background: var(--accent-gradient-3);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 0.5rem;
-        }
-        
-        .login-header p {
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-        
-        .brand-logo {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            display: inline-block;
-            animation: float 3s ease-in-out infinite;
-        }
-        
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-10px); }
-        }
-        
-        .login-footer {
-            text-align: center;
-            margin-top: 2rem;
-            padding-top: 2rem;
-            border-top: 1px solid var(--border);
-        }
-        
-        .login-footer a {
-            color: var(--accent-primary);
-            text-decoration: none;
-            font-weight: 600;
-            transition: all 0.3s ease;
-        }
-        
-        .login-footer a:hover {
-            color: var(--accent-secondary);
-        }
-    </style>
 </head>
 <body>
     <div class="login-container">
@@ -118,7 +30,7 @@
                            placeholder="Enter your password">
                 </div>
                 
-                <button type="submit" class="btn btn-primary" style="width:100%; margin-top:1.5rem;">
+                <button type="submit" class="btn btn-primary">
                     🚀 Sign In
                 </button>
             </form>
@@ -126,52 +38,12 @@
             <div id="result"></div>
             
             <div class="login-footer">
-                <p style="color:var(--text-secondary); margin-bottom:0.5rem;">
-                    Don't have an account?
-                </p>
+                <p>Don't have an account?</p>
                 <a href="{{ url_for('auth.register') }}">Create one now →</a>
             </div>
         </div>
     </div>
     
-    <script>
-        document.getElementById('loginForm').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const form = e.target;
-            const resultDiv = document.getElementById('result');
-            const submitBtn = form.querySelector('button[type="submit"]');
-            
-            submitBtn.disabled = true;
-            submitBtn.innerHTML = '<span class="loading"></span> Signing in...';
-            
-            try {
-                const response = await fetch('/login', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        username: form.username.value,
-                        password: form.password.value
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    resultDiv.innerHTML = '<div class="alert success">✅ Login successful! Redirecting...</div>';
-                    setTimeout(() => {
-                        window.location.href = '/home';  // Changed from '/dashboard'
-                    }, 1000);
-                } else {
-                    resultDiv.innerHTML = `<div class="alert error"> ${result.message}</div>`;
-                    submitBtn.disabled = false;
-                    submitBtn.innerHTML = '🚀 Sign In';
-                }
-            } catch (error) {
-                resultDiv.innerHTML = `<div class="alert error"> ${error.message}</div>`;
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '🚀 Sign In';
-            }
-        });
-    </script>
+    <script src="{{ url_for('static', filename='js/login.js') }}"></script>
 </body>
 </html>
