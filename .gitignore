@@ -1,5 +1,6 @@
 Ansible/
 venv/
-web/
 handoff/
 requests/
+web/config/
+web/utils/__pycache__/
