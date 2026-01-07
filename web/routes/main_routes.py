@@ -14,9 +14,7 @@ vm_controller = VMController()
 
 @main_bp.route('/')
 def index():
-    """Root route - show landing page or redirect to dashboard"""
-    if 'username' in session:
-        return redirect(url_for('main.home'))
+    """Root route - show landing page (accueil)"""
     return render_template('accueil.html')
 
 
@@ -36,8 +34,14 @@ def dashboard_home():
 @main_bp.route('/my-reservations')
 @login_required
 def my_reservations():
-    """Page showing all user reservations - redirect to dashboard"""
-    return redirect(url_for('main.dashboard_home'))
+    """Page showing all user reservations - redirect to reservation history"""
+    return redirect(url_for('main.reservation_history'))
+
+@main_bp.route('/reservation-history')
+@login_required
+def reservation_history():
+    """Reservation history page"""
+    return dashboard_controller.reservation_history()
 
 
 

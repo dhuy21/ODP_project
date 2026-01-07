@@ -91,6 +91,15 @@ def start_background_tasks(ssh_controller):
                             expires_at = reservation.get('expires_at', 0)
                             if current_time > expires_at:
                                 print(f"[EXPIRY] Marking reservation {reservation['id'][:8]} as expired for {username}")
+                                
+                                # Save final stats before marking as expired
+                                from services.stats_service import StatsService
+                                stats_service = StatsService()
+                                final_stats = stats_service.get_reservation_stats(reservation.get('nodes', []))
+                                if final_stats:
+                                    user_db.save_reservation_final_stats(username, reservation['id'], final_stats)
+                                    print(f"[STATS] Saved final stats for expired reservation {reservation['id'][:8]}...")
+                                
                                 user_db.update_reservation_status(username, reservation['id'], 'expired')
                                 
                                 # Disconnect any active SSH sessions for this user

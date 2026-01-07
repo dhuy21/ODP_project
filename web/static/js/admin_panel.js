@@ -45,18 +45,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
                 
                 if (result.status === 'success') {
-                    resultDiv.innerHTML = '<div class="alert success">✅ User created successfully!</div>';
+                    Notification.success('User created successfully!', 3000);
                     setTimeout(() => {
                         closeCreateUserModal();
                         location.reload();
                     }, 1500);
                 } else {
-                    resultDiv.innerHTML = `<div class="alert error">❌ ${result.message}</div>`;
+                    Notification.error(result.message || 'Failed to create user');
                     submitBtn.disabled = false;
                     submitBtn.innerHTML = 'Create User';
                 }
             } catch (error) {
-                resultDiv.innerHTML = `<div class="alert error">❌ ${error.message}</div>`;
+                Notification.error('Network error: ' + error.message);
                 submitBtn.disabled = false;
                 submitBtn.innerHTML = 'Create User';
             }
@@ -85,7 +85,16 @@ function closeCreateUserModal() {
 }
 
 async function deleteUser(username) {
-    if (!confirm(`Are you sure you want to delete user ${username}? This will also release their containers.`)) {
+    const confirmed = await Modal.confirm({
+        title: 'Delete User',
+        message: `Are you sure you want to delete user "${username}"? This will also release their containers. This action cannot be undone.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        type: 'danger',
+        confirmColor: 'danger'
+    });
+
+    if (!confirmed) {
         return;
     }
     
@@ -97,20 +106,31 @@ async function deleteUser(username) {
         const result = await response.json();
         
         if (result.status === 'success') {
-            alert('✅ User deleted successfully!');
-            location.reload();
+            Notification.success('User deleted successfully!', 3000);
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
         } else {
-            alert('❌ Error: ' + result.message);
+            Notification.error(result.message || 'Failed to delete user');
         }
     } catch (error) {
-        alert('❌ Error: ' + error.message);
+        Notification.error('Network error: ' + error.message);
     }
 }
 
 async function toggleRole(username, currentRole) {
     const newRole = currentRole === 'admin' ? 'user' : 'admin';
     
-    if (!confirm(`Change ${username}'s role from ${currentRole} to ${newRole}?`)) {
+    const confirmed = await Modal.confirm({
+        title: 'Change User Role',
+        message: `Change ${username}'s role from ${currentRole.toUpperCase()} to ${newRole.toUpperCase()}?`,
+        confirmText: 'Change',
+        cancelText: 'Cancel',
+        type: 'info',
+        confirmColor: 'primary'
+    });
+
+    if (!confirmed) {
         return;
     }
     
@@ -124,18 +144,29 @@ async function toggleRole(username, currentRole) {
         const result = await response.json();
         
         if (result.status === 'success') {
-            alert('✅ Role updated successfully!');
-            location.reload();
+            Notification.success('Role updated successfully!', 3000);
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
         } else {
-            alert('❌ Error: ' + result.message);
+            Notification.error(result.message || 'Failed to update role');
         }
     } catch (error) {
-        alert('❌ Error: ' + error.message);
+        Notification.error('Network error: ' + error.message);
     }
 }
 
 async function deleteReservation(reservationId, owner) {
-    if (!confirm(`Delete reservation ${reservationId.substring(0, 8)}... for user ${owner}?`)) {
+    const confirmed = await Modal.confirm({
+        title: 'Delete Reservation',
+        message: `Delete reservation ${reservationId.substring(0, 8)}... for user "${owner}"? This will also release the containers.`,
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        type: 'warning',
+        confirmColor: 'danger'
+    });
+
+    if (!confirmed) {
         return;
     }
     
@@ -147,18 +178,29 @@ async function deleteReservation(reservationId, owner) {
         const result = await response.json();
         
         if (result.status === 'success') {
-            alert('✅ Reservation deleted and containers released!');
-            location.reload();
+            Notification.success('Reservation deleted and containers released!', 3000);
+            setTimeout(() => {
+                location.reload();
+            }, 1500);
         } else {
-            alert('❌ Error: ' + result.message);
+            Notification.error(result.message || 'Failed to delete reservation');
         }
     } catch (error) {
-        alert('❌ Error: ' + error.message);
+        Notification.error('Network error: ' + error.message);
     }
 }
 
 async function recoverPool() {
-    if (!confirm('Attempt to recover the container pool?')) {
+    const confirmed = await Modal.confirm({
+        title: 'Recover Container Pool',
+        message: 'Attempt to recover the container pool? This will check and restore any missing containers.',
+        confirmText: 'Recover',
+        cancelText: 'Cancel',
+        type: 'warning',
+        confirmColor: 'warning'
+    });
+
+    if (!confirmed) {
         return;
     }
     
@@ -170,12 +212,18 @@ async function recoverPool() {
         const result = await response.json();
         
         if (result.status === 'success') {
-            alert('✅ Pool recovery initiated!\n\n' + result.output);
+            const output = result.output || 'Pool recovery initiated successfully.';
+            await Modal.alert({
+                title: 'Pool Recovery',
+                message: output,
+                type: 'success',
+                buttonText: 'OK'
+            });
             location.reload();
         } else {
-            alert('❌ Error: ' + result.message);
+            Notification.error(result.message || 'Failed to recover pool');
         }
     } catch (error) {
-        alert('❌ Error: ' + error.message);
+        Notification.error('Network error: ' + error.message);
     }
 }

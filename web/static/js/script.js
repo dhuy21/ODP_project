@@ -2,7 +2,7 @@
 // This file should only contain functions used across multiple pages
 
 document.addEventListener('DOMContentLoaded', function() {
-    console.log('ODP Project - IaaS Platform');
+    console.log('ODP Project - IaC Platform');
     
     // Mobile menu toggle
     const mobileToggle = document.querySelector('.nav-mobile-toggle');

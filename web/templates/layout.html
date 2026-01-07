@@ -3,10 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ODP Project{% endblock %} - IaaS Platform</title>
+    <title>{% block title %}ODP Project{% endblock %} - IaC Platform</title>
     
     <!-- Global styles -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/notification.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/modal.css') }}">
     
     <!-- Page-specific styles -->
     {% block styles %}{% endblock %}
@@ -28,7 +30,7 @@
                 </div>
                 <span class="nav-brand-text">
                     <span class="brand-text-main">ODP</span>
-                    <span class="brand-text-sub">IaaS</span>
+                    <span class="brand-text-sub">Projet</span>
                 </span>
             </a>
             
@@ -73,6 +75,14 @@
                                 <div class="nav-user-email">{{ session.get('username') }}@odp.com</div>
                                 <div class="nav-user-role">{{ session.get('role', 'user')|upper }}</div>
                             </div>
+                            <a href="{{ url_for('main.reservation_history') }}" class="nav-user-link">
+                                <i class="fas fa-history nav-user-link-icon"></i>
+                                <div class="nav-user-link-text">
+                                    <span class="nav-user-link-title">Reservation History</span>
+                                    <small>All your reservations</small>
+                                </div>
+                                <i class="fas fa-arrow-right nav-user-link-arrow"></i>
+                            </a>
                             <a href="{{ url_for('auth.logout') }}" class="nav-user-logout">
                                 <i class="fas fa-sign-out-alt logout-icon"></i>
                                 <span>Logout</span>
@@ -123,7 +133,7 @@
                     </div>
                     <h4>ODP Project</h4>
                 </div>
-                <p>Infrastructure as a Service Platform</p>
+                <p>Infrastructure as Code Platform</p>
                 <p class="footer-tagline">Empowering your infrastructure needs</p>
             </div>
             
@@ -173,6 +183,8 @@
     
     <!-- Global scripts -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/notification.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
     
     <!-- Page-specific scripts -->
     {% block scripts %}{% endblock %}

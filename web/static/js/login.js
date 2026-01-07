@@ -50,7 +50,6 @@ function initFormSubmission() {
         const btnText = submitBtn.querySelector('.btn-text');
         const btnIcon = submitBtn.querySelector('i');
         
-        resultDiv.innerHTML = '';
         submitBtn.disabled = true;
         btnText.textContent = 'Signing in...';
         btnIcon.style.display = 'none';
@@ -72,38 +71,27 @@ function initFormSubmission() {
             const result = await response.json();
             
             if (result.status === 'success') {
-                resultDiv.innerHTML = `
-                    <div class="alert success">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Login successful! Redirecting...</span>
-                    </div>
-                `;
+                Notification.success('Login successful! Redirecting...', 2000);
                 setTimeout(() => {
                     window.location.href = '/home';
                 }, 1000);
             } else {
-                resultDiv.innerHTML = `
-                    <div class="alert error">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>${result.message || 'Login failed. Please try again.'}</span>
-                    </div>
-                `;
+                Notification.error(result.message || 'Login failed. Please try again.');
                 submitBtn.disabled = false;
                 btnText.textContent = 'Sign In';
                 btnIcon.style.display = 'inline-block';
-                submitBtn.querySelector('.loading').remove();
+                if (submitBtn.querySelector('.loading')) {
+                    submitBtn.querySelector('.loading').remove();
+                }
             }
         } catch (error) {
-            resultDiv.innerHTML = `
-                <div class="alert error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>Network error. Please try again.</span>
-                </div>
-            `;
+            Notification.error('Network error. Please try again.');
             submitBtn.disabled = false;
             btnText.textContent = 'Sign In';
             btnIcon.style.display = 'inline-block';
-            submitBtn.querySelector('.loading').remove();
+            if (submitBtn.querySelector('.loading')) {
+                submitBtn.querySelector('.loading').remove();
+            }
         }
     });
 }

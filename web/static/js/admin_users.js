@@ -13,8 +13,17 @@ function editUser(userId) {
     console.log('Edit user:', userId);
 }
 
-function deleteUser(userId) {
-    if (confirm('Are you sure you want to delete this user?')) {
+async function deleteUser(userId) {
+    const confirmed = await Modal.confirm({
+        title: 'Delete User',
+        message: 'Are you sure you want to delete this user? This action cannot be undone.',
+        confirmText: 'Delete',
+        cancelText: 'Cancel',
+        type: 'danger',
+        confirmColor: 'danger'
+    });
+
+    if (confirmed) {
         // Implementation for deleting user
         console.log('Delete user:', userId);
     }

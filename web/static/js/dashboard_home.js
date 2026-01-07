@@ -4,6 +4,7 @@
 
 document.addEventListener('DOMContentLoaded', () => {
     initEntryAnimations();
+    initOSSelection();
     initFormSubmission();
     initPoolStatusRefresh();
     initReservationCheck();
@@ -22,6 +23,44 @@ function initEntryAnimations() {
     });
 }
 
+// ========== OS SELECTION ==========
+function initOSSelection() {
+    const osCards = document.querySelectorAll('.btn-os-select');
+    const osGrid = document.getElementById('osGrid');
+    const formContainer = document.getElementById('provisionFormContainer');
+    const btnBack = document.getElementById('btnBackToOS');
+    const selectedOSInput = document.getElementById('selectedOS');
+    const selectedOSName = document.getElementById('selectedOSName');
+    
+    osCards.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const os = btn.dataset.os;
+            const osCard = btn.closest('.os-card');
+            const osName = osCard.querySelector('h3').textContent;
+            const osVersion = osCard.querySelector('.os-version').textContent;
+            
+            // Store selected OS
+            selectedOSInput.value = os;
+            selectedOSName.textContent = `${osName} ${osVersion}`;
+            
+            // Hide OS grid and show form
+            osGrid.style.display = 'none';
+            formContainer.style.display = 'block';
+            
+            // Scroll to form
+            formContainer.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    });
+    
+    if (btnBack) {
+        btnBack.addEventListener('click', () => {
+            formContainer.style.display = 'none';
+            osGrid.style.display = 'grid';
+            osGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        });
+    }
+}
+
 // ========== FORM SUBMISSION ==========
 function initFormSubmission() {
     const form = document.getElementById('provisionForm');
@@ -30,33 +69,22 @@ function initFormSubmission() {
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
         const submitButton = form.querySelector('button[type="submit"]');
-        const resultDiv = document.getElementById('result');
         const btnText = submitButton.querySelector('span');
         const btnIcon = submitButton.querySelector('i');
         
         // Validation
         const vmCount = parseInt(form.vm_count.value);
         if (vmCount < 1 || vmCount > 5) {
-            resultDiv.innerHTML = `
-                <div class="alert error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>Please request between 1 and 5 VMs</span>
-                </div>
-            `;
+            Notification.error('Please request between 1 and 5 VMs');
             return;
         }
-        
+            
         // Show loading state
         submitButton.disabled = true;
         btnText.textContent = 'Creating reservation...';
         btnIcon.className = 'fas fa-spinner fa-spin';
         
-        resultDiv.innerHTML = `
-            <div class="alert info">
-                <i class="fas fa-info-circle"></i>
-                <span>Creating your reservation, please wait...</span>
-            </div>
-        `;
+        Notification.info('Creating your reservation, please wait...', 3000);
         
         const data = {
             password: form.password.value,
@@ -78,26 +106,12 @@ function initFormSubmission() {
             const result = await response.json();
             
             if (result.status === 'success') {
-                resultDiv.innerHTML = `
-                    <div class="alert success">
-                        <i class="fas fa-check-circle"></i>
-                        <span>
-                            Reservation created successfully!<br>
-                            <small>Redirecting to your resources...</small>
-                        </span>
-                    </div>
-                `;
-                
+                Notification.success('Reservation created successfully! Redirecting...', 3000);
                 setTimeout(() => {
                     window.location.href = result.redirect;
                 }, 1500);
             } else {
-                resultDiv.innerHTML = `
-                    <div class="alert error">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>${result.message || 'Failed to create reservation'}</span>
-                    </div>
-                `;
+                Notification.error(result.message || 'Failed to create reservation');
                 
                 // Re-enable form
                 submitButton.disabled = false;
@@ -105,12 +119,7 @@ function initFormSubmission() {
                 btnIcon.className = 'fas fa-rocket';
             }
         } catch (error) {
-            resultDiv.innerHTML = `
-                <div class="alert error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>Network error: ${error.message}</span>
-                </div>
-            `;
+            Notification.error('Network error: ' + error.message);
             
             // Re-enable form
             submitButton.disabled = false;
@@ -164,23 +173,10 @@ async function initReservationCheck() {
             const data = await response.json();
             
             if (data.has_expired) {
-                // Show notification instead of alert
-                const notification = document.createElement('div');
-                notification.className = 'alert warning';
-                notification.style.position = 'fixed';
-                notification.style.top = '20px';
-                notification.style.right = '20px';
-                notification.style.zIndex = '10000';
-                notification.style.maxWidth = '400px';
-                notification.innerHTML = `
-                    <i class="fas fa-exclamation-triangle"></i>
-                    <span>One or more of your reservations has expired. Refreshing...</span>
-                `;
-                document.body.appendChild(notification);
-                
+                Notification.warning('One or more of your reservations has expired. Refreshing...', 3000);
                 setTimeout(() => {
                     location.reload();
-                }, 2000);
+                }, 3000);
             }
         } catch (e) {
             console.error('Error checking reservations:', e);

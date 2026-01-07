@@ -1,103 +1,19 @@
 {
   "admin": {
-    "email": "admin@iaas.com",
+    "email": "admin@iac.com",
     "password": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
     "role": "admin",
-    "created_at": "2026-01-07T01:10:22.907567",
+    "created_at": "2026-01-07T14:11:53.473357",
     "reservations": []
-  },
-  "huyng": {
-    "email": "huyng@gmail.com",
-    "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
-    "role": "user",
-    "created_at": "2026-01-07T01:11:04.309071",
-    "reservations": [
-      {
-        "id": "a1bcc3cc-97c4-4248-8878-eeff850abe87",
-        "username": "huyng",
-        "vm_count": 3,
-        "duration": 60,
-        "packages": [],
-        "nodes": [
-          {
-            "name": "pool-node-1",
-            "ip": "172.30.0.11",
-            "port": "3000"
-          },
-          {
-            "name": "pool-node-2",
-            "ip": "172.30.0.12",
-            "port": "3001"
-          },
-          {
-            "name": "pool-node-3",
-            "ip": "172.30.0.13",
-            "port": "3002"
-          }
-        ],
-        "created_at": 1767744695.1663826,
-        "expires_at": 1767748295.166383,
-        "status": "released"
-      },
-      {
-        "id": "3f45b3e5-fa9c-4505-bdde-885a94870f22",
-        "username": "huyng",
-        "vm_count": 3,
-        "duration": 60,
-        "packages": [],
-        "nodes": [
-          {
-            "name": "pool-node-1",
-            "ip": "172.30.0.11",
-            "port": "3000"
-          },
-          {
-            "name": "pool-node-2",
-            "ip": "172.30.0.12",
-            "port": "3001"
-          },
-          {
-            "name": "pool-node-3",
-            "ip": "172.30.0.13",
-            "port": "3002"
-          }
-        ],
-        "created_at": 1767744695.1911988,
-        "expires_at": 1767748295.191199,
-        "status": "released"
-      },
-      {
-        "id": "4a63f70e-3a27-450a-b959-3a7e44ac19ee",
-        "username": "huyng",
-        "vm_count": 2,
-        "duration": 60,
-        "packages": [],
-        "nodes": [
-          {
-            "name": "pool-node-1",
-            "ip": "172.30.0.11",
-            "port": "3000"
-          },
-          {
-            "name": "pool-node-2",
-            "ip": "172.30.0.12",
-            "port": "3001"
-          }
-        ],
-        "created_at": 1767745697.973666,
-        "expires_at": 1767749297.973666,
-        "status": "expired"
-      }
-    ]
   },
   "huy": {
     "email": "huy@gmail.com",
     "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
     "role": "user",
-    "created_at": "2026-01-07T06:38:50.172007",
+    "created_at": "2026-01-07T14:14:28.475586",
     "reservations": [
       {
-        "id": "487e6576-42c0-48ff-b13f-0261585589f9",
+        "id": "f0d0702b-4d7b-4dc0-95e7-0e35ccd38fec",
         "username": "huy",
         "vm_count": 2,
         "duration": 60,
@@ -114,9 +30,187 @@
             "port": "3001"
           }
         ],
-        "created_at": 1767766989.6170049,
-        "expires_at": 1767770589.6170053,
+        "created_at": 1767791712.2205105,
+        "expires_at": 1767795312.2205112,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "35.15MiB / 7.536GiB",
+            "memory_percent": "0.46%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.18MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "9ea91cc1-8c0a-495b-afbe-88e2e0ebc3f5",
+        "username": "huy",
+        "vm_count": 2,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          },
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          }
+        ],
+        "created_at": 1767792700.6462488,
+        "expires_at": 1767796300.6462488,
+        "status": "released",
+        "final_stats": {
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.086MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-4": {
+            "cpu": "0.00%",
+            "memory": "3.973MiB / 7.536GiB",
+            "memory_percent": "0.05%"
+          }
+        }
+      },
+      {
+        "id": "1383b2c6-058f-4a14-aed5-725859382186",
+        "username": "huy",
+        "vm_count": 2,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          }
+        ],
+        "created_at": 1767799889.9040956,
+        "expires_at": 1767803489.9040973,
         "status": "active"
+      }
+    ]
+  },
+  "dhuy": {
+    "email": "dhuy@gmail.com",
+    "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
+    "role": "user",
+    "created_at": "2026-01-07T14:27:56.588811",
+    "reservations": [
+      {
+        "id": "01aa5828-1024-40b4-9549-1575a5d7e931",
+        "username": "dhuy",
+        "vm_count": 2,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          }
+        ],
+        "created_at": 1767792512.1402485,
+        "expires_at": 1767796112.140249,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.086MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.273MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "dc80a0be-0682-4aa3-8358-f6b07fb7a716",
+        "username": "dhuy",
+        "vm_count": 2,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          }
+        ],
+        "created_at": 1767794556.6250935,
+        "expires_at": 1767794616.6250937,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "9.863MiB / 7.536GiB",
+            "memory_percent": "0.13%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.082MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "e8524be3-da5a-4480-9c8b-325c840a7fcd",
+        "username": "dhuy",
+        "vm_count": 2,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          }
+        ],
+        "created_at": 1767794741.3719468,
+        "expires_at": 1767798341.3719473,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "3.441MiB / 7.536GiB",
+            "memory_percent": "0.04%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "1.996MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
       }
     ]
   }

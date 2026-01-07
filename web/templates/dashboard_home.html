@@ -49,7 +49,7 @@
                 <div class="stat-glow"></div>
             </div>
             
-            <div class="stat-card stat-total fade-in-up" data-delay="200">
+            <a href="{{ url_for('main.reservation_history') }}" class="stat-card stat-total fade-in-up stat-card-link" data-delay="200">
                 <div class="stat-icon">
                     <i class="fas fa-chart-line"></i>
                 </div>
@@ -58,8 +58,11 @@
                     <div class="stat-value">{{ reservations|length }}</div>
                     <div class="stat-label">All time</div>
                 </div>
+                <div class="stat-link-icon">
+                    <i class="fas fa-arrow-right"></i>
+                </div>
                 <div class="stat-glow"></div>
-            </div>
+            </a>
         </div>
     </div>
     
@@ -120,20 +123,55 @@
     </div>
     {% endif %}
     
-    <!-- Create New Reservation -->
+    <!-- Operating System Selection -->
     <div class="section-container fade-in-up" data-delay="300">
         <div class="section-header">
             <div class="section-title-wrapper">
                 <div class="section-icon">
-                    <i class="fas fa-plus-circle"></i>
+                    <i class="fas fa-server"></i>
                 </div>
-                <h2>Create New Reservation</h2>
+                <h2>Choose Operating System</h2>
             </div>
-            <p class="section-description">Provision new virtual machines for your projects</p>
+            <p class="section-description">Select an operating system for your virtual machines</p>
         </div>
         
-        <div class="provision-form">
+        <div class="os-grid" id="osGrid">
+            <div class="os-card" data-os="ubuntu">
+                <div class="os-card-header">
+                    <div class="os-icon">
+                        <i class="fab fa-ubuntu"></i>
+                    </div>
+                    <div class="os-info">
+                        <h3>Ubuntu</h3>
+                        <p class="os-version">22.04 LTS</p>
+                    </div>
+                </div>
+                <div class="os-card-body">
+                    <div class="os-features">
+                        <span class="os-feature"><i class="fas fa-check"></i> Long-term support</span>
+                        <span class="os-feature"><i class="fas fa-check"></i> Production ready</span>
+                    </div>
+                </div>
+                <button class="btn btn-primary btn-os-select" data-os="ubuntu">
+                    <span>Get these VMs</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+        
+        <!-- Provision Form (Hidden by default) -->
+        <div class="provision-form" id="provisionFormContainer" style="display: none;">
+            <div class="form-header">
+                <button class="btn-back" id="btnBackToOS">
+                    <i class="fas fa-arrow-left"></i>
+                    <span>Back to OS selection</span>
+                </button>
+                <h3 id="selectedOSName">Ubuntu 22.04 LTS</h3>
+            </div>
+            
             <form id="provisionForm" class="modern-form">
+                <input type="hidden" name="os" id="selectedOS" value="ubuntu">
+                
                 <div class="form-row">
                     <div class="form-group">
                         <label class="form-label">
@@ -217,50 +255,6 @@
         </div>
     </div>
     
-    <!-- Reservation History -->
-    {% if reservations %}
-    <div class="section-container fade-in-up" data-delay="350">
-        <div class="section-header">
-            <div class="section-title-wrapper">
-                <div class="section-icon">
-                    <i class="fas fa-history"></i>
-                </div>
-                <h2>Reservation History</h2>
-            </div>
-            <p class="section-description">View all your past and current reservations</p>
-        </div>
-        
-        <div class="table-container">
-            <table class="modern-table">
-                <thead>
-                    <tr>
-                        <th><i class="fas fa-hashtag"></i> ID</th>
-                        <th><i class="fas fa-server"></i> VMs</th>
-                        <th><i class="fas fa-clock"></i> Duration</th>
-                        <th><i class="fas fa-info-circle"></i> Status</th>
-                        <th><i class="fas fa-calendar"></i> Created</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for reservation in reservations %}
-                    <tr class="table-row">
-                        <td><code class="table-code">{{ reservation.id[:8] }}...</code></td>
-                        <td><span class="table-badge">{{ reservation.vm_count }}</span></td>
-                        <td>{{ reservation.duration }} min</td>
-                        <td>
-                            <span class="status-badge status-{{ reservation.status }}">
-                                <i class="fas fa-circle"></i>
-                                {{ reservation.status }}
-                            </span>
-                        </td>
-                        <td>{{ reservation.created_at|int|timestamp_to_date }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-    {% endif %}
 </div>
 {% endblock %}
 

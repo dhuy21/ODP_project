@@ -2,6 +2,8 @@
 
 let expiryTimestamp = 0;
 let statsUpdateInterval;
+let reservationStatus = 'active'; // Track reservation status
+let isStatsUpdateActive = true; // Flag to control stats updates
 
 // Initialize countdown timer
 function initializeCountdown(expiresAt) {
@@ -15,9 +17,14 @@ function initializeCountdown(expiresAt) {
         if (remaining <= 0) {
             countdownEl.textContent = 'EXPIRED';
             countdownEl.classList.add('warning');
+            // Stop stats updates when expired
+            stopStatsUpdates();
+            reservationStatus = 'expired';
             setTimeout(() => {
-                alert('⚠️ Your reservation has expired!');
-                window.location.href = countdownEl.dataset.redirectUrl || '/home';
+                Notification.warning('Your reservation has expired!', 3000);
+                setTimeout(() => {
+                    window.location.href = countdownEl.dataset.redirectUrl || '/home';
+                }, 3000);
             }, 2000);
             return;
         }
@@ -37,11 +44,43 @@ function initializeCountdown(expiresAt) {
     setInterval(updateCountdown, 1000);
 }
 
+// Stop stats updates
+function stopStatsUpdates() {
+    isStatsUpdateActive = false;
+    if (statsUpdateInterval) {
+        clearInterval(statsUpdateInterval);
+        statsUpdateInterval = null;
+    }
+}
+
 // Release reservation (internal function with unique name to avoid conflicts)
 async function performReleaseReservation(username, reservationId, redirectUrl) {
-    if (!confirm('Are you sure you want to release these resources?')) {
+    const confirmed = await Modal.confirm({
+        title: 'Release Resources',
+        message: 'Are you sure you want to release these resources? This action cannot be undone.',
+        confirmText: 'Release',
+        cancelText: 'Cancel',
+        type: 'warning',
+        confirmColor: 'danger'
+    });
+
+    if (!confirmed) {
         return;
     }
+
+    // Get release button and set loading state
+    const releaseBtn = document.getElementById('release-btn');
+    if (releaseBtn) {
+        releaseBtn.classList.add('loading');
+        releaseBtn.disabled = true;
+    }
+
+    // Show loading notification (with very long duration, will be removed manually)
+    const loadingNotification = Notification.info('Releasing resources...', 999999);
+
+    // Stop stats updates immediately
+    stopStatsUpdates();
+    reservationStatus = 'released';
 
     try {
         const response = await fetch(`/release/${username}`, {
@@ -54,33 +93,124 @@ async function performReleaseReservation(username, reservationId, redirectUrl) {
 
         const result = await response.json();
 
+        // Remove loading notification
+        if (loadingNotification) {
+            Notification.remove(loadingNotification);
+        }
+
         if (result.status === 'success') {
-            alert('✅ Resources released successfully!');
-            window.location.href = redirectUrl || '/home';
+            // Remove loading state
+            if (releaseBtn) {
+                releaseBtn.classList.remove('loading');
+            }
+            
+            // Show success notification
+            Notification.success('Resources released successfully!', 3000);
+            
+            // Redirect after a short delay
+            setTimeout(() => {
+                window.location.href = redirectUrl || '/home';
+            }, 1500);
         } else {
-            alert('❌ Error: ' + result.message);
+            // Remove loading state on error
+            if (releaseBtn) {
+                releaseBtn.classList.remove('loading');
+                releaseBtn.disabled = false;
+            }
+            
+            Notification.error(result.message || 'Failed to release resources');
         }
     } catch (error) {
-        alert('❌ Error: ' + error.message);
+        // Remove loading notification on error
+        if (loadingNotification) {
+            Notification.remove(loadingNotification);
+        }
+        
+        // Remove loading state on error
+        if (releaseBtn) {
+            releaseBtn.classList.remove('loading');
+            releaseBtn.disabled = false;
+        }
+        
+        Notification.error('Network error: ' + error.message);
     }
 }
 
 // Update stats for all nodes
-async function updateStats(reservationId) {
+async function updateStats(reservationId, forceLoad = false) {
+    // Don't update if stats updates are stopped (unless forced for initial load)
+    if (!isStatsUpdateActive && !forceLoad) {
+        return;
+    }
+
     try {
         const response = await fetch(`/stats/${reservationId}`);
         const data = await response.json();
 
         if (data.status === 'success') {
-            Object.keys(data.stats).forEach(nodeName => {
-                const stats = data.stats[nodeName];
-                const cpuElem = document.getElementById(`cpu-${nodeName}`);
-                const memElem = document.getElementById(`mem-${nodeName}`);
-                const memPercElem = document.getElementById(`mem-perc-${nodeName}`);
+            // Display stats (either active or final saved stats)
+            if (data.stats) {
+                Object.keys(data.stats).forEach(nodeName => {
+                    const stats = data.stats[nodeName];
+                    const cpuElem = document.getElementById(`cpu-${nodeName}`);
+                    const memElem = document.getElementById(`mem-${nodeName}`);
+                    const memPercElem = document.getElementById(`mem-perc-${nodeName}`);
 
-                if (cpuElem) cpuElem.textContent = stats.cpu;
-                if (memElem) memElem.textContent = stats.memory;
-                if (memPercElem) memPercElem.textContent = stats.memory_percent;
+                    // Remove loading indicator and set stats
+                    if (cpuElem) {
+                        const loading = cpuElem.querySelector('.loading-stats');
+                        if (loading) loading.remove();
+                        cpuElem.textContent = stats.cpu || 'N/A';
+                    }
+                    if (memElem) {
+                        const loading = memElem.querySelector('.loading-stats');
+                        if (loading) loading.remove();
+                        memElem.textContent = stats.memory || 'N/A';
+                    }
+                    if (memPercElem) {
+                        const loading = memPercElem.querySelector('.loading-stats');
+                        if (loading) loading.remove();
+                        memPercElem.textContent = stats.memory_percent || 'N/A';
+                    }
+                });
+            }
+            
+            // Check if reservation is still active
+            if (data.reservation_status && data.reservation_status !== 'active') {
+                // Reservation is no longer active, stop updates
+                stopStatsUpdates();
+                reservationStatus = data.reservation_status;
+                return;
+            }
+        } else if (data.status === 'error') {
+            // Reservation is not active or error occurred
+            if (data.reservation_status && data.reservation_status !== 'active') {
+                stopStatsUpdates();
+                reservationStatus = data.reservation_status;
+            }
+            
+            // Try to show error message or N/A
+            const nodeCards = document.querySelectorAll('.node-card');
+            nodeCards.forEach(card => {
+                const nodeName = card.querySelector('.node-name')?.textContent.trim();
+                if (nodeName) {
+                    const cpuElem = document.getElementById(`cpu-${nodeName}`);
+                    const memElem = document.getElementById(`mem-${nodeName}`);
+                    const memPercElem = document.getElementById(`mem-perc-${nodeName}`);
+                    
+                    if (cpuElem && cpuElem.textContent.includes('Loading')) {
+                        cpuElem.textContent = 'N/A';
+                        cpuElem.parentElement.querySelector('.loading-stats')?.remove();
+                    }
+                    if (memElem && memElem.textContent.includes('Loading')) {
+                        memElem.textContent = 'N/A';
+                        memElem.parentElement.querySelector('.loading-stats')?.remove();
+                    }
+                    if (memPercElem && memPercElem.textContent.includes('Loading')) {
+                        memPercElem.textContent = 'N/A';
+                        memPercElem.parentElement.querySelector('.loading-stats')?.remove();
+                    }
+                }
             });
         }
     } catch (error) {
@@ -90,18 +220,37 @@ async function updateStats(reservationId) {
 
 // Initialize page
 window.onload = function() {
+    // Get reservation status from page
+    const statusBadge = document.querySelector('.badge');
+    if (statusBadge) {
+        const statusText = statusBadge.textContent.trim().toLowerCase();
+        if (statusText !== 'active') {
+            reservationStatus = statusText;
+            isStatsUpdateActive = false;
+        }
+    }
+
     const countdownEl = document.getElementById('countdown');
     if (countdownEl) {
         const expiresAt = parseInt(countdownEl.dataset.expires);
         initializeCountdown(expiresAt);
+    } else {
+        // No countdown means reservation is not active
+        isStatsUpdateActive = false;
     }
 
     // Get reservation ID from page
     const reservationIdMeta = document.querySelector('meta[name="reservation-id"]');
     if (reservationIdMeta) {
         const reservationId = reservationIdMeta.content;
-        updateStats(reservationId); // Initial load
-        statsUpdateInterval = setInterval(() => updateStats(reservationId), 3000);
+        
+        // Always load stats once (for active or final stats)
+        updateStats(reservationId, true); // Initial load with force flag
+        
+        // Only start interval if reservation is active
+        if (isStatsUpdateActive) {
+            statsUpdateInterval = setInterval(() => updateStats(reservationId), 3000);
+        }
     }
 };
 

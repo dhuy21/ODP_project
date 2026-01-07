@@ -93,16 +93,10 @@ function initFormSubmission() {
         const btnIcon = submitBtn.querySelector('i');
         
         if (form.password.value !== form.confirm_password.value) {
-            resultDiv.innerHTML = `
-                <div class="alert error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>Passwords do not match</span>
-                </div>
-            `;
+            Notification.error('Passwords do not match');
             return;
         }
         
-        resultDiv.innerHTML = '';
         submitBtn.disabled = true;
         btnText.textContent = 'Creating account...';
         btnIcon.style.display = 'none';
@@ -125,38 +119,27 @@ function initFormSubmission() {
             const result = await response.json();
             
             if (result.status === 'success') {
-                resultDiv.innerHTML = `
-                    <div class="alert success">
-                        <i class="fas fa-check-circle"></i>
-                        <span>Account created! Redirecting...</span>
-                    </div>
-                `;
+                Notification.success('Account created! Redirecting...', 2000);
                 setTimeout(() => {
                     window.location.href = '/login';
                 }, 1500);
             } else {
-                resultDiv.innerHTML = `
-                    <div class="alert error">
-                        <i class="fas fa-exclamation-circle"></i>
-                        <span>${result.message || 'Registration failed. Please try again.'}</span>
-                    </div>
-                `;
+                Notification.error(result.message || 'Registration failed. Please try again.');
                 submitBtn.disabled = false;
                 btnText.textContent = 'Create Account';
                 btnIcon.style.display = 'inline-block';
-                submitBtn.querySelector('.loading').remove();
+                if (submitBtn.querySelector('.loading')) {
+                    submitBtn.querySelector('.loading').remove();
+                }
             }
         } catch (error) {
-            resultDiv.innerHTML = `
-                <div class="alert error">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <span>Network error. Please try again.</span>
-                </div>
-            `;
+            Notification.error('Network error. Please try again.');
             submitBtn.disabled = false;
             btnText.textContent = 'Create Account';
             btnIcon.style.display = 'inline-block';
-            submitBtn.querySelector('.loading').remove();
+            if (submitBtn.querySelector('.loading')) {
+                submitBtn.querySelector('.loading').remove();
+            }
         }
     });
 }

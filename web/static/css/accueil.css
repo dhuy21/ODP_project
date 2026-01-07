@@ -641,8 +641,8 @@
 .slide-in-bottom.animate {
     opacity: 1;
     transform: translateY(0) translateX(0) scale(1) rotate(0);
-}
-
+    }
+    
 @keyframes fadeIn {
     to {
         opacity: 1;

@@ -15,7 +15,7 @@ class UserDatabase:
         """Create default admin user"""
         default_users = {
             'admin': {
-                'email': 'admin@iaas.com',
+                'email': 'admin@iac.com',
                 'password': self._hash_password('admin'),
                 'role': 'admin',
                 'created_at': datetime.now().isoformat(),
@@ -125,6 +125,20 @@ class UserDatabase:
         users[username]['reservations'].append(reservation_data)
         self.save_users(users)
         return True
+    
+    def save_reservation_final_stats(self, username, reservation_id, final_stats):
+        """Save final statistics when reservation expires or is released"""
+        users = self.load_users()
+        if username not in users:
+            return False
+        
+        reservations = users[username].get('reservations', [])
+        for reservation in reservations:
+            if reservation.get('id') == reservation_id:
+                reservation['final_stats'] = final_stats
+                self.save_users(users)
+                return True
+        return False
     
     def update_reservation_status(self, username, reservation_id, new_status):
         """Update reservation status"""

@@ -119,6 +119,24 @@ class VMController:
                              username=username,
                              reservation=reservation)
     
+    def _save_final_stats_before_status_change(self, username, reservation_id, new_status):
+        """Save final stats before changing reservation status"""
+        if new_status in ['expired', 'released', 'deleted']:
+            try:
+                # Get current stats before status change
+                reservations = self.user_db.get_user_reservations(username)
+                reservation = next((r for r in reservations if r['id'] == reservation_id), None)
+                
+                if reservation and reservation.get('status') == 'active':
+                    # Get final stats
+                    final_stats = self.stats_service.get_reservation_stats(reservation.get('nodes', []))
+                    if final_stats:
+                        # Save final stats
+                        self.user_db.save_reservation_final_stats(username, reservation_id, final_stats)
+                        print(f"[STATS] Saved final stats for reservation {reservation_id[:8]}...")
+            except Exception as e:
+                print(f"[ERROR] Failed to save final stats: {e}")
+    
     def release_resources(self, username):
         """Release user resources"""
         if session['username'] != username:
@@ -130,6 +148,10 @@ class VMController:
         try:
             data = request.json
             reservation_id = data.get('reservation_id')
+            
+            # Save final stats before releasing
+            if reservation_id:
+                self._save_final_stats_before_status_change(username, reservation_id, 'released')
             
             # Release containers
             result = self.docker_service.release_containers(username)
@@ -164,6 +186,8 @@ class VMController:
             if reservation.get('status') == 'active':
                 if current_time > reservation.get('expires_at', 0):
                     has_expired = True
+                    # Save final stats before marking as expired
+                    self._save_final_stats_before_status_change(username, reservation['id'], 'expired')
                     self.user_db.update_reservation_status(username, reservation['id'], 'expired')
         
         return jsonify({
@@ -189,17 +213,39 @@ class VMController:
                 'message': 'Reservation not found'
             })
         
+        reservation_status = reservation.get('status', 'unknown')
+        
+        # If reservation is not active, return saved stats or empty
+        if reservation_status != 'active':
+            # Return saved final stats if available
+            final_stats = reservation.get('final_stats', {})
+            if final_stats:
+                return jsonify({
+                    'status': 'success',
+                    'stats': final_stats,
+                    'reservation_status': reservation_status,
+                    'message': 'Showing final saved statistics'
+                })
+            else:
+                return jsonify({
+                    'status': 'error',
+                    'message': f'Reservation is {reservation_status}. No statistics available.',
+                    'reservation_status': reservation_status
+                })
+        
         try:
             # Get stats for all nodes in the reservation
             stats = self.stats_service.get_reservation_stats(reservation.get('nodes', []))
             
             return jsonify({
                 'status': 'success',
-                'stats': stats
+                'stats': stats,
+                'reservation_status': reservation_status
             })
         except Exception as e:
             print(f"[ERROR] Failed to get container stats: {e}")
             return jsonify({
                 'status': 'error',
-                'message': str(e)
+                'message': str(e),
+                'reservation_status': reservation_status
             })

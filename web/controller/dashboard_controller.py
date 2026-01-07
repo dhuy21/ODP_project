@@ -60,6 +60,13 @@ class DashboardController:
         for r in reservations:
             if r.get('status') == 'active':
                 if not self._check_reservation_health(r):
+                    # Save final stats before marking as deleted
+                    from services.stats_service import StatsService
+                    stats_service = StatsService()
+                    final_stats = stats_service.get_reservation_stats(r.get('nodes', []))
+                    if final_stats:
+                        self.user_db.save_reservation_final_stats(username, r['id'], final_stats)
+                    
                     self.user_db.update_reservation_status(username, r['id'], 'deleted')
                     r['status'] = 'deleted'
                 else:
@@ -201,6 +208,22 @@ class DashboardController:
                 })
         
         return recent_activity
+    
+    def reservation_history(self):
+        """Reservation history page"""
+        username = session['username']
+        role = session.get('role', 'user')
+        
+        # Get user's reservations
+        reservations = self.user_db.get_user_reservations(username)
+        
+        # Sort by created_at descending (newest first)
+        reservations.sort(key=lambda x: x.get('created_at', 0), reverse=True)
+        
+        return render_template('reservation_history.html',
+                             username=username,
+                             role=role,
+                             reservations=reservations)
     
     def _check_reservation_health(self, reservation):
         """Check if reservation's containers are still running"""

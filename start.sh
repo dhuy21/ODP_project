@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "==> Starting IaaS Platform"
+echo "==> Starting IaC Platform"
 
 # Check if pool is initialized
 if ! docker network inspect pool-network >/dev/null 2>&1; then

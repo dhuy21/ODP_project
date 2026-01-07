@@ -309,6 +309,6 @@ const optimizedScrollHandler = throttle(() => {
 window.addEventListener('scroll', optimizedScrollHandler);
 
 // ========== CONSOLE MESSAGE ==========
-console.log('%c🚀 ODP Project - IaaS Platform', 'color: #059669; font-size: 20px; font-weight: bold;');
-console.log('%cWelcome to our modern infrastructure platform!', 'color: #718096; font-size: 14px;');
+console.log('%c🚀 ODP Project - IaC Platform', 'color: #059669; font-size: 20px; font-weight: bold;');
+console.log('%cWelcome to our modern Infrastructure as Code platform!', 'color: #718096; font-size: 14px;');
 

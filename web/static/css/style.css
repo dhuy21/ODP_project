@@ -617,7 +617,7 @@ small {
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-    min-width: 220px;
+    min-width: 280px;
     opacity: 0;
     visibility: hidden;
     transform: translateY(-10px);
@@ -654,6 +654,56 @@ small {
     border-radius: 12px;
     font-weight: 600;
     letter-spacing: 0.5px;
+}
+
+.nav-user-link {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.9rem 1rem;
+    color: #0f172a;
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border-top: 1px solid #e2e8f0;
+}
+
+.nav-user-link:hover {
+    background: #f0fdf4;
+    padding-left: 1.25rem;
+}
+
+.nav-user-link-icon {
+    color: #059669;
+    font-size: 1rem;
+}
+
+.nav-user-link-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.nav-user-link-title {
+    font-size: 0.95rem;
+}
+
+.nav-user-link-text small {
+    color: #94a3b8;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.nav-user-link-arrow {
+    margin-left: auto;
+    color: #94a3b8;
+    transition: transform 0.3s ease, color 0.3s ease;
+    font-size: 0.85rem;
+}
+
+.nav-user-link:hover .nav-user-link-arrow {
+    transform: translateX(3px);
+    color: #059669;
 }
 
 .nav-user-logout {

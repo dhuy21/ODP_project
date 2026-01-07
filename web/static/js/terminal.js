@@ -57,10 +57,16 @@ socket.on("output", (data) => {
 
 socket.on("error", (data) => {
   term.write("\r\n\x1b[31mError: " + data.message + "\x1b[0m\r\n");
+  if (typeof Notification !== 'undefined') {
+    Notification.error('Terminal error: ' + data.message);
+  }
 });
 
 socket.on("force_disconnect", (data) => {
   term.write("\r\n\x1b[33m" + data.message + "\x1b[0m\r\n");
+  if (typeof Notification !== 'undefined') {
+    Notification.warning(data.message, 3000);
+  }
   setTimeout(() => {
     window.close();
   }, 3000);

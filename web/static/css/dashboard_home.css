@@ -19,6 +19,7 @@
     box-shadow: 0 10px 30px rgba(5, 150, 105, 0.2);
     position: relative;
     overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .dashboard-header::before {
@@ -46,7 +47,7 @@
 .welcome-icon {
     width: 80px;
     height: 80px;
-    background: rgba(255, 255, 255, 0.2);
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.3) 0%, rgba(255, 255, 255, 0.15) 100%);
     backdrop-filter: blur(10px);
     border-radius: 20px;
     display: flex;
@@ -54,7 +55,8 @@
     justify-content: center;
     font-size: 2.5rem;
     color: white;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    border: 1px solid rgba(255, 255, 255, 0.3);
 }
 
 .dashboard-header h1 {
@@ -100,6 +102,17 @@
     gap: 1.5rem;
 }
 
+.stat-card-link {
+    text-decoration: none;
+    color: inherit;
+    cursor: pointer;
+}
+
+.stat-card-link:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
+}
+
 .stat-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
@@ -107,14 +120,17 @@
 
 .stat-card.stat-available {
     border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
 }
 
 .stat-card.stat-active {
     border-left: 4px solid #3b82f6;
+    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
 }
 
 .stat-card.stat-total {
     border-left: 4px solid #f59e0b;
+    background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
 }
 
 .stat-icon {
@@ -129,18 +145,21 @@
 }
 
 .stat-available .stat-icon {
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-    color: #059669;
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
 }
 
 .stat-active .stat-icon {
-    background: linear-gradient(135deg, #dbeafe 0%, #bfdbfe 100%);
-    color: #2563eb;
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .stat-total .stat-icon {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    color: #d97706;
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 
 .stat-content {
@@ -164,6 +183,18 @@
     line-height: 1;
 }
 
+.stat-available .stat-value {
+    color: #059669;
+}
+
+.stat-active .stat-value {
+    color: #2563eb;
+}
+
+.stat-total .stat-value {
+    color: #d97706;
+}
+
 .stat-label {
     font-size: 0.85rem;
     color: #94a3b8;
@@ -184,6 +215,37 @@
 
 .stat-card:hover .stat-glow {
     opacity: 1;
+}
+
+.stat-link-icon {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    width: 32px;
+    height: 32px;
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #d97706;
+    font-size: 0.9rem;
+    opacity: 0;
+    transform: translateX(-10px);
+    transition: all 0.3s ease;
+}
+
+.stat-card-link:hover .stat-link-icon {
+    opacity: 1;
+    transform: translateX(0);
+}
+
+.stat-card-link .stat-link-icon i {
+    transition: transform 0.3s ease;
+}
+
+.stat-card-link:hover .stat-link-icon i {
+    transform: translateX(2px);
 }
 
 /* ========== SECTION CONTAINER ========== */
@@ -220,6 +282,22 @@
     box-shadow: 0 4px 12px rgba(5, 150, 105, 0.3);
 }
 
+/* Different colors for different sections */
+.section-container:nth-of-type(1) .section-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.section-container:nth-of-type(2) .section-icon {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+
+.section-container:nth-of-type(3) .section-icon {
+    background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+
 .section-header h2 {
     font-size: 1.75rem;
     font-weight: 700;
@@ -245,10 +323,25 @@
     background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
     border-radius: 16px;
     padding: 1.5rem;
-    border: 1px solid #e2e8f0;
+    border: 2px solid #e2e8f0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     position: relative;
     overflow: hidden;
+}
+
+.reservation-card:nth-child(3n+1) {
+    border-left: 4px solid #10b981;
+    background: linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);
+}
+
+.reservation-card:nth-child(3n+2) {
+    border-left: 4px solid #3b82f6;
+    background: linear-gradient(135deg, #ffffff 0%, #eff6ff 100%);
+}
+
+.reservation-card:nth-child(3n+3) {
+    border-left: 4px solid #8b5cf6;
+    background: linear-gradient(135deg, #ffffff 0%, #f5f3ff 100%);
 }
 
 .reservation-card::before {
@@ -261,6 +354,18 @@
     background: linear-gradient(90deg, #059669, #10b981);
     transform: scaleX(0);
     transition: transform 0.3s ease;
+}
+
+.reservation-card:nth-child(3n+1)::before {
+    background: linear-gradient(90deg, #10b981, #059669);
+}
+
+.reservation-card:nth-child(3n+2)::before {
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+}
+
+.reservation-card:nth-child(3n+3)::before {
+    background: linear-gradient(90deg, #8b5cf6, #7c3aed);
 }
 
 .reservation-card:hover {
@@ -290,13 +395,29 @@
 .card-icon {
     width: 45px;
     height: 45px;
-    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
     border-radius: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #059669;
+    color: white;
     font-size: 1.1rem;
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25);
+}
+
+.reservation-card:nth-child(3n+1) .card-icon {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    box-shadow: 0 4px 8px rgba(16, 185, 129, 0.25);
+}
+
+.reservation-card:nth-child(3n+2) .card-icon {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+    box-shadow: 0 4px 8px rgba(59, 130, 246, 0.25);
+}
+
+.reservation-card:nth-child(3n+3) .card-icon {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+    box-shadow: 0 4px 8px rgba(139, 92, 246, 0.25);
 }
 
 .card-title-section h3 {
@@ -370,6 +491,18 @@
     text-align: center;
 }
 
+.reservation-card:nth-child(3n+1) .detail-item i {
+    color: #10b981;
+}
+
+.reservation-card:nth-child(3n+2) .detail-item i {
+    color: #3b82f6;
+}
+
+.reservation-card:nth-child(3n+3) .detail-item i {
+    color: #8b5cf6;
+}
+
 .detail-label {
     color: #64748b;
     font-weight: 500;
@@ -387,9 +520,185 @@
     border-top: 1px solid #e2e8f0;
 }
 
+/* ========== OS SELECTION GRID ========== */
+.os-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1.5rem;
+    margin-top: 1.5rem;
+}
+
+.os-card {
+    background: linear-gradient(135deg, #ffffff 0%, #fff7ed 100%);
+    border-radius: 16px;
+    padding: 2rem;
+    border: 2px solid #fed7aa;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.os-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #f97316, #ea580c);
+    transform: scaleX(0);
+    transition: transform 0.3s ease;
+}
+
+.os-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(249, 115, 22, 0.2);
+    border-color: #f97316;
+}
+
+.os-card:hover::before {
+    transform: scaleX(1);
+}
+
+.os-card-header {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+}
+
+.os-icon {
+    width: 60px;
+    height: 60px;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    color: white;
+    flex-shrink: 0;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.os-info h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0 0 0.25rem 0;
+}
+
+.os-version {
+    font-size: 0.9rem;
+    color: #64748b;
+    margin: 0;
+    font-weight: 500;
+}
+
+.os-card-body {
+    flex: 1;
+}
+
+.os-features {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.os-feature {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9rem;
+    color: #475569;
+}
+
+.os-feature i {
+    color: #f97316;
+    font-size: 0.75rem;
+}
+
+.btn-os-select {
+    width: 100%;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 12px rgba(249, 115, 22, 0.3);
+}
+
+.btn-os-select:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(249, 115, 22, 0.4);
+}
+
+.btn-os-select i {
+    transition: transform 0.3s ease;
+}
+
+.btn-os-select:hover i {
+    transform: translateX(4px);
+}
+
 /* ========== FORM ========== */
 .provision-form {
     margin-top: 1.5rem;
+    animation: slideDown 0.3s ease;
+}
+
+.form-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+
+.btn-back {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1.25rem;
+    background: #f1f5f9;
+    color: #475569;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-decoration: none;
+}
+
+.btn-back:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+    transform: translateX(-4px);
+}
+
+.btn-back i {
+    transition: transform 0.3s ease;
+}
+
+.btn-back:hover i {
+    transform: translateX(-4px);
+}
+
+.form-header h3 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #1e293b;
+    margin: 0;
 }
 
 .modern-form {
@@ -521,6 +830,18 @@
     transition: all 0.3s ease;
 }
 
+.reservation-card:nth-child(3n+1) .btn-card {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+}
+
+.reservation-card:nth-child(3n+2) .btn-card {
+    background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+}
+
+.reservation-card:nth-child(3n+3) .btn-card {
+    background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+}
+
 .btn-card:hover {
     transform: translateY(-2px);
     box-shadow: 0 8px 20px rgba(5, 150, 105, 0.3);
@@ -649,6 +970,7 @@
     font-weight: 600;
     font-size: 0.85rem;
 }
+
 
 /* ========== ENTRY ANIMATIONS ========== */
 .fade-in {
