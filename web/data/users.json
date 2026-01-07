@@ -100,7 +100,19 @@
         ],
         "created_at": 1767799889.9040956,
         "expires_at": 1767803489.9040973,
-        "status": "active"
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "9.355MiB / 7.536GiB",
+            "memory_percent": "0.12%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "1.988MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
       }
     ]
   },
