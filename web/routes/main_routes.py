@@ -14,10 +14,10 @@ vm_controller = VMController()
 
 @main_bp.route('/')
 def index():
-    """Root route - redirect based on login status"""
+    """Root route - show landing page or redirect to dashboard"""
     if 'username' in session:
         return redirect(url_for('main.home'))
-    return redirect(url_for('auth.login'))
+    return render_template('accueil.html')
 
 
 

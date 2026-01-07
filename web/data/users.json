@@ -1,14 +1,21 @@
 {
-  "dhuy": {
-    "email": "dhuy@gmail.com",
+  "admin": {
+    "email": "admin@iaas.com",
+    "password": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
+    "role": "admin",
+    "created_at": "2026-01-07T01:10:22.907567",
+    "reservations": []
+  },
+  "huyng": {
+    "email": "huyng@gmail.com",
     "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
     "role": "user",
-    "created_at": "2026-01-06T23:03:31.868883",
+    "created_at": "2026-01-07T01:11:04.309071",
     "reservations": [
       {
-        "id": "7ae017f5-6a0a-4815-8227-2888340bcf82",
-        "username": "dhuy",
-        "vm_count": 2,
+        "id": "a1bcc3cc-97c4-4248-8878-eeff850abe87",
+        "username": "huyng",
+        "vm_count": 3,
         "duration": 60,
         "packages": [],
         "nodes": [
@@ -21,16 +28,21 @@
             "name": "pool-node-2",
             "ip": "172.30.0.12",
             "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
           }
         ],
-        "created_at": 1767737044.6214468,
-        "expires_at": 1767740644.6214476,
+        "created_at": 1767744695.1663826,
+        "expires_at": 1767748295.166383,
         "status": "released"
       },
       {
-        "id": "452200f7-a287-4de9-b2a9-6a00f025da9a",
-        "username": "dhuy",
-        "vm_count": 2,
+        "id": "3f45b3e5-fa9c-4505-bdde-885a94870f22",
+        "username": "huyng",
+        "vm_count": 3,
         "duration": 60,
         "packages": [],
         "nodes": [
@@ -43,33 +55,16 @@
             "name": "pool-node-2",
             "ip": "172.30.0.12",
             "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
           }
         ],
-        "created_at": 1767737241.9506595,
-        "expires_at": 1767740841.95066,
+        "created_at": 1767744695.1911988,
+        "expires_at": 1767748295.191199,
         "status": "released"
-      },
-      {
-        "id": "b693fdf6-9f2c-4d0a-a9bd-b7c970230f84",
-        "username": "dhuy",
-        "vm_count": 2,
-        "duration": 60,
-        "packages": [],
-        "nodes": [
-          {
-            "name": "pool-node-1",
-            "ip": "172.30.0.11",
-            "port": "3000"
-          },
-          {
-            "name": "pool-node-2",
-            "ip": "172.30.0.12",
-            "port": "3001"
-          }
-        ],
-        "created_at": 1767739190.479171,
-        "expires_at": 1767742790.4791715,
-        "status": "active"
       }
     ]
   }

@@ -1,29 +1,20 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Dashboard - {{ username }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_home.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="user-dashboard">
-        <div class="dashboard-header">
-            <h1>👋 Welcome, {{ username }}!</h1>
-            <div>
-                {% if role == 'admin' %}
-                <a href="{{ url_for('main.admin_panel') }}" class="btn btn-primary">
-                    🚀 Admin Panel
-                </a>
-                {% endif %}
-                <a href="{{ url_for('auth.logout') }}" class="btn btn-danger">
-                    🚪 Logout
-                </a>
-            </div>
-        </div>
-        
-        <!-- Pool Status -->
-        <div class="stats-grid">
+{% extends "layout.html" %}
+{% set show_footer = true %}
+
+{% block title %}Dashboard - {{ username }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard_home.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="user-dashboard">
+    <div class="dashboard-header">
+        <h1>👋 Welcome, {{ username }}!</h1>
+    </div>
+    
+    <!-- Pool Status -->
+    <div class="stats-grid">
             <div class="stat-card success">
                 <h3>Available Containers</h3>
                 <div class="stat-value" id="available-count">{{ available_containers }}</div>
@@ -157,8 +148,8 @@
         </div>
         {% endif %}
     </div>
-    
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
-    <script src="{{ url_for('static', filename='js/dashboard_home.js') }}"></script>
-</body>
-</html>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/dashboard_home.js') }}"></script>
+{% endblock %}

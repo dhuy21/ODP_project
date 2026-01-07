@@ -1,0 +1,226 @@
+/* Reservation Detail Page Styles */
+
+.reservation-detail {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+    min-height: 100vh;
+    background: #f5f7fa;
+}
+
+.back-button {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: #718096;
+    text-decoration: none;
+    margin-bottom: 2rem;
+    padding: 0.75rem 1.25rem;
+    background: white;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+.back-button:hover {
+    color: #2d3748;
+    transform: translateX(-4px);
+    border-color: #667eea;
+}
+
+.reservation-header {
+    background: white;
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 2rem;
+}
+
+.reservation-header h1 {
+    font-size: 2rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1rem;
+}
+
+.reservation-meta {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.meta-item {
+    padding: 1rem;
+    background: #f7fafc;
+    border-radius: 10px;
+    border: 1px solid #e2e8f0;
+}
+
+.meta-label {
+    font-size: 0.75rem;
+    color: #718096;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+}
+
+.meta-value {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2d3748;
+}
+
+.nodes-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 1.5rem;
+}
+
+.node-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.node-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.node-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0,0,0,0.1);
+    border-color: #667eea;
+}
+
+.node-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    margin-bottom: 1rem;
+}
+
+.node-name {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2d3748;
+}
+
+.node-info {
+    margin-bottom: 1.5rem;
+}
+
+.node-info-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    color: #718096;
+    font-size: 0.875rem;
+}
+
+.countdown-timer {
+    background: #f7fafc;
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.countdown-label {
+    font-size: 0.875rem;
+    color: #718096;
+    margin-bottom: 0.5rem;
+}
+
+.countdown-value {
+    font-size: 2rem;
+    font-weight: 700;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.countdown-value.warning {
+    background: linear-gradient(135deg, #f56565 0%, #ed8936 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+/* Additional inline styles moved to external CSS */
+.reservation-header code {
+    color: #a0aec0;
+    font-size: 0.875rem;
+}
+
+.meta-value.small-text {
+    font-size: 0.875rem;
+}
+
+.nodes-grid.padded {
+    padding: 1.5rem;
+}
+
+.badge.success-margin {
+    margin-top: 0.5rem;
+}
+
+.btn.disabled-btn {
+    width: 100%;
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.btn.full-width {
+    width: 100%;
+}
+
+.stats-container {
+    margin-top: 10px;
+    padding: 10px;
+    background: #f7fafc;
+    border-radius: 4px;
+    font-size: 0.9em;
+}
+
+.stats-row {
+    display: flex;
+    justify-content: space-between;
+    margin: 5px 0;
+}
+
+.stats-label {
+    font-weight: 600;
+    color: #4a5568;
+}
+
+.stats-value {
+    color: #2d3748;
+    font-family: monospace;
+}
+
+.loading-stats {
+    color: #a0aec0;
+    font-style: italic;
+}

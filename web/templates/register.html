@@ -1,72 +1,73 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - IaaS Platform</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="register-container">
-        <div class="register-box">
-            <div class="register-header">
-                <div class="brand-logo">✨</div>
-                <h1>Create Account</h1>
-                <p>Join our infrastructure platform</p>
+{% extends "layout.html" %}
+{% set show_nav = true %}
+{% set show_footer = true %}
+
+{% block title %}Register{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="register-container">
+    <div class="register-box">
+        <div class="register-header">
+            <div class="brand-logo">✨</div>
+            <h1>Create Account</h1>
+            <p>Join our infrastructure platform</p>
+        </div>
+        
+        <form id="registerForm">
+            <div class="form-group">
+                <label for="username">👤 Username</label>
+                <input type="text" id="username" name="username" required 
+                       placeholder="Choose a username" autofocus
+                       pattern="[a-zA-Z0-9_-]{3,32}"
+                       title="3-32 characters, letters, numbers, hyphens, and underscores only">
+                <small>
+                    3-32 characters. Letters, numbers, hyphens (-), and underscores (_) only.<br>
+                    <span>⚠️ Reserved names (root, admin, vagrant, etc.) are not allowed</span>
+                </small>
             </div>
             
-            <form id="registerForm">
-                <div class="form-group">
-                    <label for="username">👤 Username</label>
-                    <input type="text" id="username" name="username" required 
-                           placeholder="Choose a username" autofocus
-                           pattern="[a-zA-Z0-9_-]{3,32}"
-                           title="3-32 characters, letters, numbers, hyphens, and underscores only">
-                    <small>
-                        3-32 characters. Letters, numbers, hyphens (-), and underscores (_) only.<br>
-                        <span>⚠️ Reserved names (root, admin, vagrant, etc.) are not allowed</span>
-                    </small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="email">📧 Email</label>
-                    <input type="email" id="email" name="email" required 
-                           placeholder="your.email@example.com">
-                </div>
-                
-                <div class="form-group">
-                    <label for="password">🔒 Password</label>
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Create a strong password"
-                           minlength="8">
-                    <div class="password-strength">
-                        <div id="strengthBar" class="password-strength-bar"></div>
-                    </div>
-                    <small>At least 8 characters</small>
-                </div>
-                
-                <div class="form-group">
-                    <label for="confirm_password">🔒 Confirm Password</label>
-                    <input type="password" id="confirm_password" name="confirm_password" required 
-                           placeholder="Confirm your password">
-                </div>
-                
-                <button type="submit" class="btn btn-primary">
-                    ✨ Create Account
-                </button>
-            </form>
-            
-            <div id="result"></div>
-            
-            <div class="login-footer">
-                <p>Already have an account?</p>
-                <a href="{{ url_for('auth.login') }}">Sign in instead →</a>
+            <div class="form-group">
+                <label for="email">📧 Email</label>
+                <input type="email" id="email" name="email" required 
+                       placeholder="your.email@example.com">
             </div>
+            
+            <div class="form-group">
+                <label for="password">🔒 Password</label>
+                <input type="password" id="password" name="password" required 
+                       placeholder="Create a strong password"
+                       minlength="8">
+                <div class="password-strength">
+                    <div id="strengthBar" class="password-strength-bar"></div>
+                </div>
+                <small>At least 8 characters</small>
+            </div>
+            
+            <div class="form-group">
+                <label for="confirm_password">🔒 Confirm Password</label>
+                <input type="password" id="confirm_password" name="confirm_password" required 
+                       placeholder="Confirm your password">
+            </div>
+            
+            <button type="submit" class="btn btn-primary">
+                ✨ Create Account
+            </button>
+        </form>
+        
+        <div id="result"></div>
+        
+        <div class="login-footer">
+            <p>Already have an account?</p>
+            <a href="{{ url_for('auth.login') }}">Sign in instead →</a>
         </div>
     </div>
-    
-    <script src="{{ url_for('static', filename='js/register.js') }}"></script>
-</body>
-</html>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/register.js') }}"></script>
+{% endblock %}

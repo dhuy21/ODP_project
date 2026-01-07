@@ -1,0 +1,61 @@
+/* Accueil Page Styles */
+
+.gradient-purple {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.icon-xl {
+    font-size: 3rem;
+}
+
+.icon-primary {
+    color: #667eea;
+}
+
+.extra-rounded {
+    border-radius: 16px;
+}
+
+/* Hero Section */
+.hero-section {
+    position: relative;
+}
+
+.hero-section .display-3 {
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Features Cards */
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px rgba(0,0,0,0.15) !important;
+}
+
+/* Stats Section */
+.text-primary {
+    color: #667eea !important;
+}
+
+/* CTA Section */
+.bg-dark {
+    background: linear-gradient(135deg, #2d3748 0%, #1a202c 100%) !important;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .hero-section .display-3 {
+        font-size: 2.5rem;
+    }
+    
+    .hero-section .lead {
+        font-size: 1.1rem;
+    }
+    
+    .py-5.w-50 {
+        width: 90% !important;
+    }
+}

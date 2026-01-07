@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ODP Project{% endblock %} - IaaS Platform</title>
+    
+    <!-- Global styles -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    
+    <!-- Page-specific styles -->
+    {% block styles %}{% endblock %}
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    {% if show_nav|default(true) %}
+    <nav class="main-nav">
+        <div class="nav-container">
+            <a href="{{ url_for('main.index') }}" class="nav-brand">
+                🚀 ODP IaaS
+            </a>
+            
+            <div class="nav-menu">
+                <a href="{{ url_for('main.index') }}" class="nav-brand">
+                    Acceuil
+                </a>
+                {% if session.get('username') %}
+                    <!-- Logged in user menu -->
+                    <span class="nav-user">👤 {{ session.get('username') }}</span>
+                    
+                    <a href="{{ url_for('main.home') }}" class="nav-link">
+                        📊 Dashboard
+                    </a>
+                    
+                    {% if session.get('role') == 'admin' %}
+                    <a href="{{ url_for('main.admin_panel') }}" class="nav-link">
+                        ⚙️ Admin
+                    </a>
+                    {% endif %}
+                    
+                    <a href="{{ url_for('auth.logout') }}" class="nav-link nav-link-danger">
+                        🚪 Logout
+                    </a>
+                {% else %}
+                    <!-- Guest menu -->
+                    <a href="{{ url_for('auth.login') }}" class="nav-link">
+                        🔐 Login
+                    </a>
+                    <a href="{{ url_for('auth.register') }}" class="nav-link nav-link-primary">
+                        ✨ Register
+                    </a>
+                {% endif %}
+            </div>
+        </div>
+    </nav>
+    {% endif %}
+    
+    <!-- Main content -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer (optional) -->
+    {% if show_footer|default(false) %}
+    <footer class="main-footer">
+        <div class="footer-container">
+            <div class="footer-section">
+                <h4>ODP Project</h4>
+                <p>Infrastructure as a Service Platform</p>
+            </div>
+            
+            <div class="footer-section">
+                <h5>Quick Links</h5>
+                <ul>
+                    <li><a href="{{ url_for('main.index') }}">Home</a></li>
+                    {% if session.get('username') %}
+                    <li><a href="{{ url_for('main.home') }}">Dashboard</a></li>
+                    {% else %}
+                    <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+            
+            <div class="footer-section">
+                <h5>Contact</h5>
+                <p>📧 contact@odp.com</p>
+            </div>
+        </div>
+        
+        <div class="footer-bottom">
+            <p>&copy; 2026 ODP Project. All rights reserved.</p>
+        </div>
+    </footer>
+    {% endif %}
+    
+    <!-- Global scripts -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    
+    <!-- Page-specific scripts -->
+    {% block scripts %}{% endblock %}
+</body>
+</html>

@@ -1,213 +1,22 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Reservation Details - {{ reservation.id[:8] }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        .reservation-detail {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-            min-height: 100vh;
-            background: var(--bg-dark);
-        }
-        
-        .back-button {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            text-decoration: none;
-            margin-bottom: 2rem;
-            padding: 0.75rem 1.25rem;
-            background: var(--bg-card);
-            border-radius: 10px;
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-        }
-        
-        .back-button:hover {
-            color: var(--text-primary);
-            transform: translateX(-4px);
-            border-color: var(--accent-primary);
-        }
-        
-        .reservation-header {
-            background: var(--bg-card);
-            padding: 2rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            margin-bottom: 2rem;
-        }
-        
-        .reservation-header h1 {
-            font-size: 2rem;
-            background: var(--accent-gradient-3);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 1rem;
-        }
-        
-        .reservation-meta {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1rem;
-            margin-top: 1.5rem;
-        }
-        
-        .meta-item {
-            padding: 1rem;
-            background: var(--bg-hover);
-            border-radius: 10px;
-            border: 1px solid var(--border);
-        }
-        
-        .meta-label {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-        }
-        
-        .meta-value {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-        
-        .nodes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        .node-card {
-            background: var(--bg-card);
-            padding: 1.5rem;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .node-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 4px;
-            height: 100%;
-            background: var(--accent-gradient-3);
-        }
-        
-        .node-card:hover {
-            transform: translateY(-4px);
-            box-shadow: 0 12px 24px var(--shadow);
-            border-color: var(--accent-primary);
-        }
-        
-        .node-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 1rem;
-        }
-        
-        .node-name {
-            font-size: 1.25rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-        
-        .node-info {
-            margin-bottom: 1.5rem;
-        }
-        
-        .node-info-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-secondary);
-            font-size: 0.875rem;
-        }
-        
-        .countdown-timer {
-            background: var(--bg-hover);
-            padding: 1rem;
-            border-radius: 10px;
-            text-align: center;
-            margin-bottom: 2rem;
-            border: 1px solid var(--border);
-        }
-        
-        .countdown-label {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 0.5rem;
-        }
-        
-        .countdown-value {
-            font-size: 2rem;
-            font-weight: 700;
-            background: var(--accent-gradient-3);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .countdown-value.warning {
-            background: var(--accent-gradient-2);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .action-buttons {
-            display: flex;
-            gap: 1rem;
-            margin-top: 2rem;
-        }
-    </style>
-    <style>
-        .stats-container {
-            margin-top: 10px;
-            padding: 10px;
-            background: #f7fafc;
-            border-radius: 4px;
-            font-size: 0.9em;
-        }
-        .stats-row {
-            display: flex;
-            justify-content: space-between;
-            margin: 5px 0;
-        }
-        .stats-label {
-            font-weight: 600;
-            color: #4a5568;
-        }
-        .stats-value {
-            color: #2d3748;
-            font-family: monospace;
-        }
-        .loading-stats {
-            color: #a0aec0;
-            font-style: italic;
-        }
-    </style>
-</head>
-<body>
-    <div class="reservation-detail">
-        <a href="{{ url_for('main.dashboard_home') }}" class="back-button">
-            ← Back to Dashboard
-        </a>
+{% extends "layout.html" %}
+{% set show_footer = false %}
+
+{% block title %}Reservation Details - {{ reservation.id[:8] }}{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/reservation_detail.css') }}">
+{% endblock %}
+
+{% block content %}
+<meta name="reservation-id" content="{{ reservation.id }}">
+<div class="reservation-detail">
+    <a href="{{ url_for('main.dashboard_home') }}" class="back-button">
+        ← Back to Dashboard
+    </a>
         
         <div class="reservation-header">
             <h1>🖥️ Reservation Details</h1>
-            <code style="color:var(--text-secondary); font-size:0.875rem;">
+            <code>
                 ID: {{ reservation.id }}
             </code>
             
@@ -243,7 +52,7 @@
                 
                 <div class="meta-item">
                     <div class="meta-label">Packages</div>
-                    <div class="meta-value" style="font-size:0.875rem;">
+                    <div class="meta-value small-text">
                         {{ reservation.packages|join(', ') if reservation.packages else 'None' }}
                     </div>
                 </div>
@@ -255,13 +64,13 @@
                 <h2>💻 Your Virtual Machines</h2>
             </div>
             
-            <div class="nodes-grid" style="padding:1.5rem;">
+            <div class="nodes-grid padded">
                 {% for node in reservation.nodes %}
                 <div class="node-card">
                     <div class="node-header">
                         <div>
                             <div class="node-name">{{ node.name }}</div>
-                            <span class="badge badge-success" style="margin-top:0.5rem;">
+                            <span class="badge badge-success success-margin">
                                 Running
                             </span>
                         </div>
@@ -302,11 +111,11 @@
                     
                     {% if reservation.status == 'active' %}
                     <a href="{{ url_for('terminal.terminal', username=username, node_name=node.name) }}" 
-                       class="btn btn-primary" style="width:100%;">
+                       class="btn btn-primary full-width">
                         🖥️ Open Terminal
                     </a>
                     {% else %}
-                    <button class="btn" style="width:100%; opacity:0.5; cursor:not-allowed;" disabled>
+                    <button class="btn disabled-btn" disabled>
                         🔒 Reservation Inactive
                     </button>
                     {% endif %}
@@ -323,111 +132,23 @@
         </div>
         {% endif %}
     </div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/reservation_detail.js') }}"></script>
+<script>
+    // Initialize countdown timer
+    const expiresAt = {{ reservation.expires_at|int }};
+    const redirectUrl = '{{ url_for("main.dashboard_home") }}';
+    initializeCountdown(expiresAt, redirectUrl);
     
-    <script>
-        // Countdown timer
-        const countdownEl = document.getElementById('countdown');
-        if (countdownEl) {
-            const expiresAt = parseInt(countdownEl.dataset.expires);
-            
-            function updateCountdown() {
-                const now = Math.floor(Date.now() / 1000);
-                const remaining = expiresAt - now;
-                
-                if (remaining <= 0) {
-                    countdownEl.textContent = 'EXPIRED';
-                    countdownEl.classList.add('warning');
-                    setTimeout(() => {
-                        alert('⚠️ Your reservation has expired!');
-                        window.location.href = '{{ url_for("main.dashboard_home") }}';
-                    }, 2000);
-                    return;
-                }
-                
-                const hours = Math.floor(remaining / 3600);
-                const minutes = Math.floor((remaining % 3600) / 60);
-                const seconds = remaining % 60;
-                
-                countdownEl.textContent = `${hours}h ${minutes}m ${seconds}s`;
-                
-                if (remaining < 300) { // Less than 5 minutes
-                    countdownEl.classList.add('warning');
-                }
-            }
-            
-            updateCountdown();
-            setInterval(updateCountdown, 1000);
-        }
-        
-        async function releaseReservation() {
-            if (!confirm('Are you sure you want to release these resources?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch('/release/{{ username }}', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        reservation_id: '{{ reservation.id }}'
-                    })
-                });
-                
-                const result = await response.json();
-                
-                if (result.status === 'success') {
-                    alert('✅ Resources released successfully!');
-                    window.location.href = '{{ url_for("main.dashboard_home") }}';
-                } else {
-                    alert('❌ Error: ' + result.message);
-                }
-            } catch (error) {
-                alert('❌ Error: ' + error.message);
-            }
-        }
-    </script>
-    <script>
-        let expiryTimestamp = {{ reservation.expires_at|int }};
-        let statsUpdateInterval;
-
-        function updateCountdown() {
-            const now = Math.floor(Date.now() / 1000);
-            setTimeout(updateCountdown, 1000);
-        }
-
-        async function updateStats() {
-            try {
-                const response = await fetch('/stats/{{ reservation.id }}');
-                const data = await response.json();
-                
-                if (data.status === 'success') {
-                    Object.keys(data.stats).forEach(nodeName => {
-                        const stats = data.stats[nodeName];
-                        const cpuElem = document.getElementById(`cpu-${nodeName}`);
-                        const memElem = document.getElementById(`mem-${nodeName}`);
-                        const memPercElem = document.getElementById(`mem-perc-${nodeName}`);
-                        
-                        if (cpuElem) cpuElem.textContent = stats.cpu;
-                        if (memElem) memElem.textContent = stats.memory;
-                        if (memPercElem) memPercElem.textContent = stats.memory_percent;
-                    });
-                }
-            } catch (error) {
-                console.error('Error fetching stats:', error);
-            }
-        }
-        
-        window.onload = function() {
-            updateCountdown();
-            updateStats(); // Initial load
-            statsUpdateInterval = setInterval(updateStats, 3000); // Update every 3 seconds
-        };
-        
-        window.onbeforeunload = function() {
-            if (statsUpdateInterval) {
-                clearInterval(statsUpdateInterval);
-            }
-        };
-    </script>
-</body>
-</html>
+    // Get reservation ID from meta tag for stats updates
+    const reservationId = document.querySelector('meta[name="reservation-id"]').content;
+    updateStats(reservationId);
+    
+    // Create wrapper function for the release button
+    window.releaseReservation = function() {
+        performReleaseReservation('{{ username }}', '{{ reservation.id }}', redirectUrl);
+    };
+</script>
+{% endblock %}
