@@ -48,7 +48,46 @@ curl -L https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant 
 chmod 600 ~/.vagrant.d/insecure_private_key
 ```
 
-### Étape 4 : Créer l'environnement virtuel Python
+### Étape 4 : Installer et configurer MySQL
+
+1. **Installer MySQL Server dans WSL :**
+
+```bash
+sudo apt update
+sudo apt install -y mysql-server
+```
+
+2. **Démarrer le service MySQL :**
+
+```bash
+sudo service mysql start
+```
+
+3. **Configurer l’utilisateur root (optionnel, pour mot de passe simple) :**
+
+```bash
+sudo mysql
+ALTER USER 'root'@'localhost' IDENTIFIED WITH mysql_native_password BY 'root';
+FLUSH PRIVILEGES;
+exit
+```
+
+4. **Importer le schéma de base de données :**
+
+```bash
+mysql -u root -p < database/db_schema.sql
+# (mot de passe par défaut : root)
+```
+
+5. **Migrer les anciens utilisateurs (JSON) vers MySQL :**
+
+```bash
+cd database
+python3 migrate_data.py
+cd ..
+```
+
+### Étape 5 : Créer l'environnement virtuel Python
 
 Utiliser un environnement virtuel évite l’erreur `externally-managed-environment`.
 
@@ -62,10 +101,14 @@ pip install -r requirements.txt
 
 ## 3. Lancement du projet
 
-Assurez-vous que l'environnement virtuel est actif, puis lancez Flask :
+Avant de lancer l’application, assurez-vous que :
+
+- Le service MySQL est démarré (`sudo service mysql start`)
+- L’environnement virtuel Python est activé (`source venv/bin/activate`)
+
+Lancez Flask :
 
 ```bash
-source venv/bin/activate
 python3 web/app.py
 ```
 

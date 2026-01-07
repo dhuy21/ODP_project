@@ -146,6 +146,7 @@ class DashboardController:
     
     def admin_delete_reservation(self, reservation_id):
         """Delete reservation as admin"""
+        admin = session['username']
         all_reservations = self.user_db.get_all_reservations()
         reservation = next((r for r in all_reservations if r['id'] == reservation_id), None)
         
@@ -158,7 +159,8 @@ class DashboardController:
         self.docker_service.release_containers(owner)
         
         # Delete reservation from database
-        self.user_db.delete_reservation(owner, reservation_id)
+        if not self.user_db.delete_reservation(admin, reservation_id):
+            return jsonify({'status': 'error', 'message': 'Permission denied'})
         
         return jsonify({'status': 'success', 'message': 'Reservation deleted'})
     
