@@ -6,46 +6,86 @@
 {% endblock %}
 
 {% block content %}
-<div class="login-container">
-        <div class="login-box">
-            <div class="login-header">
-                <div class="brand-logo">
-                    <i class="fas fa-server"></i>
-                </div>
-                <h1>Welcome </h1>
-                <p>Sign in to access your infrastructure</p>
+<div class="login-page">
+    <div class="login-container">
+        <div class="login-left">
+            <div class="login-brand">
+                    <div class="loader">
+                        <div class="box box0"><div></div></div>
+                        <div class="box box1"><div></div></div>
+                        <div class="box box2"><div></div></div>
+                        <div class="box box3"><div></div></div>
+                        <div class="box box4"><div></div></div>
+                        <div class="box box5"><div></div></div>
+                        <div class="box box6"><div></div></div>
+                        <div class="box box7"><div></div></div>
+                        <div class="ground"><div></div></div>
+                    </div>
+                <h1 class="brand-title">ODP Project</h1>
+                <p class="brand-subtitle">Infrastructure as a Service Platform</p>
             </div>
-            
-            <form id="loginForm">
-                <div class="form-group">
-                    <label for="username">
-                        <i class="fas fa-user"></i> Username
-                    </label>
-                    <input type="text" id="username" name="username" required 
-                           placeholder="Enter your username" autofocus>
+        </div>
+        
+        <div class="login-right">
+            <div class="login-box fade-in-scale">
+                <div class="login-header">
+                    <h2 class="login-title">Welcome Back</h2>
+                    <p class="login-subtitle">Sign in to continue</p>
                 </div>
                 
-                <div class="form-group">
-                    <label for="password">
-                        <i class="fas fa-lock"></i> Password
-                    </label>
-                    <input type="password" id="password" name="password" required 
-                           placeholder="Enter your password">
-                </div>
+                <form id="loginForm" class="login-form">
+                    <div class="form-group fade-in-up" data-delay="100">
+                        <label for="username" class="form-label">
+                            <i class="fas fa-user"></i>
+                            <span>Username</span>
+                        </label>
+                        <input 
+                            type="text" 
+                            id="username" 
+                            name="username" 
+                            required 
+                            placeholder="Enter your username"
+                            autofocus
+                            class="form-input">
+                    </div>
+                    
+                    <div class="form-group fade-in-up" data-delay="150">
+                        <label for="password" class="form-label">
+                            <i class="fas fa-lock"></i>
+                            <span>Password</span>
+                        </label>
+                        <div class="input-wrapper">
+                            <input 
+                                type="password" 
+                                id="password" 
+                                name="password" 
+                                required 
+                                placeholder="Enter your password"
+                                class="form-input">
+                            <button type="button" class="password-toggle" id="passwordToggle">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary btn-submit fade-in-up" data-delay="200">
+                        <span class="btn-text">Sign In</span>
+                        <i class="fas fa-arrow-right"></i>
+                    </button>
+                </form>
                 
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Sign In
-                </button>
-            </form>
-            
-            <div id="result"></div>
-            
-            <div class="login-footer">
-                <p>Don't have an account?</p>
-                <a href="{{ url_for('auth.register') }}">Create one now →</a>
+                <div id="result" class="result-container"></div>
+                
+                <div class="login-footer fade-in" data-delay="250">
+                    <p>Don't have an account?</p>
+                    <a href="{{ url_for('auth.show_register') }}" class="footer-link">
+                        Create one now <i class="fas fa-arrow-right"></i>
+                    </a>
+                </div>
             </div>
         </div>
     </div>
+</div>
 {% endblock %}
 
 {% block scripts %}
