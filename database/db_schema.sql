@@ -25,5 +25,15 @@ CREATE TABLE IF NOT EXISTS reservations (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS pool_nodes (
+    name VARCHAR(50) PRIMARY KEY,     
+    ip VARCHAR(15) NOT NULL,          
+    port INT NOT NULL,                
+    status ENUM('free', 'allocated', 'maintenance', 'error') DEFAULT 'free',
+    owner VARCHAR(32),                
+    expiry DOUBLE DEFAULT 0,          
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
 CREATE INDEX idx_reservation_user ON reservations(user_id);
 CREATE INDEX idx_reservation_status ON reservations(status);

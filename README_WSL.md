@@ -95,6 +95,7 @@ Utiliser un environnement virtuel évite l’erreur `externally-managed-environm
 python3 -m venv venv
 source venv/bin/activate
 pip install -r requirements.txt
+python3 init_pool.py
 ```
 
 > L'invite de commande doit maintenant commencer par `(venv)`.
