@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About - IaaS Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dark_style.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    {% extends "base.html" %}
+    <div style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+        <a href="{{ url_for('home') if user_is_logged_in else url_for('accueil') }}" class="btn" style="margin-bottom: 2rem; display: inline-block;">
+            ← Back
+        </a>
+        
+        <h1 style="font-size: 2.5rem; font-weight: 700; background: var(--accent-gradient-3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem;">
+            ℹ️ About Us
+        </h1>
+        
+        <div class="data-table-container">
+            <div style="padding: 2rem; color: var(--text-secondary); line-height: 1.8;">
+                <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Our Platform</h2>
+                <p style="margin-bottom: 1rem;">
+                    IaaS Platform is a modern infrastructure-as-a-service solution designed for automated provisioning 
+                    and orchestration of containerized resources. We provide a seamless experience for deploying, 
+                    managing, and scaling your infrastructure needs.
+                </p>
+                
+                <h2 style="color: var(--text-primary); margin-top: 2rem; margin-bottom: 1rem;">Key Features</h2>
+                <ul style="padding-left: 1.5rem; margin-bottom: 1rem;">
+                    <li>🚀 <strong>Instant Provisioning</strong> - Deploy containers in under 30 seconds</li>
+                    <li>🔒 <strong>Secure by Default</strong> - Enterprise-grade security with SSH access</li>
+                    <li>🖥️ <strong>Web Terminal</strong> - Browser-based SSH access to your containers</li>
+                    <li>📦 <strong>Package Management</strong> - Pre-install software with Ansible</li>
+                    <li>⏱️ <strong>Time-based Reservations</strong> - Flexible duration from 1 minute to 24 hours</li>
+                    <li>🔄 <strong>Self-Healing</strong> - Automatic recovery of failed containers</li>
+                </ul>
+                
+                <h2 style="color: var(--text-primary); margin-top: 2rem; margin-bottom: 1rem;">Technology Stack</h2>
+                <ul style="padding-left: 1.5rem; margin-bottom: 1rem;">
+                    <li>🐳 Docker - Container runtime</li>
+                    <li>🐍 Flask - Web framework</li>
+                    <li>📡 Socket.IO - Real-time communication</li>
+                    <li>🔧 Ansible - Configuration management</li>
+                    <li>💾 Ubuntu 22.04 - Base OS for containers</li>
+                </ul>
+                
+                <h2 style="color: var(--text-primary); margin-top: 2rem; margin-bottom: 1rem;">Team</h2>
+                <p style="margin-bottom: 0.5rem;">This project was developed by:</p>
+                <ul style="padding-left: 1.5rem;">
+                    <li>Mehdi Ouseggua</li>
+                    <li>Vinh Tri NGUYEN</li>
+                    <li>Dinh Huy NGUYEN</li>
+                    <li>Khalid</li>
+                    <li>Thanh Tu VO</li>
+                    <li>Gia Khanh NGUYEN</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -208,21 +208,9 @@
             "port": "3001"
           }
         ],
-        "created_at": 1767794741.3719468,
-        "expires_at": 1767798341.3719473,
-        "status": "released",
-        "final_stats": {
-          "pool-node-1": {
-            "cpu": "0.00%",
-            "memory": "3.441MiB / 7.536GiB",
-            "memory_percent": "0.04%"
-          },
-          "pool-node-2": {
-            "cpu": "0.00%",
-            "memory": "1.996MiB / 7.536GiB",
-            "memory_percent": "0.03%"
-          }
-        }
+        "created_at": 1767766989.6170049,
+        "expires_at": 1767770589.6170053,
+        "status": "active"
       }
     ]
   }
