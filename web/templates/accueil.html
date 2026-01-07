@@ -6,84 +6,169 @@
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid p-0">
-  <!-- Hero Section -->
-  <section class="hero-section text-white text-center py-5 gradient-purple">
-    <div class="container">
-      <h1 class="display-3 fw-bold mb-4">Bienvenue sur ODP Project</h1>
-      <p class="lead mb-5">Gérez vos machines virtuelles facilement et efficacement</p>
+<div class="accueil-page">
+  <!-- Hero Section with Parallax -->
+  <section class="hero-section">
+    <div class="hero-background" id="vanta-waves">
+      <div class="hero-gradient"></div>
+      <div class="hero-particles"></div>
+    </div>
+    <div class="hero-content">
+      <div class="hero-badge fade-in-up">
+        <i class="fas fa-rocket"></i>
+        <span>Infrastructure as a Service</span>
+      </div>
+      <h1 class="hero-title fade-in-up" data-delay="100">
+        Bienvenue sur <span class="gradient-text">ODP Project</span>
+      </h1>
+      <p class="hero-subtitle fade-in-up" data-delay="200">
+        Plateforme de provisioning et d'orchestration de ressources conteneurisées
+      </p>
+      <p class="hero-description fade-in-up" data-delay="300">
+        Gérez vos machines virtuelles facilement et efficacement avec notre solution IaaS moderne
+      </p>
       {% if not session.get('username') %}
-      <div class="d-flex gap-3 justify-content-center">
-        <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg px-5">Commencer</a>
-        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-light btn-lg px-5">Se connecter</a>
+      <div class="hero-actions fade-in-up" data-delay="400">
+        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-hero">
+          <span>Commencer maintenant</span>
+          <i class="fas fa-arrow-right"></i>
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-secondary btn-hero">
+          <span>Se connecter</span>
+        </a>
       </div>
       {% else %}
-      <div>
-        <a href="{{ url_for('main.home') }}" class="btn btn-light btn-lg px-5">Accéder au Dashboard</a>
+      <div class="hero-actions fade-in-up" data-delay="400">
+        <a href="{{ url_for('main.home') }}" class="btn btn-primary btn-hero">
+          <span>Accéder au Dashboard</span>
+          <i class="fas fa-arrow-right"></i>
+        </a>
       </div>
       {% endif %}
+    </div>
+    <div class="hero-scroll fade-in-up" data-delay="600">
+      <div class="scroll-indicator">
+        <i class="fas fa-chevron-down"></i>
+      </div>
     </div>
   </section>
 
   <!-- Features Section -->
-  <section class="py-5 bg-light">
+  <section class="features-section">
     <div class="container">
-      <h2 class="text-center mb-5 fw-bold">Nos Fonctionnalités</h2>
-      <div class="row g-4">
-        <div class="col-md-4">
-          <div class="card h-100 shadow-sm border-0">
-            <div class="card-body text-center p-4">
-              <div class="mb-3">
-                <span class="icon-xl icon-primary">🖥️</span>
-              </div>
-              <h4 class="card-title mb-3">Gestion de VMs</h4>
-              <p class="card-text text-muted">Créez, démarrez et arrêtez vos machines virtuelles en quelques clics</p>
-            </div>
+      <div class="section-header fade-in">
+        <span class="section-badge">
+          <i class="fas fa-star"></i>
+          Fonctionnalités
+        </span>
+        <h2 class="section-title">Tout ce dont vous avez besoin</h2>
+        <p class="section-subtitle">Une plateforme complète pour gérer votre infrastructure</p>
+      </div>
+      
+      <div class="features-grid">
+        <div class="feature-card fade-in-up" data-delay="0">
+          <div class="feature-icon-wrapper">
+            <div class="feature-icon-bg"></div>
+            <i class="fas fa-server feature-icon"></i>
           </div>
+          <h3 class="feature-title">Gestion de VMs</h3>
+          <p class="feature-description">
+            Créez, démarrez et arrêtez vos machines virtuelles en quelques clics. 
+            Pool de ressources automatiquement géré.
+          </p>
         </div>
         
-        <div class="col-md-4">
-          <div class="card h-100 shadow-sm border-0">
-            <div class="card-body text-center p-4">
-              <div class="mb-3">
-                <span class="icon-xl icon-primary">⚡</span>
-              </div>
-              <h4 class="card-title mb-3">Monitoring en temps réel</h4>
-              <p class="card-text text-muted">Surveillez les performances et l'état de vos VMs instantanément</p>
-            </div>
+        <div class="feature-card fade-in-up" data-delay="100">
+          <div class="feature-icon-wrapper">
+            <div class="feature-icon-bg"></div>
+            <i class="fas fa-bolt feature-icon"></i>
           </div>
+          <h3 class="feature-title">Monitoring en temps réel</h3>
+          <p class="feature-description">
+            Surveillez les performances et l'état de vos VMs instantanément. 
+            Statistiques détaillées et alertes automatiques.
+          </p>
         </div>
         
-        <div class="col-md-4">
-          <div class="card h-100 shadow-sm border-0">
-            <div class="card-body text-center p-4">
-              <div class="mb-3">
-                <span class="icon-xl icon-primary">🔒</span>
-              </div>
-              <h4 class="card-title mb-3">Sécurisé</h4>
-              <p class="card-text text-muted">Vos données et machines sont protégées avec les derniers standards de sécurité</p>
-            </div>
+        <div class="feature-card fade-in-up" data-delay="0">
+          <div class="feature-icon-wrapper">
+            <div class="feature-icon-bg"></div>
+            <i class="fas fa-terminal feature-icon"></i>
           </div>
+          <h3 class="feature-title">Terminal Web</h3>
+          <p class="feature-description">
+            Accédez à vos VMs directement depuis votre navigateur. 
+            Terminal SSH intégré avec support temps réel.
+          </p>
+        </div>
+        
+        <div class="feature-card fade-in-up" data-delay="100">
+          <div class="feature-icon-wrapper">
+            <div class="feature-icon-bg"></div>
+            <i class="fas fa-cogs feature-icon"></i>
+          </div>
+          <h3 class="feature-title">Automatisation Ansible</h3>
+          <p class="feature-description">
+            Installation automatique de packages et configuration via Ansible. 
+            Provisioning rapide et reproductible.
+          </p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Stats Section -->
-  <section class="py-5">
+  <!-- How It Works Section -->
+  <section class="how-it-works-section">
     <div class="container">
-      <div class="row text-center">
-        <div class="col-md-4 mb-4">
-          <h2 class="display-4 fw-bold text-primary">99.9%</h2>
-          <p class="text-muted">Disponibilité</p>
+      <div class="section-header fade-in">
+        <span class="section-badge">
+          <i class="fas fa-play-circle"></i>
+          Comment ça marche
+        </span>
+        <h2 class="section-title">Simple et rapide</h2>
+        <p class="section-subtitle">En 3 étapes simples</p>
+      </div>
+      
+      <div class="steps-container">
+        <div class="step-item fade-in-left" data-delay="0">
+          <div class="step-number">01</div>
+          <div class="step-icon">
+            <i class="fas fa-user-plus"></i>
+          </div>
+          <h3 class="step-title">Créer un compte</h3>
+          <p class="step-description">
+            Inscrivez-vous gratuitement en quelques secondes
+          </p>
         </div>
-        <div class="col-md-4 mb-4">
-          <h2 class="display-4 fw-bold text-primary">24/7</h2>
-          <p class="text-muted">Support</p>
+        
+        <div class="step-connector fade-in" data-delay="200">
+          <i class="fas fa-arrow-right"></i>
         </div>
-        <div class="col-md-4 mb-4">
-          <h2 class="display-4 fw-bold text-primary">100+</h2>
-          <p class="text-muted">Utilisateurs satisfaits</p>
+        
+        <div class="step-item fade-in-up" data-delay="100">
+          <div class="step-number">02</div>
+          <div class="step-icon">
+            <i class="fas fa-server"></i>
+          </div>
+          <h3 class="step-title">Réserver des VMs</h3>
+          <p class="step-description">
+            Choisissez le nombre de machines et la durée
+          </p>
+        </div>
+        
+        <div class="step-connector fade-in" data-delay="400">
+          <i class="fas fa-arrow-right"></i>
+        </div>
+        
+        <div class="step-item fade-in-right" data-delay="200">
+          <div class="step-number">03</div>
+          <div class="step-icon">
+            <i class="fas fa-rocket"></i>
+          </div>
+          <h3 class="step-title">Commencer à utiliser</h3>
+          <p class="step-description">
+            Accédez à vos VMs via le terminal web intégré
+          </p>
         </div>
       </div>
     </div>
@@ -91,15 +176,31 @@
 
   <!-- CTA Section -->
   {% if not session.get('username') %}
-  <section class="py-5 w-50 mx-auto">
-    <div class="container bg-dark p-5 extra-rounded shadow-lg">
-      <div class="text-white text-center">
-        <h2 class="mb-4">Prêt à commencer ?</h2>
-        <p class="lead mb-4">Créez votre compte gratuitement et commencez à gérer vos VMs dès aujourd'hui</p>
-        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5">S'inscrire maintenant</a>
+  <section class="cta-section">
+    <div class="cta-background">
+      <div class="cta-gradient"></div>
+      <div class="cta-pattern"></div>
+    </div>
+    <div class="container">
+      <div class="cta-content fade-in-up">
+        <h2 class="cta-title">Prêt à commencer ?</h2>
+        <p class="cta-description">
+          Créez votre compte gratuitement et commencez à gérer vos VMs dès aujourd'hui
+        </p>
+        <a href="{{ url_for('auth.register') }}" class="btn btn-cta">
+          <span>S'inscrire maintenant</span>
+          <i class="fas fa-arrow-right"></i>
+        </a>
       </div>
     </div>
   </section>
   {% endif %}
 </div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Vanta.js Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.waves.min.js"></script>
+<script src="{{ url_for('static', filename='js/accueil.js') }}"></script>
 {% endblock %}

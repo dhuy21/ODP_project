@@ -6,6 +6,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -13,35 +15,35 @@
         <!-- Sidebar Navigation -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>🚀 Admin Panel</h2>
+                <h2><i class="fas fa-server"></i> Admin Panel</h2>
                 <p class="admin-name">{{ username }}</p>
             </div>
             
             <nav class="sidebar-nav">
                 <a href="{{ url_for('main.admin_panel') }}" class="nav-item {% if request.endpoint == 'main.admin_panel' %}active{% endif %}">
-                    <span class="icon">📊</span>
+                    <i class="fas fa-chart-line icon"></i>
                     <span>Dashboard</span>
                 </a>
                 
                 <a href="{{ url_for('main.admin_panel') }}#users" class="nav-item">
-                    <span class="icon">👥</span>
+                    <i class="fas fa-users icon"></i>
                     <span>User Management</span>
                 </a>
                 
                 <a href="{{ url_for('main.admin_panel') }}#reservations" class="nav-item">
-                    <span class="icon">📋</span>
+                    <i class="fas fa-clipboard-list icon"></i>
                     <span>Reservations</span>
                 </a>
                 
                 <a href="{{ url_for('main.admin_panel') }}#pool" class="nav-item">
-                    <span class="icon">🖥️</span>
+                    <i class="fas fa-server icon"></i>
                     <span>Pool Status</span>
                 </a>
             </nav>
             
             <div class="sidebar-footer">
                 <a href="{{ url_for('auth.logout') }}" class="logout-btn">
-                    <span class="icon">🚪</span>
+                    <i class="fas fa-sign-out-alt icon"></i>
                     <span>Logout</span>
                 </a>
             </div>

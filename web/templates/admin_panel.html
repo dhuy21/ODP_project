@@ -4,46 +4,48 @@
     <title>Admin Panel - IaaS Platform</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/admin_style.css') }}">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" integrity="sha512-iecdLmaskl7CVkqkXNQ/ZH/XLlvWZOJyj7Yy7tcenmpD1ypASozpmT/E0iPtmFIB46ZmdtAc9eNBvH0H/ZpiBw==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
     <div class="admin-layout">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>🚀 Admin Panel</h2>
+                <h2><i class="fas fa-server"></i> Admin Panel</h2>
                 <p class="admin-name">{{ username }}</p>
             </div>
             
             <nav class="sidebar-nav">
                 <a href="{{ url_for('main.home') }}" class="nav-item">
-                    <span class="icon">🏠</span>
+                    <i class="fas fa-home icon"></i>
                     <span>Dashboard</span>
                 </a>
                 
                 <a href="#overview" class="nav-item active">
-                    <span class="icon">📊</span>
+                    <i class="fas fa-chart-line icon"></i>
                     <span>Overview</span>
                 </a>
                 
                 <a href="#users" class="nav-item">
-                    <span class="icon">👥</span>
+                    <i class="fas fa-users icon"></i>
                     <span>Users</span>
                 </a>
                 
                 <a href="#reservations" class="nav-item">
-                    <span class="icon">📋</span>
+                    <i class="fas fa-clipboard-list icon"></i>
                     <span>Reservations</span>
                 </a>
                 
                 <a href="#pool" class="nav-item">
-                    <span class="icon">🖥️</span>
+                    <i class="fas fa-server icon"></i>
                     <span>Container Pool</span>
                 </a>
             </nav>
             
             <div class="sidebar-footer">
                 <a href="{{ url_for('auth.logout') }}" class="logout-btn">
-                    <span class="icon">🚪</span>
+                    <i class="fas fa-sign-out-alt icon"></i>
                     <span>Logout</span>
                 </a>
             </div>
@@ -54,10 +56,10 @@
             <!-- Overview Section -->
             <section id="overview">
                 <div class="content-header">
-                    <h1>📊 Overview</h1>
+                    <h1><i class="fas fa-chart-line"></i> Overview</h1>
                     <div class="header-actions">
                         <button onclick="location.reload()" class="btn btn-primary">
-                            🔄 Refresh
+                            <i class="fas fa-sync-alt"></i> Refresh
                         </button>
                     </div>
                 </div>
@@ -87,9 +89,9 @@
             <section id="users">
                 <div class="data-table-container">
                     <div class="table-header">
-                        <h2>👥 User Management</h2>
+                        <h2><i class="fas fa-users"></i> User Management</h2>
                         <button onclick="showCreateUserModal()" class="btn btn-primary" style="margin-top:1rem;">
-                            ➕ Create User
+                            <i class="fas fa-plus"></i> Create User
                         </button>
                     </div>
                     <table>
@@ -118,13 +120,13 @@
                                 <td>
                                     {% if username_key != 'admin' %}
                                     <button class="btn btn-warning btn-sm" onclick="toggleRole('{{ username_key }}', '{{ user.role }}')">
-                                        🔄 Toggle Role
+                                        <i class="fas fa-sync-alt"></i> Toggle Role
                                     </button>
                                     <button class="btn btn-danger btn-sm" onclick="deleteUser('{{ username_key }}')">
-                                        🗑️ Delete
+                                        <i class="fas fa-trash"></i> Delete
                                     </button>
                                     {% else %}
-                                    <span style="color:var(--text-secondary)">🔒 Protected</span>
+                                    <span style="color:var(--text-secondary)"><i class="fas fa-lock"></i> Protected</span>
                                     {% endif %}
                                 </td>
                             </tr>
@@ -138,7 +140,7 @@
             <section id="reservations" style="margin-top:3rem;">
                 <div class="data-table-container">
                     <div class="table-header">
-                        <h2>📋 All Reservations</h2>
+                        <h2><i class="fas fa-clipboard-list"></i> All Reservations</h2>
                     </div>
                     <table>
                         <thead>
@@ -168,11 +170,11 @@
                                 <td>
                                     {% if reservation.status == 'active' %}
                                     <button class="btn btn-danger btn-sm" onclick="deleteReservation('{{ reservation.id }}', '{{ reservation.owner }}')">
-                                        ⚡ Force Release
+                                        <i class="fas fa-bolt"></i> Force Release
                                     </button>
                                     {% else %}
                                     <button class="btn btn-warning btn-sm" onclick="deleteReservation('{{ reservation.id }}', '{{ reservation.owner }}')">
-                                        🗑️ Delete
+                                        <i class="fas fa-trash"></i> Delete
                                     </button>
                                     {% endif %}
                                 </td>
@@ -187,9 +189,9 @@
             <section id="pool" style="margin-top:3rem;">
                 <div class="data-table-container">
                     <div class="table-header">
-                        <h2>🖥️ Container Pool</h2>
+                        <h2><i class="fas fa-server"></i> Container Pool</h2>
                         <button onclick="recoverPool()" class="btn btn-warning" style="margin-top:1rem;">
-                            🔧 Recover Pool
+                            <i class="fas fa-tools"></i> Recover Pool
                         </button>
                     </div>
                     <div style="padding:1.5rem;">
@@ -206,7 +208,7 @@
     <div id="createUserModal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>➕ Create New User</h2>
+                <h2><i class="fas fa-plus"></i> Create New User</h2>
             </div>
             <form id="createUserForm">
                 <div class="form-group">

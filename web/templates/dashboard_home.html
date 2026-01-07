@@ -8,7 +8,7 @@
 {% block content %}
 <div class="user-dashboard">
     <div class="dashboard-header">
-        <h1>👋 Welcome, {{ username }}!</h1>
+        <h1><i class="fas fa-hand-wave"></i> Welcome, {{ username }}!</h1>
     </div>
     
     <!-- Pool Status -->
@@ -31,7 +31,7 @@
         {% if active_reservations %}
         <div class="data-table-container">
             <div class="table-header">
-                <h2>🎯 Your Active Reservations</h2>
+                <h2><i class="fas fa-bullseye"></i> Your Active Reservations</h2>
             </div>
             <div class="reservation-grid inline-padding">
                 {% for reservation in active_reservations %}
@@ -39,7 +39,7 @@
                     <div class="reservation-card-header">
                         <div>
                             <h3>
-                                🖥️ {{ reservation.vm_count }} VMs
+                                <i class="fas fa-server"></i> {{ reservation.vm_count }} VMs
                             </h3>
                             <code>
                                 {{ reservation.id[:12] }}...
@@ -48,8 +48,8 @@
                         <span class="badge badge-success">Active</span>
                     </div>
                     <div class="reservation-card-details">
-                        <div>⏱️ Duration: {{ reservation.duration }} minutes</div>
-                        <div>📦 Packages: {{ reservation.packages|join(', ') if reservation.packages else 'None' }}</div>
+                        <div><i class="fas fa-clock"></i> Duration: {{ reservation.duration }} minutes</div>
+                        <div><i class="fas fa-box"></i> Packages: {{ reservation.packages|join(', ') if reservation.packages else 'None' }}</div>
                     </div>
                     <a href="{{ url_for('provision.view_reservation', reservation_id=reservation.id) }}" class="btn btn-primary">
                         View Details →
@@ -63,11 +63,11 @@
         <!-- Create New Reservation -->
         <div class="provision-form">
             <h2>
-                ➕ Create New Reservation
+                <i class="fas fa-plus"></i> Create New Reservation
             </h2>
             <form id="provisionForm">
                 <div class="form-group">
-                    <label>🔐 VM Password</label>
+                    <label><i class="fas fa-lock"></i> VM Password</label>
                     <input type="password" name="password" required placeholder="Password for VM access">
                     <small>
                         This password will be used to access your VMs via SSH
@@ -75,7 +75,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>💻 Number of VMs</label>
+                    <label><i class="fas fa-desktop"></i> Number of VMs</label>
                     <input type="number" name="vm_count" min="1" max="5" required value="1">
                     <small>
                         Maximum 5 VMs per request
@@ -83,7 +83,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>⏱️ Reservation Duration</label>
+                    <label><i class="fas fa-clock"></i> Reservation Duration</label>
                     <select name="duration" required>
                         <option value="1">1 minute (testing)</option>
                         <option value="60" selected>1 hour</option>
@@ -96,7 +96,7 @@
                 </div>
                 
                 <div class="form-group">
-                    <label>📦 Software Packages (comma-separated)</label>
+                    <label><i class="fas fa-box"></i> Software Packages (comma-separated)</label>
                     <input type="text" name="packages" placeholder="nginx,git,vim">
                     <small>
                         Optional: These packages will be installed on your VMs
@@ -104,7 +104,7 @@
                 </div>
                 
                 <button type="submit" class="btn btn-primary">
-                    🚀 Create Reservation
+                    <i class="fas fa-rocket"></i> Create Reservation
                 </button>
             </form>
             
@@ -115,7 +115,7 @@
         {% if reservations %}
         <div class="data-table-container">
             <div class="table-header">
-                <h2>📜 Reservation History</h2>
+                <h2><i class="fas fa-history"></i> Reservation History</h2>
             </div>
             <table>
                 <thead>

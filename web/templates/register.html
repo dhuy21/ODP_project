@@ -9,32 +9,40 @@
 <div class="register-container">
     <div class="register-box">
         <div class="register-header">
-            <div class="brand-logo">✨</div>
+            <div class="brand-logo">
+                <i class="fas fa-user-plus"></i>
+            </div>
             <h1>Create Account</h1>
             <p>Join our infrastructure platform</p>
         </div>
         
         <form id="registerForm">
             <div class="form-group">
-                <label for="username">👤 Username</label>
+                <label for="username">
+                    <i class="fas fa-user"></i> Username
+                </label>
                 <input type="text" id="username" name="username" required 
                        placeholder="Choose a username" autofocus
                        pattern="[a-zA-Z0-9_-]{3,32}"
                        title="3-32 characters, letters, numbers, hyphens, and underscores only">
                 <small>
                     3-32 characters. Letters, numbers, hyphens (-), and underscores (_) only.<br>
-                    <span>⚠️ Reserved names (root, admin, vagrant, etc.) are not allowed</span>
+                    <span><i class="fas fa-exclamation-triangle"></i> Reserved names (root, admin, vagrant, etc.) are not allowed</span>
                 </small>
             </div>
             
             <div class="form-group">
-                <label for="email">📧 Email</label>
+                <label for="email">
+                    <i class="fas fa-envelope"></i> Email
+                </label>
                 <input type="email" id="email" name="email" required 
                        placeholder="your.email@example.com">
             </div>
             
             <div class="form-group">
-                <label for="password">🔒 Password</label>
+                <label for="password">
+                    <i class="fas fa-lock"></i> Password
+                </label>
                 <input type="password" id="password" name="password" required 
                        placeholder="Create a strong password"
                        minlength="8">
@@ -45,13 +53,15 @@
             </div>
             
             <div class="form-group">
-                <label for="confirm_password">🔒 Confirm Password</label>
+                <label for="confirm_password">
+                    <i class="fas fa-lock"></i> Confirm Password
+                </label>
                 <input type="password" id="confirm_password" name="confirm_password" required 
                        placeholder="Confirm your password">
             </div>
             
             <button type="submit" class="btn btn-primary">
-                ✨ Create Account
+                <i class="fas fa-user-plus"></i> Create Account
             </button>
         </form>
         

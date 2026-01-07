@@ -25,7 +25,7 @@
 .back-button:hover {
     color: #2d3748;
     transform: translateX(-4px);
-    border-color: #667eea;
+    border-color: #059669;
 }
 
 .reservation-header {
@@ -38,7 +38,7 @@
 
 .reservation-header h1 {
     font-size: 2rem;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -96,13 +96,13 @@
     left: 0;
     width: 4px;
     height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
 }
 
 .node-card:hover {
     transform: translateY(-4px);
     box-shadow: 0 12px 24px rgba(0,0,0,0.1);
-    border-color: #667eea;
+    border-color: #059669;
 }
 
 .node-header {
@@ -149,7 +149,7 @@
 .countdown-value {
     font-size: 2rem;
     font-weight: 700;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
