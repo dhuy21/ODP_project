@@ -1,5 +1,22 @@
 import os
 import secrets
+from pathlib import Path
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+# Look for .env in the web directory (parent of config)
+env_path = Path(__file__).parent.parent / '.env'
+if env_path.exists():
+    load_dotenv(env_path)
+    print(f"[CONFIG] Loaded environment variables from {env_path}")
+else:
+    # Also try in project root
+    root_env_path = Path(__file__).parent.parent.parent / '.env'
+    if root_env_path.exists():
+        load_dotenv(root_env_path)
+        print(f"[CONFIG] Loaded environment variables from {root_env_path}")
+    else:
+        print("[CONFIG] No .env file found, using environment variables or defaults")
 
 class Config:
     """Application configuration"""

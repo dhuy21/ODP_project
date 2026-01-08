@@ -14,6 +14,8 @@ class UserDatabase:
             'password': os.environ.get('MYSQL_PASSWORD', 'root'),  # Change your password
             'database': os.environ.get('MYSQL_DB', 'odp_platform')
         }
+        # Create default admin user if it doesn't exist
+        self._create_default_users()
 
     def _get_connection(self):
         """Create a new MySQL connection"""
@@ -356,55 +358,85 @@ class UserDatabase:
     
     def get_active_reservations(self):
         """Get only active reservations from all users - optimized for expiry check"""
-        users = self.load_users()
+        conn = None
+        cursor = None
         active_reservations = []
-        
-        for username, user_data in users.items():
-            for reservation in user_data.get('reservations', []):
-                if reservation.get('status') == 'active':
-                    reservation_copy = reservation.copy()
-                    reservation_copy['owner'] = username
-                    active_reservations.append(reservation_copy)
-        
-        return active_reservations
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT r.*, u.username AS owner "
+                "FROM reservations r JOIN users u ON r.user_id = u.id "
+                "WHERE r.status = 'active'"
+            )
+            for row in cursor.fetchall():
+                row['nodes'] = json.loads(row['nodes']) if row['nodes'] else []
+                row['final_stats'] = json.loads(row['final_stats']) if row['final_stats'] else {}
+                row['packages'] = json.loads(row['packages']) if row['packages'] else []
+                row['duration'] = row['duration_minutes']
+                active_reservations.append(row)
+            return active_reservations
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()
     
     def get_next_expiry_time(self):
         """Get the next reservation expiry time for smart scheduling"""
-        active_reservations = self.get_active_reservations()
-        if not active_reservations:
-            return None
-        
-        expiry_times = [r.get('expires_at', 0) for r in active_reservations if r.get('expires_at', 0) > 0]
-        if not expiry_times:
-            return None
-        
-        return min(expiry_times)
+        conn = None
+        cursor = None
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT MIN(expires_at) as next_expiry "
+                "FROM reservations "
+                "WHERE status = 'active' AND expires_at > 0"
+            )
+            result = cursor.fetchone()
+            return result[0] if result and result[0] else None
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()
     
     def batch_update_expired(self, expired_reservations):
         """Batch update multiple expired reservations - single write operation"""
         if not expired_reservations:
             return
         
-        users = self.load_users()
-        updated = False
-        
-        for reservation in expired_reservations:
-            username = reservation.get('owner')
-            reservation_id = reservation.get('id')
+        conn = None
+        cursor = None
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor()
             
-            if username not in users:
-                continue
+            # Batch update all expired reservations
+            for reservation in expired_reservations:
+                reservation_id = reservation.get('id')
+                final_stats = reservation.get('final_stats')
+                
+                if final_stats:
+                    # Update both status and final_stats
+                    cursor.execute(
+                        "UPDATE reservations SET status = 'expired', final_stats = %s "
+                        "WHERE id = %s AND status = 'active'",
+                        (json.dumps(final_stats), reservation_id)
+                    )
+                else:
+                    # Update only status
+                    cursor.execute(
+                        "UPDATE reservations SET status = 'expired' "
+                        "WHERE id = %s AND status = 'active'",
+                        (reservation_id,)
+                    )
             
-            for r in users[username].get('reservations', []):
-                if r.get('id') == reservation_id and r.get('status') == 'active':
-                    r['status'] = 'expired'
-                    if 'final_stats' in reservation:
-                        r['final_stats'] = reservation['final_stats']
-                    updated = True
-                    break
-        
-        if updated:
-            self.save_users(users)
+            conn.commit()
+        except Exception as e:
+            print(f"Error in batch_update_expired: {e}")
+            if conn:
+                conn.rollback()
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()
     
     def delete_user(self, username):
         """Delete a user"""

@@ -1,6 +1,7 @@
 import docker
 import time
 import platform
+import subprocess
 from config.config import Config
 from models.pool import PoolDatabase
 
@@ -244,22 +245,7 @@ class DockerService:
 
     def get_pool_details(self):
         """Get detailed pool information with individual container details"""
-        import json
-        import time
-        from datetime import datetime
-        
         try:
-            # Read state file directly
-            state_file = '/tmp/pool_state.json'
-            
-            # Try to read state file
-            state = {}
-            try:
-                with open(state_file, 'r') as f:
-                    state = json.load(f)
-            except:
-                pass
-            
             containers = []
             free_count = 0
             allocated_count = 0
@@ -267,30 +253,71 @@ class DockerService:
             stopped_count = 0
             current_time = time.time()
             
-            # Get docker container info
-            result = subprocess.run(
-                ['docker', 'ps', '-a', '--format', '{{.Names}}'],
-                capture_output=True,
-                text=True,
-                cwd=self.project_dir,
-                timeout=10
-            )
+            # Get all nodes from MySQL database
+            conn = self.pool_db._get_connection()
+            cursor = conn.cursor(dictionary=True)
+            try:
+                cursor.execute("SELECT * FROM pool_nodes ORDER BY name")
+                db_nodes = {row['name']: row for row in cursor.fetchall()}
+            finally:
+                cursor.close()
+                conn.close()
             
-            running_containers = set(result.stdout.strip().split('\n')) if result.stdout.strip() else set()
+            # Get docker container info to check if containers are running
+            running_containers = set()
+            try:
+                result = subprocess.run(
+                    ['docker', 'ps', '-a', '--format', '{{.Names}}'],
+                    capture_output=True,
+                    text=True,
+                    cwd=self.project_dir,
+                    timeout=10
+                )
+                if result.returncode == 0 and result.stdout.strip():
+                    running_containers = set(result.stdout.strip().split('\n'))
+            except:
+                pass
             
+            # Process each node
             for i in range(1, Config.POOL_SIZE + 1):
                 name = f'pool-node-{i}'
-                container_info = state.get(name, {})
-                status = container_info.get('status', 'unknown')
-                client = container_info.get('client', '')
-                expiry = container_info.get('expiry', 0)
                 
-                # Get IP and port from docker
-                ip = '-'
-                port = '-'
+                # Get info from database
+                db_node = db_nodes.get(name, {})
+                db_status = db_node.get('status', 'unknown')
+                owner = db_node.get('owner', '')
+                expiry = db_node.get('expiry', 0)
+                db_ip = db_node.get('ip', '-')
+                db_port = db_node.get('port', '-')
+                
+                # Check if container is actually running
                 is_running = name in running_containers
                 
-                if is_running:
+                # Determine final status
+                if not is_running:
+                    status = 'stopped'
+                    stopped_count += 1
+                elif db_status == 'error':
+                    status = 'error'
+                    error_count += 1
+                elif db_status == 'allocated':
+                    status = 'allocated'
+                    allocated_count += 1
+                elif db_status == 'free':
+                    status = 'free'
+                    free_count += 1
+                else:
+                    status = db_status
+                    if status == 'maintenance':
+                        error_count += 1
+                    else:
+                        error_count += 1
+                
+                # Get IP and port (prefer database, fallback to docker inspect)
+                ip = db_ip if db_ip != '-' else '-'
+                port = str(db_port) if db_port != '-' else '-'
+                
+                if is_running and (ip == '-' or port == '-'):
                     try:
                         ip_result = subprocess.run(
                             ['docker', 'inspect', '--format', '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}', name],
@@ -311,9 +338,6 @@ class DockerService:
                             port = port_result.stdout.strip().split(':')[-1]
                     except:
                         pass
-                else:
-                    status = 'stopped'
-                    stopped_count += 1
                 
                 # Format expiry time
                 expires_str = None
@@ -325,22 +349,12 @@ class DockerService:
                     else:
                         expires_str = 'EXPIRED'
                 
-                # Count by status
-                if status == 'free':
-                    free_count += 1
-                elif status == 'allocated':
-                    allocated_count += 1
-                elif status == 'stopped':
-                    stopped_count += 1
-                elif status == 'error' or status == 'unknown':
-                    error_count += 1
-                
                 containers.append({
                     'name': name,
                     'ip': ip,
                     'port': port,
                     'status': status,
-                    'client': client,
+                    'client': owner if owner else '',
                     'expires': expires_str
                 })
             

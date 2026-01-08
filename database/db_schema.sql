@@ -1,3 +1,6 @@
+-- Remove database if exists
+DROP DATABASE IF EXISTS odp_platform;
+
 CREATE DATABASE IF NOT EXISTS odp_platform CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 USE odp_platform;
 
@@ -16,7 +19,7 @@ CREATE TABLE IF NOT EXISTS reservations (
     user_id INT NOT NULL,
     vm_count INT NOT NULL DEFAULT 1,
     duration_minutes INT NOT NULL,
-    status ENUM('active', 'released', 'expired', 'error') NOT NULL,
+    status ENUM('active', 'released', 'expired', 'error', 'deleted') NOT NULL,
     created_at DOUBLE NOT NULL, -- real number timestamp permet d'éviter de trop modifier le code Python.
     expires_at DOUBLE NOT NULL,
     nodes JSON,         -- [{"name": "pool-node-1", "ip": "..."}]
@@ -37,3 +40,5 @@ CREATE TABLE IF NOT EXISTS pool_nodes (
 
 CREATE INDEX idx_reservation_user ON reservations(user_id);
 CREATE INDEX idx_reservation_status ON reservations(status);
+CREATE INDEX idx_reservation_expires_at ON reservations(expires_at);
+CREATE INDEX idx_reservation_status_expires ON reservations(status, expires_at);

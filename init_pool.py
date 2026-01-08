@@ -1,5 +1,6 @@
 import sys
 import os
+from pathlib import Path
 
 # Add web/services to import path
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -9,7 +10,19 @@ from services.docker_service import DockerService
 from dotenv import load_dotenv
 
 # Load environment variables from .env if available
-load_dotenv()
+# Try to load from web/.env first, then from project root
+web_env_path = Path(current_dir) / 'web' / '.env'
+root_env_path = Path(current_dir) / '.env'
+
+if web_env_path.exists():
+    load_dotenv(web_env_path)
+    print(f"[CONFIG] Loaded environment variables from {web_env_path}")
+elif root_env_path.exists():
+    load_dotenv(root_env_path)
+    print(f"[CONFIG] Loaded environment variables from {root_env_path}")
+else:
+    load_dotenv()  # Try default locations
+    print("[CONFIG] Using environment variables or defaults")
 
 def main():
     print("Starting ODP Pool Initialization...")
