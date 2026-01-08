@@ -510,13 +510,11 @@ Application logs are printed to console. For production, consider:
 - Mehdi Ouseggua
 - Vinh Tri NGUYEN
 - Dinh Huy NGUYEN
-- Khalid
+- Khalid ELABBARI
 - Thanh Tu VO
 - Gia Khanh NGUYEN
 
 ## License
-
-[Add your license information here]
 
 ---
 
