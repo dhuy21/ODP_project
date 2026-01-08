@@ -108,7 +108,7 @@ async function deleteUser(username) {
         if (result.status === 'success') {
             Notification.success('User deleted successfully!', 3000);
             setTimeout(() => {
-                location.reload();
+            location.reload();
             }, 1500);
         } else {
             Notification.error(result.message || 'Failed to delete user');
@@ -146,7 +146,7 @@ async function toggleRole(username, currentRole) {
         if (result.status === 'success') {
             Notification.success('Role updated successfully!', 3000);
             setTimeout(() => {
-                location.reload();
+            location.reload();
             }, 1500);
         } else {
             Notification.error(result.message || 'Failed to update role');
@@ -180,7 +180,7 @@ async function deleteReservation(reservationId, owner) {
         if (result.status === 'success') {
             Notification.success('Reservation deleted and containers released!', 3000);
             setTimeout(() => {
-                location.reload();
+            location.reload();
             }, 1500);
         } else {
             Notification.error(result.message || 'Failed to delete reservation');

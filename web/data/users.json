@@ -3,19 +3,19 @@
     "email": "admin@iac.com",
     "password": "8c6976e5b5410415bde908bd4dee15dfb167a9c873fc4bb8a81f6f2ab448a918",
     "role": "admin",
-    "created_at": "2026-01-07T14:11:53.473357",
+    "created_at": "2026-01-07T21:55:44.770883",
     "reservations": []
   },
-  "huy": {
-    "email": "huy@gmail.com",
+  "dhuy": {
+    "email": "dhuy@gmail.com",
     "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
     "role": "user",
-    "created_at": "2026-01-07T14:14:28.475586",
+    "created_at": "2026-01-07T21:56:23.266082",
     "reservations": [
       {
-        "id": "f0d0702b-4d7b-4dc0-95e7-0e35ccd38fec",
-        "username": "huy",
-        "vm_count": 2,
+        "id": "42901979-9db9-442a-a6e6-2f970138acdc",
+        "username": "dhuy",
+        "vm_count": 3,
         "duration": 60,
         "packages": [],
         "nodes": [
@@ -28,18 +28,28 @@
             "name": "pool-node-2",
             "ip": "172.30.0.12",
             "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
           }
         ],
-        "created_at": 1767791712.2205105,
-        "expires_at": 1767795312.2205112,
+        "created_at": 1767819428.1734874,
+        "expires_at": 1767823028.1734881,
         "status": "released",
         "final_stats": {
           "pool-node-1": {
             "cpu": "0.00%",
-            "memory": "35.15MiB / 7.536GiB",
-            "memory_percent": "0.46%"
+            "memory": "15.76MiB / 7.536GiB",
+            "memory_percent": "0.20%"
           },
           "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "3.109MiB / 7.536GiB",
+            "memory_percent": "0.04%"
+          },
+          "pool-node-3": {
             "cpu": "0.00%",
             "memory": "2.18MiB / 7.536GiB",
             "memory_percent": "0.03%"
@@ -47,83 +57,7 @@
         }
       },
       {
-        "id": "9ea91cc1-8c0a-495b-afbe-88e2e0ebc3f5",
-        "username": "huy",
-        "vm_count": 2,
-        "duration": 60,
-        "packages": [],
-        "nodes": [
-          {
-            "name": "pool-node-3",
-            "ip": "172.30.0.13",
-            "port": "3002"
-          },
-          {
-            "name": "pool-node-4",
-            "ip": "172.30.0.14",
-            "port": "3003"
-          }
-        ],
-        "created_at": 1767792700.6462488,
-        "expires_at": 1767796300.6462488,
-        "status": "released",
-        "final_stats": {
-          "pool-node-3": {
-            "cpu": "0.00%",
-            "memory": "2.086MiB / 7.536GiB",
-            "memory_percent": "0.03%"
-          },
-          "pool-node-4": {
-            "cpu": "0.00%",
-            "memory": "3.973MiB / 7.536GiB",
-            "memory_percent": "0.05%"
-          }
-        }
-      },
-      {
-        "id": "1383b2c6-058f-4a14-aed5-725859382186",
-        "username": "huy",
-        "vm_count": 2,
-        "duration": 60,
-        "packages": [],
-        "nodes": [
-          {
-            "name": "pool-node-1",
-            "ip": "172.30.0.11",
-            "port": "3000"
-          },
-          {
-            "name": "pool-node-2",
-            "ip": "172.30.0.12",
-            "port": "3001"
-          }
-        ],
-        "created_at": 1767799889.9040956,
-        "expires_at": 1767803489.9040973,
-        "status": "expired",
-        "final_stats": {
-          "pool-node-1": {
-            "cpu": "0.00%",
-            "memory": "9.355MiB / 7.536GiB",
-            "memory_percent": "0.12%"
-          },
-          "pool-node-2": {
-            "cpu": "0.00%",
-            "memory": "1.988MiB / 7.536GiB",
-            "memory_percent": "0.03%"
-          }
-        }
-      }
-    ]
-  },
-  "dhuy": {
-    "email": "dhuy@gmail.com",
-    "password": "ef797c8118f02dfb649607dd5d3f8c7623048c9c063d532cc95c5ed7a898a64f",
-    "role": "user",
-    "created_at": "2026-01-07T14:27:56.588811",
-    "reservations": [
-      {
-        "id": "01aa5828-1024-40b4-9549-1575a5d7e931",
+        "id": "64155cd5-b2b6-4b6c-883d-d9cea2598531",
         "username": "dhuy",
         "vm_count": 2,
         "duration": 60,
@@ -140,24 +74,412 @@
             "port": "3001"
           }
         ],
-        "created_at": 1767792512.1402485,
-        "expires_at": 1767796112.140249,
+        "created_at": 1767819734.563352,
+        "expires_at": 1767823334.5633528,
         "status": "released",
         "final_stats": {
           "pool-node-1": {
             "cpu": "0.00%",
-            "memory": "2.086MiB / 7.536GiB",
-            "memory_percent": "0.03%"
+            "memory": "4.102MiB / 7.536GiB",
+            "memory_percent": "0.05%"
           },
           "pool-node-2": {
             "cpu": "0.00%",
-            "memory": "2.273MiB / 7.536GiB",
+            "memory": "2.18MiB / 7.536GiB",
             "memory_percent": "0.03%"
           }
         }
       },
       {
-        "id": "dc80a0be-0682-4aa3-8358-f6b07fb7a716",
+        "id": "8719c5fe-31d9-4a20-8e99-8b97f97bfb5e",
+        "username": "dhuy",
+        "vm_count": 5,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          },
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          },
+          {
+            "name": "pool-node-5",
+            "ip": "172.30.0.15",
+            "port": "3004"
+          }
+        ],
+        "created_at": 1767819816.7527459,
+        "expires_at": 1767823416.7527468,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "7.688MiB / 7.536GiB",
+            "memory_percent": "0.10%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.066MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.18MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-4": {
+            "cpu": "0.00%",
+            "memory": "2.172MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-5": {
+            "cpu": "0.00%",
+            "memory": "2.18MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "9d48bdfc-8094-4163-995a-014d1ac03a87",
+        "username": "dhuy",
+        "vm_count": 3,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          }
+        ],
+        "created_at": 1767820608.2414017,
+        "expires_at": 1767824208.2414021,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "4.016MiB / 7.536GiB",
+            "memory_percent": "0.05%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.176MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.18MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "0cb8db57-8b92-4e65-9519-d612cba501eb",
+        "username": "dhuy",
+        "vm_count": 5,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          },
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          },
+          {
+            "name": "pool-node-5",
+            "ip": "172.30.0.15",
+            "port": "3004"
+          }
+        ],
+        "created_at": 1767820683.9386458,
+        "expires_at": 1767824283.9386463,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "7.023MiB / 7.536GiB",
+            "memory_percent": "0.09%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.441MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.082MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-4": {
+            "cpu": "0.00%",
+            "memory": "2.172MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-5": {
+            "cpu": "0.00%",
+            "memory": "2.18MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "842f8cc9-efae-4cc8-827e-927375ade6df",
+        "username": "dhuy",
+        "vm_count": 5,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          },
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          },
+          {
+            "name": "pool-node-5",
+            "ip": "172.30.0.15",
+            "port": "3004"
+          }
+        ],
+        "created_at": 1767820894.4731557,
+        "expires_at": 1767824494.4731557,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.012MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.012MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.023MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-4": {
+            "cpu": "0.00%",
+            "memory": "2.078MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-5": {
+            "cpu": "0.00%",
+            "memory": "2.09MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "670953e8-f6dd-454d-b8be-dd2b68eb0bc1",
+        "username": "dhuy",
+        "vm_count": 3,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          }
+        ],
+        "created_at": 1767834427.175312,
+        "expires_at": 1767838027.1753123,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "7.547MiB / 7.536GiB",
+            "memory_percent": "0.10%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.172MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.172MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "fb9eb270-1910-44ec-802b-d1411d9b113d",
+        "username": "dhuy",
+        "vm_count": 3,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          }
+        ],
+        "created_at": 1767834947.685659,
+        "expires_at": 1767838547.6856592,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.504MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.176MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.18MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "3a74943c-d4a7-4af2-a076-c2720dcd740b",
+        "username": "dhuy",
+        "vm_count": 5,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          },
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          },
+          {
+            "name": "pool-node-5",
+            "ip": "172.30.0.15",
+            "port": "3004"
+          }
+        ],
+        "created_at": 1767835054.1613235,
+        "expires_at": 1767838654.1613235,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "7.34MiB / 7.536GiB",
+            "memory_percent": "0.10%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.07MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.594MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-4": {
+            "cpu": "0.00%",
+            "memory": "2.18MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-5": {
+            "cpu": "0.00%",
+            "memory": "2.176MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "8a651098-58be-481a-80f6-419721127e61",
         "username": "dhuy",
         "vm_count": 2,
         "duration": 1,
@@ -174,26 +496,538 @@
             "port": "3001"
           }
         ],
-        "created_at": 1767794556.6250935,
-        "expires_at": 1767794616.6250937,
+        "created_at": 1767835175.5662713,
+        "expires_at": 1767835235.5662713,
         "status": "expired",
         "final_stats": {
           "pool-node-1": {
             "cpu": "0.00%",
-            "memory": "9.863MiB / 7.536GiB",
-            "memory_percent": "0.13%"
+            "memory": "2.016MiB / 7.536GiB",
+            "memory_percent": "0.03%"
           },
           "pool-node-2": {
             "cpu": "0.00%",
-            "memory": "2.082MiB / 7.536GiB",
+            "memory": "2.012MiB / 7.536GiB",
             "memory_percent": "0.03%"
           }
         }
       },
       {
-        "id": "e8524be3-da5a-4480-9c8b-325c840a7fcd",
+        "id": "c0618790-6382-4d75-b35f-6afadf631256",
         "username": "dhuy",
-        "vm_count": 2,
+        "vm_count": 1,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          }
+        ],
+        "created_at": 1767835641.1643033,
+        "expires_at": 1767835701.1643035,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.07MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "ad609263-684f-409b-8388-f8a826399cb5",
+        "username": "dhuy",
+        "vm_count": 1,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          }
+        ],
+        "created_at": 1767835780.1953604,
+        "expires_at": 1767835840.1953607,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.062MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "5b0f9413-b719-4e7d-8e76-1b901ca9c36f",
+        "username": "dhuy",
+        "vm_count": 3,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          }
+        ],
+        "created_at": 1767835914.8125482,
+        "expires_at": 1767835974.8125484,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.062MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.055MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.051MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "0de1146e-46e4-44fb-9818-9f2a95bbefcf",
+        "username": "dhuy",
+        "vm_count": 1,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          }
+        ],
+        "created_at": 1767836555.9738889,
+        "expires_at": 1767836615.9738889,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "3.281MiB / 7.536GiB",
+            "memory_percent": "0.04%"
+          }
+        }
+      },
+      {
+        "id": "9a1109b5-5ad3-4ca8-8380-2943d69709f5",
+        "username": "dhuy",
+        "vm_count": 3,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          }
+        ],
+        "created_at": 1767836676.65526,
+        "expires_at": 1767836736.65526,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.059MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.059MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "50dbee79-4453-4698-bd97-5cbdd6dcc464",
+        "username": "dhuy",
+        "vm_count": 5,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          },
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          },
+          {
+            "name": "pool-node-5",
+            "ip": "172.30.0.15",
+            "port": "3004"
+          }
+        ],
+        "created_at": 1767836794.8054113,
+        "expires_at": 1767836854.8054116,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "1.996MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "1.992MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "1.996MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-4": {
+            "cpu": "0.00%",
+            "memory": "2.055MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-5": {
+            "cpu": "0.00%",
+            "memory": "2.047MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "7086c139-21f9-4f11-ba6a-88714d010445",
+        "username": "dhuy",
+        "vm_count": 1,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          }
+        ],
+        "created_at": 1767836971.0569751,
+        "expires_at": 1767837031.0569754,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.008MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "66f80e79-385e-430d-89a4-2d0a7ed7abca",
+        "username": "dhuy",
+        "vm_count": 3,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          }
+        ],
+        "created_at": 1767837099.4592588,
+        "expires_at": 1767837159.4592588,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.008MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "1.992MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "7d282eb1-e6fa-4ee1-adc8-cb36161de17c",
+        "username": "dhuy",
+        "vm_count": 5,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          },
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          },
+          {
+            "name": "pool-node-5",
+            "ip": "172.30.0.15",
+            "port": "3004"
+          }
+        ],
+        "created_at": 1767837254.267246,
+        "expires_at": 1767837314.2672462,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.004MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2.004MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.004MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-4": {
+            "cpu": "0.00%",
+            "memory": "2MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-5": {
+            "cpu": "0.00%",
+            "memory": "2MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "922e0407-788a-4a66-bf51-4e173a5ce4a6",
+        "username": "dhuy",
+        "vm_count": 1,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          }
+        ],
+        "created_at": 1767837413.1324227,
+        "expires_at": 1767837473.132423,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.102MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "13f61838-70da-4042-97d6-f43fa4a75c96",
+        "username": "dhuy",
+        "vm_count": 3,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          }
+        ],
+        "created_at": 1767837531.4966433,
+        "expires_at": 1767837591.4966435,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.805MiB / 7.536GiB",
+            "memory_percent": "0.04%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "1.996MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "1.996MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "46d38eff-5b42-4f5a-ab09-34a3c4bf49a7",
+        "username": "dhuy",
+        "vm_count": 5,
+        "duration": 1,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          },
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          },
+          {
+            "name": "pool-node-5",
+            "ip": "172.30.0.15",
+            "port": "3004"
+          }
+        ],
+        "created_at": 1767837664.021129,
+        "expires_at": 1767837724.0211291,
+        "status": "expired",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.086MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "2MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.008MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-4": {
+            "cpu": "0.00%",
+            "memory": "2MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          },
+          "pool-node-5": {
+            "cpu": "0.00%",
+            "memory": "2MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "087bef4a-5a70-459b-90eb-1c41f52bd0d8",
+        "username": "dhuy",
+        "vm_count": 1,
+        "duration": 60,
+        "packages": [],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          }
+        ],
+        "created_at": 1767837777.3620303,
+        "expires_at": 1767841377.3620305,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "2.199MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "2b2754af-5ac6-47ab-af33-fa51c24a222b",
+        "username": "dhuy",
+        "vm_count": 3,
         "duration": 60,
         "packages": [],
         "nodes": [
@@ -206,21 +1040,98 @@
             "name": "pool-node-2",
             "ip": "172.30.0.12",
             "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
           }
         ],
-        "created_at": 1767766989.6170049,
-        "expires_at": 1767770589.6170053,
-        "status": "expired",
+        "created_at": 1767837815.8785336,
+        "expires_at": 1767841415.8785336,
+        "status": "released",
         "final_stats": {
           "pool-node-1": {
             "cpu": "0.00%",
-            "memory": "3.738MiB / 7.653GiB",
-            "memory_percent": "0.05%"
+            "memory": "3.441MiB / 7.536GiB",
+            "memory_percent": "0.04%"
           },
           "pool-node-2": {
             "cpu": "0.00%",
-            "memory": "2.102MiB / 7.653GiB",
+            "memory": "2.008MiB / 7.536GiB",
             "memory_percent": "0.03%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "2.02MiB / 7.536GiB",
+            "memory_percent": "0.03%"
+          }
+        }
+      },
+      {
+        "id": "146afa21-a607-4284-9ee4-993c548e54b2",
+        "username": "dhuy",
+        "vm_count": 5,
+        "duration": 60,
+        "packages": [
+          "nano",
+          "git"
+        ],
+        "nodes": [
+          {
+            "name": "pool-node-1",
+            "ip": "172.30.0.11",
+            "port": "3000"
+          },
+          {
+            "name": "pool-node-2",
+            "ip": "172.30.0.12",
+            "port": "3001"
+          },
+          {
+            "name": "pool-node-3",
+            "ip": "172.30.0.13",
+            "port": "3002"
+          },
+          {
+            "name": "pool-node-4",
+            "ip": "172.30.0.14",
+            "port": "3003"
+          },
+          {
+            "name": "pool-node-5",
+            "ip": "172.30.0.15",
+            "port": "3004"
+          }
+        ],
+        "created_at": 1767837876.646076,
+        "expires_at": 1767841476.6460762,
+        "status": "released",
+        "final_stats": {
+          "pool-node-1": {
+            "cpu": "0.00%",
+            "memory": "16.98MiB / 7.536GiB",
+            "memory_percent": "0.22%"
+          },
+          "pool-node-2": {
+            "cpu": "0.00%",
+            "memory": "15.7MiB / 7.536GiB",
+            "memory_percent": "0.20%"
+          },
+          "pool-node-3": {
+            "cpu": "0.00%",
+            "memory": "24.8MiB / 7.536GiB",
+            "memory_percent": "0.32%"
+          },
+          "pool-node-4": {
+            "cpu": "0.00%",
+            "memory": "17.07MiB / 7.536GiB",
+            "memory_percent": "0.22%"
+          },
+          "pool-node-5": {
+            "cpu": "0.00%",
+            "memory": "7.582MiB / 7.536GiB",
+            "memory_percent": "0.10%"
           }
         }
       }

@@ -181,18 +181,33 @@ class VMController:
         current_time = time.time()
         
         has_expired = False
+        expired_count = 0
         
+        # Check all reservations and update status immediately
         for reservation in reservations:
             if reservation.get('status') == 'active':
-                if current_time > reservation.get('expires_at', 0):
+                expires_at = reservation.get('expires_at', 0)
+                if current_time > expires_at:
                     has_expired = True
+                    expired_count += 1
+                    
                     # Save final stats before marking as expired
-                    self._save_final_stats_before_status_change(username, reservation['id'], 'expired')
-                    self.user_db.update_reservation_status(username, reservation['id'], 'expired')
+                    try:
+                        self._save_final_stats_before_status_change(username, reservation['id'], 'expired')
+                    except Exception as e:
+                        print(f"[ERROR] Failed to save final stats for {reservation['id'][:8]}: {e}")
+                    
+                    # Update status immediately
+                    success = self.user_db.update_reservation_status(username, reservation['id'], 'expired')
+                    if success:
+                        print(f"[EXPIRY] Marked reservation {reservation['id'][:8]} as expired for {username}")
+                    else:
+                        print(f"[ERROR] Failed to update status for reservation {reservation['id'][:8]}")
         
         return jsonify({
             'status': 'success',
-            'has_expired': has_expired
+            'has_expired': has_expired,
+            'expired_count': expired_count
         })
     
     def get_allocations(self):
@@ -231,7 +246,7 @@ class VMController:
                     'status': 'error',
                     'message': f'Reservation is {reservation_status}. No statistics available.',
                     'reservation_status': reservation_status
-                })
+            })
         
         try:
             # Get stats for all nodes in the reservation

@@ -131,7 +131,7 @@
                     <div class="footer-logo-icon-wrapper">
                         <i class="fas fa-server footer-logo-icon"></i>
                     </div>
-                    <h4>ODP Project</h4>
+                <h4>ODP Project</h4>
                 </div>
                 <p>Infrastructure as Code Platform</p>
                 <p class="footer-tagline">Empowering your infrastructure needs</p>
@@ -185,6 +185,31 @@
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     <script src="{{ url_for('static', filename='js/notification.js') }}"></script>
     <script src="{{ url_for('static', filename='js/modal.js') }}"></script>
+    
+    <!-- WebSocket for real-time notifications -->
+    {% if session.get('username') %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        // Use existing socket if available, otherwise create new one
+        if (typeof window.socket === 'undefined') {
+            window.socket = io();
+        }
+        window.socket.on('reservation_expired', function(data) {
+            if (data && data.reservation_id) {
+                const count = data.expired_count || 1;
+                const message = count === 1 
+                    ? 'One of your reservations has expired. Refreshing...'
+                    : count + ' of your reservations have expired. Refreshing...';
+                if (typeof Notification !== 'undefined') {
+                    Notification.warning(message, 3000);
+                }
+                setTimeout(function() {
+                    location.reload();
+                }, 3000);
+            }
+        });
+    </script>
+    {% endif %}
     
     <!-- Page-specific scripts -->
     {% block scripts %}{% endblock %}

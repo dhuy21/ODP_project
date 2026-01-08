@@ -56,7 +56,7 @@ def create_app(config_class=Config):
     register_template_filters(app)
     
     # Start background tasks
-    start_background_tasks(ssh_controller)
+    start_background_tasks(ssh_controller, socketio)
     
     return app, socketio
 
@@ -67,11 +67,11 @@ def register_template_filters(app):
         from datetime import datetime
         return datetime.fromtimestamp(timestamp).strftime('%Y-%m-%d %H:%M:%S')
 
-def start_background_tasks(ssh_controller):
+def start_background_tasks(ssh_controller, socketio):
     """Start background tasks"""
     
     def check_expired_reservations_loop():
-        """Background thread that checks for expired reservations every 30 seconds"""
+        """Background thread with smart scheduling - checks when needed"""
         user_db = UserDatabase()
         docker_service = DockerService()
         
@@ -80,37 +80,74 @@ def start_background_tasks(ssh_controller):
                 # Run check-expired command
                 docker_service.check_expired_containers()
                 
-                # Update database for all expired reservations
-                all_users = user_db.load_users()
+                # Get only active reservations (optimized)
+                active_reservations = user_db.get_active_reservations()
                 current_time = time.time()
                 
-                for username, user_data in all_users.items():
-                    reservations = user_data.get('reservations', [])
-                    for reservation in reservations:
-                        if reservation.get('status') == 'active':
-                            expires_at = reservation.get('expires_at', 0)
-                            if current_time > expires_at:
-                                print(f"[EXPIRY] Marking reservation {reservation['id'][:8]} as expired for {username}")
-                                
-                                # Save final stats before marking as expired
-                                from services.stats_service import StatsService
-                                stats_service = StatsService()
-                                final_stats = stats_service.get_reservation_stats(reservation.get('nodes', []))
-                                if final_stats:
-                                    user_db.save_reservation_final_stats(username, reservation['id'], final_stats)
-                                    print(f"[STATS] Saved final stats for expired reservation {reservation['id'][:8]}...")
-                                
-                                user_db.update_reservation_status(username, reservation['id'], 'expired')
-                                
-                                # Disconnect any active SSH sessions for this user
-                                ssh_controller.disconnect_user_sessions(username)
+                expired_batch = []
+                
+                # Collect expired reservations
+                expired_users = set()  # Track users with expired reservations
+                
+                for reservation in active_reservations:
+                    expires_at = reservation.get('expires_at', 0)
+                    if current_time > expires_at:
+                        username = reservation.get('owner')
+                        reservation_id = reservation.get('id')
+                        
+                        # Save final stats before marking as expired
+                        from services.stats_service import StatsService
+                        stats_service = StatsService()
+                        final_stats = stats_service.get_reservation_stats(reservation.get('nodes', []))
+                        if final_stats:
+                            reservation['final_stats'] = final_stats
+                            print(f"[STATS] Saved final stats for expired reservation {reservation_id[:8]}...")
+                        
+                        expired_batch.append(reservation)
+                        expired_users.add(username)
+                        
+                        # Disconnect SSH sessions
+                        ssh_controller.disconnect_user_sessions(username)
+                
+                # Batch update all expired reservations (single write)
+                if expired_batch:
+                    user_db.batch_update_expired(expired_batch)
+                    
+                    # Release containers immediately for each user with expired reservations
+                    for username in expired_users:
+                        result = docker_service.release_containers(username)
+                        if result.get('success'):
+                            print(f"[RELEASE] Released containers for expired reservation of user {username}")
+                        else:
+                            print(f"[RELEASE ERROR] Failed to release containers for {username}: {result.get('error', 'Unknown error')}")
+                    
+                    # Emit WebSocket events for each expired reservation
+                    for reservation in expired_batch:
+                        username = reservation.get('owner')
+                        reservation_id = reservation.get('id')
+                        print(f"[EXPIRY] Marking reservation {reservation_id[:8]} as expired for {username}")
+                        
+                        socketio.emit('reservation_expired', {
+                            'reservation_id': reservation_id,
+                            'expired_count': len(expired_batch)
+                        }, room=username)
                 
                 print(f"[EXPIRY CHECK] Completed at {time.strftime('%Y-%m-%d %H:%M:%S')}")
                 
             except Exception as e:
                 print(f"[EXPIRY CHECK ERROR] {e}")
             
-            time.sleep(30)  # Check every 30 seconds
+            # Smart scheduling: sleep until next expiry or max 30 seconds
+            next_expiry = user_db.get_next_expiry_time()
+            if next_expiry:
+                current_time = time.time()
+                sleep_time = next_expiry - current_time
+                # Sleep between 1 and 30 seconds
+                sleep_time = max(1, min(30, sleep_time))
+            else:
+                sleep_time = 30  # No active reservations, check again in 30s
+            
+            time.sleep(sleep_time)
     
     # Start background thread
     expiry_checker_thread = threading.Thread(target=check_expired_reservations_loop, daemon=True)
