@@ -354,6 +354,58 @@ class UserDatabase:
             if cursor: cursor.close()
             if conn: conn.close()
     
+    def get_active_reservations(self):
+        """Get only active reservations from all users - optimized for expiry check"""
+        users = self.load_users()
+        active_reservations = []
+        
+        for username, user_data in users.items():
+            for reservation in user_data.get('reservations', []):
+                if reservation.get('status') == 'active':
+                    reservation_copy = reservation.copy()
+                    reservation_copy['owner'] = username
+                    active_reservations.append(reservation_copy)
+        
+        return active_reservations
+    
+    def get_next_expiry_time(self):
+        """Get the next reservation expiry time for smart scheduling"""
+        active_reservations = self.get_active_reservations()
+        if not active_reservations:
+            return None
+        
+        expiry_times = [r.get('expires_at', 0) for r in active_reservations if r.get('expires_at', 0) > 0]
+        if not expiry_times:
+            return None
+        
+        return min(expiry_times)
+    
+    def batch_update_expired(self, expired_reservations):
+        """Batch update multiple expired reservations - single write operation"""
+        if not expired_reservations:
+            return
+        
+        users = self.load_users()
+        updated = False
+        
+        for reservation in expired_reservations:
+            username = reservation.get('owner')
+            reservation_id = reservation.get('id')
+            
+            if username not in users:
+                continue
+            
+            for r in users[username].get('reservations', []):
+                if r.get('id') == reservation_id and r.get('status') == 'active':
+                    r['status'] = 'expired'
+                    if 'final_stats' in reservation:
+                        r['final_stats'] = reservation['final_stats']
+                    updated = True
+                    break
+        
+        if updated:
+            self.save_users(users)
+    
     def delete_user(self, username):
         """Delete a user"""
         if username == 'admin':

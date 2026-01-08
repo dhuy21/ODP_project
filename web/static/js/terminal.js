@@ -19,7 +19,11 @@ if (!terminalElement) {
   term.open(terminalElement);
 }
 
-const socket = io();
+// Use existing socket from layout.html if available, otherwise create new one
+const socket = window.socket || io();
+if (!window.socket) {
+  window.socket = socket;
+}
 
 socket.on("connect", () => {
   const pathParts = window.location.pathname.split("/");

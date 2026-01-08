@@ -24,14 +24,14 @@
     
     <!-- Stats Grid -->
     <div class="stats-container fade-in-up" data-delay="100">
-        <div class="stats-grid">
+    <div class="stats-grid">
             <div class="stat-card stat-available fade-in-up" data-delay="100">
                 <div class="stat-icon">
                     <i class="fas fa-server"></i>
                 </div>
                 <div class="stat-content">
-                    <h3>Available Containers</h3>
-                    <div class="stat-value" id="available-count">{{ available_containers }}</div>
+                <h3>Available Containers</h3>
+                <div class="stat-value" id="available-count">{{ available_containers }}</div>
                     <div class="stat-label">Ready to use</div>
                 </div>
                 <div class="stat-glow"></div>
@@ -42,8 +42,8 @@
                     <i class="fas fa-rocket"></i>
                 </div>
                 <div class="stat-content">
-                    <h3>Active Reservations</h3>
-                    <div class="stat-value">{{ active_reservations|length }}</div>
+                <h3>Active Reservations</h3>
+                <div class="stat-value">{{ active_reservations|length }}</div>
                     <div class="stat-label">Currently running</div>
                 </div>
                 <div class="stat-glow"></div>
@@ -54,8 +54,8 @@
                     <i class="fas fa-chart-line"></i>
                 </div>
                 <div class="stat-content">
-                    <h3>Total Reservations</h3>
-                    <div class="stat-value">{{ reservations|length }}</div>
+                <h3>Total Reservations</h3>
+                <div class="stat-value">{{ reservations|length }}</div>
                     <div class="stat-label">All time</div>
                 </div>
                 <div class="stat-link-icon">
@@ -63,11 +63,11 @@
                 </div>
                 <div class="stat-glow"></div>
             </a>
+            </div>
         </div>
-    </div>
-    
-    <!-- Active Reservations -->
-    {% if active_reservations %}
+        
+        <!-- Active Reservations -->
+        {% if active_reservations %}
     <div class="section-container fade-in-up" data-delay="250">
         <div class="section-header">
             <div class="section-title-wrapper">
@@ -80,7 +80,7 @@
         </div>
         
         <div class="reservation-grid">
-            {% for reservation in active_reservations %}
+                {% for reservation in active_reservations %}
             <div class="reservation-card fade-in-up" data-delay="{{ loop.index0 * 50 }}">
                 <div class="card-header">
                     <div class="card-title-section">
@@ -117,12 +117,13 @@
                         <i class="fas fa-arrow-right"></i>
                     </a>
                 </div>
-            </div>
-            {% endfor %}
+                </div>
+                {% endfor %}
         </div>
     </div>
     {% endif %}
     
+    {% if role != 'admin' %}
     <!-- Operating System Selection -->
     <div class="section-container fade-in-up" data-delay="300">
         <div class="section-header">
@@ -173,7 +174,7 @@
                 <input type="hidden" name="os" id="selectedOS" value="ubuntu">
                 
                 <div class="form-row">
-                    <div class="form-group">
+                <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-lock"></i>
                             <span>VM Password</span>
@@ -186,11 +187,11 @@
                             class="form-input">
                         <small class="form-hint">
                             <i class="fas fa-info-circle"></i>
-                            This password will be used to access your VMs via SSH
-                        </small>
-                    </div>
-                    
-                    <div class="form-group">
+                        This password will be used to access your VMs via SSH
+                    </small>
+                </div>
+                
+                <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-desktop"></i>
                             <span>Number of VMs</span>
@@ -205,29 +206,29 @@
                             class="form-input">
                         <small class="form-hint">
                             <i class="fas fa-info-circle"></i>
-                            Maximum 5 VMs per request
-                        </small>
+                        Maximum 5 VMs per request
+                    </small>
                     </div>
                 </div>
                 
                 <div class="form-row">
-                    <div class="form-group">
+                <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-clock"></i>
                             <span>Reservation Duration</span>
                         </label>
                         <select name="duration" required class="form-input">
-                            <option value="1">1 minute (testing)</option>
-                            <option value="60" selected>1 hour</option>
-                            <option value="120">2 hours</option>
-                            <option value="180">3 hours</option>
-                            <option value="360">6 hours</option>
-                            <option value="720">12 hours</option>
-                            <option value="1440">24 hours</option>
-                        </select>
-                    </div>
-                    
-                    <div class="form-group">
+                        <option value="1">1 minute (testing)</option>
+                        <option value="60" selected>1 hour</option>
+                        <option value="120">2 hours</option>
+                        <option value="180">3 hours</option>
+                        <option value="360">6 hours</option>
+                        <option value="720">12 hours</option>
+                        <option value="1440">24 hours</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
                         <label class="form-label">
                             <i class="fas fa-box"></i>
                             <span>Software Packages</span>
@@ -240,7 +241,7 @@
                         <small class="form-hint">
                             <i class="fas fa-info-circle"></i>
                             Optional: Packages will be installed automatically
-                        </small>
+                    </small>
                     </div>
                 </div>
                 
@@ -254,8 +255,23 @@
             <div id="result" class="result-container"></div>
         </div>
     </div>
+    {% else %}
+    <!-- Admin Notice -->
+    <div class="section-container fade-in-up" data-delay="300">
+        <div class="admin-notice" style="padding: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; color: white;">Admin Account</h2>
+            <p style="margin-bottom: 1.5rem; opacity: 0.9;">Admin users cannot create reservations. Please use the <a href="{{ url_for('main.admin_panel') }}" style="color: white; text-decoration: underline; font-weight: bold;">Admin Panel</a> to manage resources and users.</p>
+            <a href="{{ url_for('main.admin_panel') }}" class="btn btn-primary" style="background: white; color: #667eea; border: none;">
+                <i class="fas fa-cog"></i> Go to Admin Panel
+            </a>
+        </div>
+    </div>
+    {% endif %}
     
-</div>
+    </div>
 {% endblock %}
 
 {% block scripts %}

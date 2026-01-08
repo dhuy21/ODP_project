@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Terms of Service - IaaS Platform</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='dark_style.css') }}">
+</head>
+<body>
+    <div style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
+        <a href="{{ url_for('home') if user_is_logged_in else url_for('accueil') }}" class="btn" style="margin-bottom: 2rem; display: inline-block;">← Back</a>
+        <h1 style="font-size: 2.5rem; font-weight: 700; background: var(--accent-gradient-3); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">📜 Terms of Service</h1>
+        <div class="data-table-container">
+            <div style="padding: 2rem; color: var(--text-secondary);">
+                <p>Use this platform responsibly. Maximum 5 VMs per reservation, maximum 24 hours duration.</p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

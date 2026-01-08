@@ -415,35 +415,3 @@
     opacity: 1;
     transform: translateY(0);
 }
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 768px) {
-    .reservation-history-page {
-        padding: 1rem;
-    }
-    
-    .page-header {
-        padding: 2rem 1.5rem;
-    }
-    
-    .page-header h1 {
-        font-size: 2rem;
-    }
-    
-    .stats-summary {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .section-container {
-        padding: 1.5rem;
-    }
-    
-    .table-container {
-        overflow-x: auto;
-    }
-    
-    .modern-table {
-        min-width: 800px;
-    }
-}
-

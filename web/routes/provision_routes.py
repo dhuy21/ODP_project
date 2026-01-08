@@ -1,6 +1,6 @@
 from flask import Blueprint
 from controller.vm_controller import VMController
-from middlewares.auth import login_required
+from middlewares.auth import login_required, user_only
 
 # Create blueprint
 provision_bp = Blueprint('provision', __name__)
@@ -16,6 +16,7 @@ def pool_status():
 
 @provision_bp.route('/provision', methods=['POST'])
 @login_required
+@user_only
 def provision():
     return vm_controller.provision()
 

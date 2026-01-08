@@ -1,8 +1,15 @@
-from flask_socketio import emit
+from flask_socketio import emit, join_room
 from flask import request, session
 
 def register_socketio_handlers(socketio, ssh_controller, vm_controller):
     """Register SocketIO event handlers"""
+    
+    @socketio.on('connect')
+    def handle_connect():
+        """Handle client connection and join user room for notifications"""
+        if 'username' in session:
+            username = session['username']
+            join_room(username)
     
     @socketio.on('connect_ssh')
     def handle_ssh_connection(data):

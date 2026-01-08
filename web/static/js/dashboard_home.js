@@ -7,7 +7,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initOSSelection();
     initFormSubmission();
     initPoolStatusRefresh();
-    initReservationCheck();
 });
 
 // ========== ENTRY ANIMATIONS ==========
@@ -66,9 +65,9 @@ function initFormSubmission() {
     const form = document.getElementById('provisionForm');
     if (!form) return;
     
-    form.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const submitButton = form.querySelector('button[type="submit"]');
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitButton = form.querySelector('button[type="submit"]');
         const btnText = submitButton.querySelector('span');
         const btnIcon = submitButton.querySelector('i');
         
@@ -79,38 +78,38 @@ function initFormSubmission() {
             return;
         }
             
-        // Show loading state
-        submitButton.disabled = true;
+            // Show loading state
+            submitButton.disabled = true;
         btnText.textContent = 'Creating reservation...';
         btnIcon.className = 'fas fa-spinner fa-spin';
         
         Notification.info('Creating your reservation, please wait...', 3000);
-        
-        const data = {
-            password: form.password.value,
+            
+            const data = {
+                password: form.password.value,
             vm_count: vmCount,
-            duration: parseInt(form.duration.value),
-            packages: form.packages.value
-        };
-        
-        // Store password for terminal use
-        sessionStorage.setItem('password', data.password);
-        
-        try {
-            const response = await fetch('/provision', {
-                method: 'POST',
+                duration: parseInt(form.duration.value),
+                packages: form.packages.value
+            };
+            
+            // Store password for terminal use
+            sessionStorage.setItem('password', data.password);
+            
+            try {
+                const response = await fetch('/provision', {
+                    method: 'POST',
                 headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(data)
-            });
-            
-            const result = await response.json();
-            
-            if (result.status === 'success') {
+                    body: JSON.stringify(data)
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
                 Notification.success('Reservation created successfully! Redirecting...', 3000);
-                setTimeout(() => {
-                    window.location.href = result.redirect;
-                }, 1500);
-            } else {
+                    setTimeout(() => {
+                        window.location.href = result.redirect;
+                    }, 1500);
+                } else {
                 Notification.error(result.message || 'Failed to create reservation');
                 
                 // Re-enable form
@@ -125,10 +124,10 @@ function initFormSubmission() {
             submitButton.disabled = false;
             btnText.textContent = 'Create Reservation';
             btnIcon.className = 'fas fa-rocket';
-        }
-    });
-}
-
+            }
+        });
+    }
+    
 // ========== POOL STATUS REFRESH ==========
 async function initPoolStatusRefresh() {
     async function refreshPoolStatus() {
@@ -165,24 +164,5 @@ async function initPoolStatusRefresh() {
     setInterval(refreshPoolStatus, 30000);
 }
 
-// ========== RESERVATION CHECK ==========
-async function initReservationCheck() {
-    async function checkExpiredReservations() {
-        try {
-            const response = await fetch('/check-my-reservations');
-            const data = await response.json();
-            
-            if (data.has_expired) {
-                Notification.warning('One or more of your reservations has expired. Refreshing...', 3000);
-                setTimeout(() => {
-                    location.reload();
-                }, 3000);
-            }
-        } catch (e) {
-            console.error('Error checking reservations:', e);
-        }
-    }
-    
-    // Check every 30 seconds
-    setInterval(checkExpiredReservations, 30000);
-}
+// Reservation expiration is now handled via WebSocket in layout.html
+// No polling needed - real-time notifications via SocketIO

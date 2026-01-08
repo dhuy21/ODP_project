@@ -1,49 +1,123 @@
 {% extends "admin_base.html" %}
 
 {% block title %}Reservations{% endblock %}
-{% block page_title %}All Reservations{% endblock %}
+{% block page_title %}<i class="fas fa-clipboard-list"></i> All Reservations{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_reservations.css') }}">
+{% endblock %}
 
 {% block content %}
-<div class="data-table-container">
+<div class="data-table-container fade-in-up">
+    <div class="table-header">
+        <div class="header-left">
+            <div class="header-icon-wrapper">
+                <div class="header-icon reservations">
+                    <i class="fas fa-clipboard-list"></i>
+                </div>
+                <div>
+                    <h2>All Reservations</h2>
+                    <p class="table-subtitle">Monitor all reservation activities</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="table-container">
     <table>
         <thead>
             <tr>
-                <th>ID</th>
-                <th>Owner</th>
-                <th>VMs</th>
-                <th>Duration</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
+                    <th><i class="fas fa-fingerprint"></i> ID</th>
+                    <th><i class="fas fa-user"></i> Owner</th>
+                    <th><i class="fas fa-server"></i> VMs</th>
+                    <th><i class="fas fa-clock"></i> Duration</th>
+                    <th><i class="fas fa-info-circle"></i> Status</th>
+                    <th><i class="fas fa-calendar-alt"></i> Created</th>
+                    <th><i class="fas fa-tools"></i> Actions</th>
             </tr>
         </thead>
         <tbody>
+                {% if reservations %}
             {% for reservation in reservations %}
-            <tr>
-                <td><code>{{ reservation.id[:8] }}...</code></td>
-                <td><strong>{{ reservation.owner }}</strong></td>
-                <td>{{ reservation.vm_count }}</td>
-                <td>{{ reservation.duration }} min</td>
+                    <tr class="fade-in-up" data-delay="{{ loop.index0 * 30 }}">
+                        <td>
+                            <div class="id-cell">
+                                <i class="fas fa-fingerprint"></i>
+                                <code>{{ reservation.id[:8] }}...</code>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar-small">{{ reservation.owner[0].upper() }}</div>
+                                <strong>{{ reservation.owner }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="vm-cell">
+                                <i class="fas fa-server"></i>
+                                <span>{{ reservation.vm_count }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="duration-cell">
+                                <i class="fas fa-hourglass-half"></i>
+                                <span>{{ reservation.duration }} min</span>
+                            </div>
+                        </td>
                 <td>
-                    <span class="badge badge-{% if reservation.status == 'active' %}success{% elif reservation.status == 'deleted' %}danger{% else %}info{% endif %}">
+                            <span class="badge badge-status badge-{% if reservation.status == 'active' %}success{% elif reservation.status == 'deleted' %}danger{% else %}info{% endif %}">
+                                {% if reservation.status == 'active' %}
+                                    <i class="fas fa-circle"></i>
+                                {% elif reservation.status == 'expired' %}
+                                    <i class="fas fa-clock"></i>
+                                {% elif reservation.status == 'deleted' %}
+                                    <i class="fas fa-trash"></i>
+                                {% else %}
+                                    <i class="fas fa-check"></i>
+                                {% endif %}
                         {{ reservation.status }}
                     </span>
                 </td>
-                <td>{{ reservation.created_at|int|timestamp_to_date }}</td>
+                        <td>
+                            <div class="date-cell">
+                                <i class="fas fa-calendar-alt"></i>
+                                <span>{{ reservation.created_at|int|timestamp_to_date }}</span>
+                            </div>
+                        </td>
                 <td>
+                            <div class="actions-cell">
                     {% if reservation.status == 'active' %}
-                    <button class="btn btn-sm btn-danger" onclick="deleteReservation('{{ reservation.id }}', '{{ reservation.owner }}')">
-                        Force Release
+                                <button class="btn btn-sm btn-danger btn-icon" data-action="delete-reservation" data-reservation-id="{{ reservation.id }}" data-owner="{{ reservation.owner }}" title="Force Release">
+                                    <i class="fas fa-bolt"></i>
+                                    <span>Force Release</span>
                     </button>
                     {% else %}
-                    <button class="btn btn-sm btn-warning" onclick="deleteReservation('{{ reservation.id }}', '{{ reservation.owner }}')">
-                        Delete
+                                <button class="btn btn-sm btn-warning btn-icon" data-action="delete-reservation" data-reservation-id="{{ reservation.id }}" data-owner="{{ reservation.owner }}" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Delete</span>
                     </button>
                     {% endif %}
+                            </div>
                 </td>
             </tr>
             {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="7" class="empty-state-cell">
+                            <div class="empty-state-mini">
+                                <i class="fas fa-clipboard"></i>
+                                <p>No reservations found</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
         </tbody>
     </table>
 </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_panel.js') }}"></script>
+<script src="{{ url_for('static', filename='js/admin_reservations.js') }}"></script>
 {% endblock %}

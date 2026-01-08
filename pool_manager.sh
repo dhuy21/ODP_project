@@ -6,6 +6,46 @@ POOL_NETWORK="pool-network"
 POOL_SUBNET="172.30.0.0/24"
 POOL_BASE_PORT=3000
 STATE_FILE="/tmp/pool_state.json"
+
+# --- State file updates must be serialized ---
+# We run release/check-expired in parallel. Without locking, concurrent writes can corrupt JSON,
+# causing `status` to show "unknown" for all containers.
+update_state_locked() {
+    local name="$1"
+    local status="$2"
+    local client="$3"
+    local expiry="$4"
+
+    # Serialize updates with a file lock. Also write atomically to avoid partial reads.
+    (
+        flock -x 200
+        python3 - "${STATE_FILE}" "${name}" "${status}" "${client}" "${expiry}" <<'PY'
+import sys, json, os, tempfile
+
+state_file, name, status, client, expiry = sys.argv[1:6]
+try:
+    with open(state_file, 'r') as f:
+        state = json.load(f)
+except Exception:
+    state = {}
+
+state[name] = {"status": status, "client": client, "expiry": int(expiry)}
+
+dir_name = os.path.dirname(state_file) or "."
+fd, tmp_path = tempfile.mkstemp(prefix=".pool_state_", dir=dir_name, text=True)
+try:
+    with os.fdopen(fd, 'w') as f:
+        json.dump(state, f)
+    os.replace(tmp_path, state_file)
+finally:
+    try:
+        if os.path.exists(tmp_path):
+            os.remove(tmp_path)
+    except Exception:
+        pass
+PY
+    ) 200>"${STATE_FILE}.lock"
+}
 # --- Auto-detect platform architecture ---
 ARCH="$(uname -m)"
 case "${ARCH}" in
@@ -160,6 +200,7 @@ check_expired() {
     
     local current_time=$(date +%s)
     local expired_count=0
+    local pids=()
     
     for i in $(seq 1 "${POOL_SIZE}"); do
         local name="pool-node-${i}"
@@ -202,59 +243,44 @@ PY
         if [ "${status}" = "allocated" ] && [ "${expiry}" -gt 0 ] && [ "${current_time}" -gt "${expiry}" ]; then
             echo "   - Releasing expired ${name} (client: ${client})"
             
-            # OPTION 1: Restart container to completely reset filesystem
-            # This ensures NO data persists between reservations
-            docker restart "${name}" >/dev/null 2>&1
-            
-            if [ $? -eq 0 ]; then
-                # Wait for container to be fully ready
-                sleep 3  # Increased for safety
+            # Process each expired container in parallel (background job)
+            (
+                docker restart "${name}" >/dev/null 2>&1
                 
-                # VERIFY: Check that container is running
-                if docker ps -q -f name="^${name}$" | grep -q .; then
-                    # DEEP CLEAN: Extra safety measure
-                    docker exec "${name}" /bin/bash -c "
-                        # Remove all non-vagrant users
-                        for user in \$(ls /home 2>/dev/null | grep -v vagrant); do
-                            userdel -r \$user 2>/dev/null || true
-                        done
+                if [ $? -eq 0 ]; then
+                    sleep 3
+                    
+                    if docker ps -q -f name="^${name}$" | grep -q .; then
+                        # Update state to free IMMEDIATELY (before deep clean)
+                        update_state_locked "${name}" "free" "" "0"
                         
-                        # Clean vagrant home directory (but keep user account)
-                        rm -rf /home/vagrant/* /home/vagrant/.* 2>/dev/null || true
-                        
-                        # Restore vagrant SSH keys
-                        mkdir -p /home/vagrant/.ssh
-                        curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub -o /home/vagrant/.ssh/authorized_keys 2>/dev/null || true
-                        chmod 700 /home/vagrant/.ssh
-                        chmod 600 /home/vagrant/.ssh/authorized_keys
-                        chown -R vagrant:vagrant /home/vagrant/.ssh
-                        
-                        # Clean common data directories
-                        rm -rf /tmp/* /tmp/.* 2>/dev/null || true
-                        rm -rf /var/tmp/* 2>/dev/null || true
-                        rm -rf /opt/* 2>/dev/null || true
-                    " >/dev/null 2>&1 || true
+                        # DEEP CLEAN: Extra safety measure (runs after state update, non-blocking)
+                        docker exec "${name}" /bin/bash -c "
+                            for user in \$(ls /home 2>/dev/null | grep -v vagrant); do
+                                userdel -r \$user 2>/dev/null || true
+                            done
+                            rm -rf /home/vagrant/* /home/vagrant/.* 2>/dev/null || true
+                            mkdir -p /home/vagrant/.ssh
+                            curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub -o /home/vagrant/.ssh/authorized_keys 2>/dev/null || true
+                            chmod 700 /home/vagrant/.ssh
+                            chmod 600 /home/vagrant/.ssh/authorized_keys
+                            chown -R vagrant:vagrant /home/vagrant/.ssh
+                            rm -rf /tmp/* /tmp/.* 2>/dev/null || true
+                            rm -rf /var/tmp/* 2>/dev/null || true
+                            rm -rf /opt/* 2>/dev/null || true
+                        " >/dev/null 2>&1 || true
+                    fi
                 fi
-                
-                # Update state to free
-                python3 - "${STATE_FILE}" "${name}" "free" "" "0" <<'PY'
-import sys, json
-state_file, name, status, client, expiry = sys.argv[1:6]
-try:
-    with open(state_file, 'r') as f:
-        state = json.load(f)
-except:
-    state = {}
-state[name] = {"status": status, "client": client, "expiry": int(expiry)}
-with open(state_file, 'w') as f:
-    json.dump(state, f)
-PY
-                
-                expired_count=$((expired_count + 1))
-            else
-                echo "   ✗ Failed to restart ${name}"
-            fi
+            ) &
+            
+            pids+=($!)
+            expired_count=$((expired_count + 1))
         fi
+    done
+    
+    # Wait for all background jobs to complete
+    for pid in "${pids[@]}"; do
+        wait "$pid" 2>/dev/null || true
     done
     
     if [ ${expired_count} -gt 0 ]; then
@@ -271,6 +297,7 @@ release_from_client() {
     echo "==> Releasing containers from ${client_id}"
     
     local released_count=0
+    local pids=()
     
     for i in $(seq 1 "${POOL_SIZE}"); do
         local name="pool-node-${i}"
@@ -290,63 +317,49 @@ PY
         if [ "${client}" = "${client_id}" ]; then
             echo "   - Resetting ${name} (full clean)..."
             
-            # OPTION 1: Restart container to completely reset filesystem
-            # This ensures NO data persists between reservations
-            docker restart "${name}" >/dev/null 2>&1
-            
-            if [ $? -eq 0 ]; then
-                # Wait for container to be fully ready (SSH service started)
-                sleep 3  # Increased from 2 to 3 seconds for safety
+            # Process each container in parallel (background job)
+            (
+                # Restart container to completely reset filesystem
+                docker restart "${name}" >/dev/null 2>&1
                 
-                # VERIFY: Check that container is actually running
-                if ! docker ps -q -f name="^${name}$" | grep -q .; then
-                    echo "   ✗ ${name} failed to restart properly"
-                    continue
+                if [ $? -eq 0 ]; then
+                    # Wait for container to be fully ready (SSH service started)
+                    sleep 3
+                    
+                    # VERIFY: Check that container is actually running
+                    if docker ps -q -f name="^${name}$" | grep -q .; then
+                        # Update state file to free IMMEDIATELY (before deep clean)
+                        update_state_locked "${name}" "free" "" "0"
+                        
+                        echo "   ✓ ${name} marked as free"
+                        
+                        # DEEP CLEAN: Extra safety measure (runs after state update, non-blocking)
+                        docker exec "${name}" /bin/bash -c "
+                            for user in \$(ls /home 2>/dev/null | grep -v vagrant); do
+                                userdel -r \$user 2>/dev/null || true
+                            done
+                            rm -rf /home/vagrant/* /home/vagrant/.* 2>/dev/null || true
+                            mkdir -p /home/vagrant/.ssh
+                            curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub -o /home/vagrant/.ssh/authorized_keys 2>/dev/null || true
+                            chmod 700 /home/vagrant/.ssh
+                            chmod 600 /home/vagrant/.ssh/authorized_keys
+                            chown -R vagrant:vagrant /home/vagrant/.ssh
+                            rm -rf /tmp/* /tmp/.* 2>/dev/null || true
+                            rm -rf /var/tmp/* 2>/dev/null || true
+                            rm -rf /opt/* 2>/dev/null || true
+                        " >/dev/null 2>&1 || true
+                    fi
                 fi
-                
-                # DEEP CLEAN: Extra safety measure
-                docker exec "${name}" /bin/bash -c "
-                    # Remove all non-vagrant users
-                    for user in \$(ls /home 2>/dev/null | grep -v vagrant); do
-                        userdel -r \$user 2>/dev/null || true
-                    done
-                    
-                    # Clean vagrant home directory (but keep user account)
-                    rm -rf /home/vagrant/* /home/vagrant/.* 2>/dev/null || true
-                    
-                    # Restore vagrant SSH keys
-                    mkdir -p /home/vagrant/.ssh
-                    curl -fsSL https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant.pub -o /home/vagrant/.ssh/authorized_keys 2>/dev/null || true
-                    chmod 700 /home/vagrant/.ssh
-                    chmod 600 /home/vagrant/.ssh/authorized_keys
-                    chown -R vagrant:vagrant /home/vagrant/.ssh
-                    
-                    # Clean common data directories
-                    rm -rf /tmp/* /tmp/.* 2>/dev/null || true
-                    rm -rf /var/tmp/* 2>/dev/null || true
-                    rm -rf /opt/* 2>/dev/null || true
-                " >/dev/null 2>&1 || true
-                
-                # Update state file to free
-                python3 - "${STATE_FILE}" "${name}" "free" "" "0" <<'PY'
-import sys, json
-state_file, name, status, client, expiry = sys.argv[1:6]
-try:
-    with open(state_file, 'r') as f:
-        state = json.load(f)
-except:
-    state = {}
-state[name] = {"status": status, "client": client, "expiry": int(expiry)}
-with open(state_file, 'w') as f:
-    json.dump(state, f)
-PY
-                
-                echo "   ✓ ${name} released and reset to clean state"
-                released_count=$((released_count + 1))
-            else
-                echo "   ✗ Failed to restart ${name}"
-            fi
+            ) &
+            
+            pids+=($!)
+            released_count=$((released_count + 1))
         fi
+    done
+    
+    # Wait for all background jobs to complete
+    for pid in "${pids[@]}"; do
+        wait "$pid" 2>/dev/null || true
     done
     
     if [ ${released_count} -gt 0 ]; then

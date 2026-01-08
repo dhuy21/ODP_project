@@ -10,6 +10,9 @@ function initializeCountdown(expiresAt) {
     const countdownEl = document.getElementById('countdown');
     if (!countdownEl) return;
 
+    let hasShownExpiredNotification = false; // Flag to prevent multiple notifications
+    let countdownInterval = null; // Store interval ID
+
     function updateCountdown() {
         const now = Math.floor(Date.now() / 1000);
         const remaining = expiresAt - now;
@@ -20,12 +23,23 @@ function initializeCountdown(expiresAt) {
             // Stop stats updates when expired
             stopStatsUpdates();
             reservationStatus = 'expired';
-            setTimeout(() => {
-                Notification.warning('Your reservation has expired!', 3000);
+            
+            // Stop countdown interval
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
+            }
+            
+            // Only show notification once
+            if (!hasShownExpiredNotification) {
+                hasShownExpiredNotification = true;
                 setTimeout(() => {
-                    window.location.href = countdownEl.dataset.redirectUrl || '/home';
-                }, 3000);
-            }, 2000);
+                    Notification.warning('Your reservation has expired!', 3000);
+                    setTimeout(() => {
+                        window.location.href = countdownEl.dataset.redirectUrl || '/home';
+                    }, 3000);
+                }, 2000);
+            }
             return;
         }
 
@@ -41,7 +55,7 @@ function initializeCountdown(expiresAt) {
     }
 
     updateCountdown();
-    setInterval(updateCountdown, 1000);
+    countdownInterval = setInterval(updateCountdown, 1000);
 }
 
 // Stop stats updates

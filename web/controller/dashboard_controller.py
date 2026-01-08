@@ -15,6 +15,11 @@ class DashboardController:
         username = session['username']
         role = session.get('role', 'user')
         
+        # Redirect admin to admin panel
+        if role == 'admin':
+            from flask import redirect, url_for
+            return redirect(url_for('main.admin_panel'))
+        
         # Get pool status
         pool_status = self.docker_service.get_pool_status()
         available = pool_status['free']
@@ -180,6 +185,77 @@ class DashboardController:
                 'message': result.get('error', 'Unknown error')
             })
     
+    def admin_overview(self):
+        """Admin overview/dashboard page"""
+        username = session['username']
+        
+        # Get all users
+        all_users = self.user_db.get_all_users()
+        
+        # Get all reservations
+        all_reservations = self.user_db.get_all_reservations()
+        active_reservations = [r for r in all_reservations if r.get('status') == 'active']
+        
+        # Get pool status
+        pool_status = self.docker_service.get_pool_status()
+        
+        # Generate recent activity from all reservations
+        recent_activity = self._generate_admin_recent_activity(all_reservations)
+        
+        stats = {
+            'total_users': len(all_users),
+            'active_reservations': len(active_reservations),
+            'total_containers': pool_status.get('total', 30),
+            'available_containers': pool_status.get('free', 0)
+        }
+        
+        return render_template('admin_overview.html',
+                             username=username,
+                             stats=stats,
+                             recent_activity=recent_activity)
+    
+    def admin_users(self):
+        """Admin users management page"""
+        username = session['username']
+        all_users = self.user_db.get_all_users()
+        
+        # Format users for template
+        users_list = []
+        for username_key, user_data in all_users.items():
+            users_list.append({
+                'username': username_key,
+                'email': user_data.get('email', ''),
+                'role': user_data.get('role', 'user'),
+                'created_at': user_data.get('created_at', ''),
+                'reservation_count': user_data.get('reservation_count', 0),
+                'is_active': True  # Assume all users are active for now
+            })
+        
+        return render_template('admin_users.html',
+                             username=username,
+                             users=users_list)
+    
+    def admin_reservations(self):
+        """Admin reservations management page"""
+        username = session['username']
+        all_reservations = self.user_db.get_all_reservations()
+        
+        # Sort by created_at descending
+        all_reservations.sort(key=lambda x: x.get('created_at', 0), reverse=True)
+        
+        return render_template('admin_reservations.html',
+                             username=username,
+                             reservations=all_reservations)
+    
+    def admin_pool(self):
+        """Admin pool management page"""
+        username = session['username']
+        pool_details = self.docker_service.get_pool_details()
+        
+        return render_template('admin_pool.html',
+                             username=username,
+                             pool_details=pool_details)
+    
     def _generate_recent_activity(self, reservations):
         """Generate recent activity list"""
         from datetime import datetime
@@ -216,6 +292,11 @@ class DashboardController:
         username = session['username']
         role = session.get('role', 'user')
         
+        # Redirect admin to admin panel
+        if role == 'admin':
+            from flask import redirect, url_for
+            return redirect(url_for('main.admin_panel'))
+        
         # Get user's reservations
         reservations = self.user_db.get_user_reservations(username)
         
@@ -233,3 +314,38 @@ class DashboardController:
             if not self.docker_service.check_container_running(node['name']):
                 return False
         return True
+    
+    def _generate_admin_recent_activity(self, all_reservations):
+        """Generate recent activity list for admin from all reservations"""
+        from datetime import datetime
+        
+        recent_activity = []
+        for reservation in sorted(all_reservations, key=lambda x: x.get('created_at', 0), reverse=True)[:10]:
+            activity_type = reservation.get('status', 'unknown')
+            created_time = reservation.get('created_at', 0)
+            owner = reservation.get('owner', 'unknown')
+            time_str = datetime.fromtimestamp(created_time).strftime('%Y-%m-%d %H:%M:%S')
+            
+            if activity_type == 'active':
+                recent_activity.append({
+                    'timestamp': time_str,
+                    'user': owner,
+                    'action': 'Created',
+                    'details': f'Reservation with {reservation.get("vm_count")} VMs'
+                })
+            elif activity_type == 'expired':
+                recent_activity.append({
+                    'timestamp': time_str,
+                    'user': owner,
+                    'action': 'Expired',
+                    'details': f'Reservation expired ({reservation.get("vm_count")} VMs)'
+                })
+            elif activity_type == 'released':
+                recent_activity.append({
+                    'timestamp': time_str,
+                    'user': owner,
+                    'action': 'Released',
+                    'details': f'Released {reservation.get("vm_count")} VMs'
+                })
+        
+        return recent_activity
