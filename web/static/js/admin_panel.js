@@ -1,21 +1,6 @@
 // Admin Panel JavaScript
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Smooth scroll to sections
-    document.querySelectorAll('.nav-item').forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.preventDefault();
-            const target = document.querySelector(item.getAttribute('href'));
-            if (target) {
-                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                
-                // Update active state
-                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-                item.classList.add('active');
-            }
-        });
-    });
-    
     // Create user form
     const createUserForm = document.getElementById('createUserForm');
     if (createUserForm) {
@@ -36,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
             
             try {
-                const response = await fetch('/admin/user/create', {
+                const response = await fetch('/admin/api/user/create', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify(data)
@@ -99,7 +84,7 @@ async function deleteUser(username) {
     }
     
     try {
-        const response = await fetch(`/admin/user/${username}/delete`, {
+        const response = await fetch(`/admin/api/user/${username}/delete`, {
             method: 'DELETE'
         });
         
@@ -135,7 +120,7 @@ async function toggleRole(username, currentRole) {
     }
     
     try {
-        const response = await fetch(`/admin/user/${username}/role`, {
+        const response = await fetch(`/admin/api/user/${username}/role`, {
             method: 'PUT',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({role: newRole})
@@ -171,7 +156,7 @@ async function deleteReservation(reservationId, owner) {
     }
     
     try {
-        const response = await fetch(`/admin/reservation/${reservationId}/delete`, {
+        const response = await fetch(`/admin/api/reservation/${reservationId}/delete`, {
             method: 'DELETE'
         });
         
@@ -205,7 +190,7 @@ async function recoverPool() {
     }
     
     try {
-        const response = await fetch('/admin/pool/recover', {
+        const response = await fetch('/admin/api/pool/recover', {
             method: 'POST'
         });
         

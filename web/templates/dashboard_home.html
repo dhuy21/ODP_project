@@ -123,6 +123,7 @@
     </div>
     {% endif %}
     
+    {% if role != 'admin' %}
     <!-- Operating System Selection -->
     <div class="section-container fade-in-up" data-delay="300">
         <div class="section-header">
@@ -254,6 +255,21 @@
             <div id="result" class="result-container"></div>
         </div>
     </div>
+    {% else %}
+    <!-- Admin Notice -->
+    <div class="section-container fade-in-up" data-delay="300">
+        <div class="admin-notice" style="padding: 2rem; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 12px; color: white; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h2 style="margin-bottom: 0.5rem; color: white;">Admin Account</h2>
+            <p style="margin-bottom: 1.5rem; opacity: 0.9;">Admin users cannot create reservations. Please use the <a href="{{ url_for('main.admin_panel') }}" style="color: white; text-decoration: underline; font-weight: bold;">Admin Panel</a> to manage resources and users.</p>
+            <a href="{{ url_for('main.admin_panel') }}" class="btn btn-primary" style="background: white; color: #667eea; border: none;">
+                <i class="fas fa-cog"></i> Go to Admin Panel
+            </a>
+        </div>
+    </div>
+    {% endif %}
     
     </div>
 {% endblock %}

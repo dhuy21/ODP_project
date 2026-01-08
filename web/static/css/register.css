@@ -601,15 +601,3 @@
 @keyframes spin {
     to { transform: rotate(360deg); }
 }
-
-/* ========== RESPONSIVE ========== */
-@media (max-width: 968px) {
-    .register-container {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-    
-    .register-left {
-        text-align: center;
-    }
-}

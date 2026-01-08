@@ -32,6 +32,14 @@ class VMController:
         """Provision VMs for user"""
         data = request.json
         username = session['username']
+        
+        # SECURITY: Block admin users from creating reservations
+        if self.user_db.is_admin(username):
+            return jsonify({
+                'status': 'error',
+                'message': 'Admin users cannot create reservations. Please use the admin panel to manage resources.'
+            }), 403
+        
         vm_password = data['password']
         vm_count = int(data['vm_count'])
         duration = int(data.get('duration', 60))

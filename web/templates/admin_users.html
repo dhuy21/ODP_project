@@ -1,87 +1,188 @@
 {% extends "admin_base.html" %}
 
 {% block title %}User Management{% endblock %}
-{% block page_title %}User Management{% endblock %}
+{% block page_title %}<i class="fas fa-users"></i> User Management{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/admin_users.css') }}">
+{% endblock %}
 
 {% block header_actions %}
-<button class="btn btn-primary" onclick="openAddUserModal()">+ Add User</button>
+<button class="btn btn-primary btn-create" data-action="create-user">
+    <i class="fas fa-plus-circle"></i>
+    <span>Add User</span>
+</button>
 {% endblock %}
 
 {% block content %}
-<div class="data-table">
-    <table>
-        <thead>
-            <tr>
-                <th>Username</th>
-                <th>Email</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for user in users %}
-            <tr>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td>
-                    <span class="badge badge-{% if user.role == 'admin' %}danger{% else %}info{% endif %}">
-                        {{ user.role }}
-                    </span>
-                </td>
-                <td>
-                    <span class="badge badge-{% if user.is_active %}success{% else %}warning{% endif %}">
-                        {% if user.is_active %}Active{% else %}Inactive{% endif %}
-                    </span>
-                </td>
-                <td>{{ user.created_at }}</td>
-                <td>
-                    <button class="btn btn-sm btn-primary" onclick="editUser('{{ user.id }}')">Edit</button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteUser('{{ user.id }}')">Delete</button>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+<div class="data-table-container fade-in-up">
+    <div class="table-header">
+        <div class="header-left">
+            <div class="header-icon-wrapper">
+                <div class="header-icon users">
+                    <i class="fas fa-users"></i>
+                </div>
+                <div>
+                    <h2>User Management</h2>
+                    <p class="table-subtitle">Manage platform users and permissions</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th><i class="fas fa-user"></i> Username</th>
+                    <th><i class="fas fa-envelope"></i> Email</th>
+                    <th><i class="fas fa-user-shield"></i> Role</th>
+                    <th><i class="fas fa-calendar"></i> Created</th>
+                    <th><i class="fas fa-list"></i> Reservations</th>
+                    <th><i class="fas fa-cog"></i> Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if users %}
+                    {% for user in users %}
+                    <tr class="fade-in-up" data-delay="{{ loop.index0 * 30 }}">
+                        <td>
+                            <div class="user-cell">
+                                <div class="user-avatar-medium">{{ user.username[0].upper() }}</div>
+                                <strong>{{ user.username }}</strong>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="email-cell">
+                                <i class="fas fa-envelope"></i>
+                                <span>{{ user.email }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span class="badge badge-role badge-{% if user.role == 'admin' %}danger{% else %}info{% endif %}">
+                                {% if user.role == 'admin' %}
+                                    <i class="fas fa-user-shield"></i>
+                                {% else %}
+                                    <i class="fas fa-user"></i>
+                                {% endif %}
+                                {{ user.role }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="date-cell">
+                                <i class="fas fa-calendar"></i>
+                                <span>{{ user.created_at[:10] }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="count-cell">
+                                <i class="fas fa-list"></i>
+                                <span class="reservation-count">{{ user.reservation_count }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="actions-cell">
+                                {% if user.username != 'admin' %}
+                                <button class="btn btn-warning btn-sm btn-icon" data-action="toggle-role" data-username="{{ user.username }}" data-role="{{ user.role }}" title="Toggle Role">
+                                    <i class="fas fa-sync-alt"></i>
+                                    <span>Role</span>
+                                </button>
+                                <button class="btn btn-danger btn-sm btn-icon" data-action="delete-user" data-username="{{ user.username }}" title="Delete User">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Delete</span>
+                                </button>
+                                {% else %}
+                                <span class="protected-badge">
+                                    <i class="fas fa-shield-alt"></i>
+                                    <span>Protected</span>
+                                </span>
+                                {% endif %}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td colspan="6" class="empty-state-cell">
+                            <div class="empty-state-mini">
+                                <i class="fas fa-users-slash"></i>
+                                <p>No users found</p>
+                            </div>
+                        </td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
 </div>
 {% endblock %}
 
 {% block modals %}
-<div id="addUserModal" class="modal">
-    <div class="modal-content">
+<!-- Create User Modal -->
+<div id="createUserModal" class="modal">
+    <div class="modal-content modal-animate">
         <div class="modal-header">
-            <h2>Add New User</h2>
+            <div class="modal-icon-wrapper">
+                <div class="modal-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+            </div>
+            <h2>Create New User</h2>
+            <p class="modal-subtitle">Add a new user to the platform</p>
         </div>
-        <form id="addUserForm">
+        <form id="createUserForm">
             <div class="form-group">
-                <label>Username</label>
-                <input type="text" name="username" required>
+                <label>
+                    <i class="fas fa-user"></i>
+                    Username
+                </label>
+                <input type="text" name="username" required placeholder="Enter username">
             </div>
             <div class="form-group">
-                <label>Email</label>
-                <input type="email" name="email" required>
+                <label>
+                    <i class="fas fa-envelope"></i>
+                    Email
+                </label>
+                <input type="email" name="email" required placeholder="user@example.com">
             </div>
             <div class="form-group">
-                <label>Password</label>
-                <input type="password" name="password" required>
+                <label>
+                    <i class="fas fa-lock"></i>
+                    Password
+                </label>
+                <input type="password" name="password" required placeholder="Secure password">
             </div>
             <div class="form-group">
-                <label>Role</label>
-                <select name="role">
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
+                <label>
+                    <i class="fas fa-user-shield"></i>
+                    Role
+                </label>
+                <select name="role" required>
+                    <option value="user">
+                        <i class="fas fa-user"></i> User
+                    </option>
+                    <option value="admin">
+                        <i class="fas fa-user-shield"></i> Admin
+                    </option>
                 </select>
             </div>
             <div class="form-actions">
-                <button type="button" class="btn" onclick="closeModal('addUserModal')">Cancel</button>
-                <button type="submit" class="btn btn-primary">Add User</button>
+                <button type="button" class="btn modal-cancel-btn" data-action="close-modal">
+                    <i class="fas fa-times"></i>
+                    <span>Cancel</span>
+                </button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-check"></i>
+                    <span>Create User</span>
+                </button>
             </div>
         </form>
+        <div id="createUserResult"></div>
     </div>
 </div>
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/admin_panel.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin_users.js') }}"></script>
 {% endblock %}
