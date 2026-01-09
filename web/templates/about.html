@@ -1,63 +1,367 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About - IaaS Platform</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='dark_style.css') }}">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-</head>
-<body>
-    {% extends "base.html" %}
-    <div style="max-width: 1200px; margin: 0 auto; padding: 2rem;">
-        <a href="{{ url_for('home') if user_is_logged_in else url_for('accueil') }}" class="btn" style="margin-bottom: 2rem; display: inline-block;">
-            ← Back
-        </a>
-        
-        <h1 style="font-size: 2.5rem; font-weight: 700; background: var(--accent-gradient-3); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 1rem;">
-            ℹ️ About Us
-        </h1>
-        
-        <div class="data-table-container">
-            <div style="padding: 2rem; color: var(--text-secondary); line-height: 1.8;">
-                <h2 style="color: var(--text-primary); margin-bottom: 1rem;">Our Platform</h2>
-                <p style="margin-bottom: 1rem;">
-                    IaaS Platform is a modern infrastructure-as-a-service solution designed for automated provisioning 
-                    and orchestration of containerized resources. We provide a seamless experience for deploying, 
-                    managing, and scaling your infrastructure needs.
-                </p>
-                
-                <h2 style="color: var(--text-primary); margin-top: 2rem; margin-bottom: 1rem;">Key Features</h2>
-                <ul style="padding-left: 1.5rem; margin-bottom: 1rem;">
-                    <li>🚀 <strong>Instant Provisioning</strong> - Deploy containers in under 30 seconds</li>
-                    <li>🔒 <strong>Secure by Default</strong> - Enterprise-grade security with SSH access</li>
-                    <li>🖥️ <strong>Web Terminal</strong> - Browser-based SSH access to your containers</li>
-                    <li>📦 <strong>Package Management</strong> - Pre-install software with Ansible</li>
-                    <li>⏱️ <strong>Time-based Reservations</strong> - Flexible duration from 1 minute to 24 hours</li>
-                    <li>🔄 <strong>Self-Healing</strong> - Automatic recovery of failed containers</li>
-                </ul>
-                
-                <h2 style="color: var(--text-primary); margin-top: 2rem; margin-bottom: 1rem;">Technology Stack</h2>
-                <ul style="padding-left: 1.5rem; margin-bottom: 1rem;">
-                    <li>🐳 Docker - Container runtime</li>
-                    <li>🐍 Flask - Web framework</li>
-                    <li>📡 Socket.IO - Real-time communication</li>
-                    <li>🔧 Ansible - Configuration management</li>
-                    <li>💾 Ubuntu 22.04 - Base OS for containers</li>
-                </ul>
-                
-                <h2 style="color: var(--text-primary); margin-top: 2rem; margin-bottom: 1rem;">Team</h2>
-                <p style="margin-bottom: 0.5rem;">This project was developed by:</p>
-                <ul style="padding-left: 1.5rem;">
-                    <li>Mehdi Ouseggua</li>
-                    <li>Vinh Tri NGUYEN</li>
-                    <li>Dinh Huy NGUYEN</li>
-                    <li>Khalid</li>
-                    <li>Thanh Tu VO</li>
-                    <li>Gia Khanh NGUYEN</li>
-                </ul>
+{% extends "layout.html" %}
+
+{% block title %}About Us{% endblock %}
+
+{% block styles %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/about.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="about-wrapper">
+    <!-- Animated Background -->
+    <div class="animated-bg">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+
+    <!-- Hero Section with Particles -->
+    <section class="hero-section">
+        <div class="hero-content">
+            <div class="hero-badge">
+                <span class="badge-dot"></span>
+                <span class="badge-text">Infrastructure as Code Platform</span>
+            </div>
+            <h1 class="hero-title">
+                <span class="title-line">Welcome to</span>
+                <span class="title-main">
+                    <span class="gradient-text">ODP</span>
+                    <span class="gradient-text-alt">Project</span>
+                </span>
+            </h1>
+            <p class="hero-description">
+                Empowering developers with cutting-edge container orchestration and automated infrastructure provisioning.
+            </p>
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <div class="stat-value" data-target="99">0</div>
+                    <div class="stat-label">Uptime %</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-value" data-target="30">0</div>
+                    <div class="stat-label">Sec Deploy</div>
+                </div>
+                <div class="stat-divider"></div>
+                <div class="stat-item">
+                    <div class="stat-value" data-target="24">0</div>
+                    <div class="stat-label">Hours Support</div>
+                </div>
+            </div>
+            <div class="scroll-indicator">
+                <i class="fas fa-chevron-down"></i>
             </div>
         </div>
-    </div>
-</body>
-</html>
+    </section>
+
+    <!-- Features Showcase -->
+    <section class="features-showcase">
+        <div class="section-header-modern">
+            <span class="section-subtitle">What We Offer</span>
+            <h2 class="section-title-modern">Powerful Features</h2>
+            <p class="section-description">Built for developers, designed for scale</p>
+        </div>
+
+        <div class="features-container">
+            <div class="feature-card-modern" data-aos="fade-up" data-aos-delay="0">
+                <div class="feature-card-glow"></div>
+                <div class="feature-icon-modern">
+                    <i class="fas fa-bolt"></i>
+                </div>
+                <h3 class="feature-title-modern">Lightning Fast</h3>
+                <p class="feature-desc-modern">Deploy containers in under 30 seconds with our optimized infrastructure and smart caching</p>
+                <div class="feature-tech-tags">
+                    <span class="tech-tag">Docker</span>
+                    <span class="tech-tag">Optimized</span>
+                </div>
+            </div>
+
+            <div class="feature-card-modern" data-aos="fade-up" data-aos-delay="100">
+                <div class="feature-card-glow"></div>
+                <div class="feature-icon-modern">
+                    <i class="fas fa-shield-alt"></i>
+                </div>
+                <h3 class="feature-title-modern">Enterprise Security</h3>
+                <p class="feature-desc-modern">Military-grade encryption, SSH key authentication, and isolated container environments</p>
+                <div class="feature-tech-tags">
+                    <span class="tech-tag">SSL/TLS</span>
+                    <span class="tech-tag">SSH</span>
+                </div>
+            </div>
+
+            <div class="feature-card-modern" data-aos="fade-up" data-aos-delay="200">
+                <div class="feature-card-glow"></div>
+                <div class="feature-icon-modern">
+                    <i class="fas fa-terminal"></i>
+                </div>
+                <h3 class="feature-title-modern">Web Terminal</h3>
+                <p class="feature-desc-modern">Full-featured browser terminal with real-time WebSocket connection and command history</p>
+                <div class="feature-tech-tags">
+                    <span class="tech-tag">WebSocket</span>
+                    <span class="tech-tag">Real-time</span>
+                </div>
+            </div>
+
+            <div class="feature-card-modern" data-aos="fade-up" data-aos-delay="300">
+                <div class="feature-card-glow"></div>
+                <div class="feature-icon-modern">
+                    <i class="fas fa-magic"></i>
+                </div>
+                <h3 class="feature-title-modern">Auto Configuration</h3>
+                <p class="feature-desc-modern">Automated software installation using Ansible playbooks with one-click deployment</p>
+                <div class="feature-tech-tags">
+                    <span class="tech-tag">Ansible</span>
+                    <span class="tech-tag">IaC</span>
+                </div>
+            </div>
+
+            <div class="feature-card-modern" data-aos="fade-up" data-aos-delay="400">
+                <div class="feature-card-glow"></div>
+                <div class="feature-icon-modern">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3 class="feature-title-modern">Flexible Scheduling</h3>
+                <p class="feature-desc-modern">Time-based reservations from 1 minute to 24 hours with automatic resource cleanup</p>
+                <div class="feature-tech-tags">
+                    <span class="tech-tag">Smart</span>
+                    <span class="tech-tag">Efficient</span>
+                </div>
+            </div>
+
+            <div class="feature-card-modern" data-aos="fade-up" data-aos-delay="500">
+                <div class="feature-card-glow"></div>
+                <div class="feature-icon-modern">
+                    <i class="fas fa-sync-alt"></i>
+                </div>
+                <h3 class="feature-title-modern">Self-Healing</h3>
+                <p class="feature-desc-modern">Automatic health checks and container recovery with zero downtime architecture</p>
+                <div class="feature-tech-tags">
+                    <span class="tech-tag">Auto-recovery</span>
+                    <span class="tech-tag">HA</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Technology Stack with Animation -->
+    <section class="tech-section">
+        <div class="section-header-modern">
+            <span class="section-subtitle">Built With</span>
+            <h2 class="section-title-modern">Technology Stack</h2>
+            <p class="section-description">Powered by industry-leading technologies</p>
+        </div>
+
+        <div class="tech-stack-container">
+            <div class="tech-card" data-aos="zoom-in" data-aos-delay="0">
+                <div class="tech-card-inner">
+                    <div class="tech-logo">
+                        <i class="fab fa-docker"></i>
+                    </div>
+                    <h4 class="tech-name">Docker</h4>
+                    <p class="tech-role">Container Engine</p>
+                    <div class="tech-progress">
+                        <div class="tech-progress-bar" data-progress="95"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tech-card" data-aos="zoom-in" data-aos-delay="100">
+                <div class="tech-card-inner">
+                    <div class="tech-logo">
+                        <i class="fab fa-python"></i>
+                    </div>
+                    <h4 class="tech-name">Flask</h4>
+                    <p class="tech-role">Backend Framework</p>
+                    <div class="tech-progress">
+                        <div class="tech-progress-bar" data-progress="90"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tech-card" data-aos="zoom-in" data-aos-delay="200">
+                <div class="tech-card-inner">
+                    <div class="tech-logo">
+                        <i class="fas fa-plug"></i>
+                    </div>
+                    <h4 class="tech-name">Socket.IO</h4>
+                    <p class="tech-role">Real-time Engine</p>
+                    <div class="tech-progress">
+                        <div class="tech-progress-bar" data-progress="88"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tech-card" data-aos="zoom-in" data-aos-delay="300">
+                <div class="tech-card-inner">
+                    <div class="tech-logo">
+                        <i class="fas fa-cogs"></i>
+                    </div>
+                    <h4 class="tech-name">Ansible</h4>
+                    <p class="tech-role">Configuration Mgmt</p>
+                    <div class="tech-progress">
+                        <div class="tech-progress-bar" data-progress="85"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tech-card" data-aos="zoom-in" data-aos-delay="400">
+                <div class="tech-card-inner">
+                    <div class="tech-logo">
+                        <i class="fab fa-ubuntu"></i>
+                    </div>
+                    <h4 class="tech-name">Ubuntu</h4>
+                    <p class="tech-role">Operating System</p>
+                    <div class="tech-progress">
+                        <div class="tech-progress-bar" data-progress="92"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tech-card" data-aos="zoom-in" data-aos-delay="500">
+                <div class="tech-card-inner">
+                    <div class="tech-logo">
+                        <i class="fab fa-js"></i>
+                    </div>
+                    <h4 class="tech-name">JavaScript</h4>
+                    <p class="tech-role">Frontend Logic</p>
+                    <div class="tech-progress">
+                        <div class="tech-progress-bar" data-progress="87"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Team Section -->
+    <section class="team-section">
+        <div class="section-header-modern">
+            <span class="section-subtitle">Meet The Team</span>
+            <h2 class="section-title-modern">Our Amazing Team</h2>
+            <p class="section-description">Passionate developers building the future</p>
+        </div>
+
+        <div class="team-container">
+            <div class="team-member-card" data-aos="flip-left" data-aos-delay="0">
+                <div class="member-avatar-wrapper">
+                    <div class="member-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-status"></div>
+                </div>
+                <h4 class="member-name">Mehdi Ouseggua</h4>
+                <p class="member-role">Full Stack Developer</p>
+                <div class="member-social">
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+
+            <div class="team-member-card" data-aos="flip-left" data-aos-delay="100">
+                <div class="member-avatar-wrapper">
+                    <div class="member-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-status"></div>
+                </div>
+                <h4 class="member-name">Vinh Tri NGUYEN</h4>
+                <p class="member-role">Backend Developer</p>
+                <div class="member-social">
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+
+            <div class="team-member-card" data-aos="flip-left" data-aos-delay="200">
+                <div class="member-avatar-wrapper">
+                    <div class="member-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-status"></div>
+                </div>
+                <h4 class="member-name">Dinh Huy NGUYEN</h4>
+                <p class="member-role">DevOps Engineer</p>
+                <div class="member-social">
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+
+            <div class="team-member-card" data-aos="flip-left" data-aos-delay="300">
+                <div class="member-avatar-wrapper">
+                    <div class="member-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-status"></div>
+                </div>
+                <h4 class="member-name">Khalid</h4>
+                <p class="member-role">Cloud Architect</p>
+                <div class="member-social">
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+
+            <div class="team-member-card" data-aos="flip-left" data-aos-delay="400">
+                <div class="member-avatar-wrapper">
+                    <div class="member-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-status"></div>
+                </div>
+                <h4 class="member-name">Thanh Tu VO</h4>
+                <p class="member-role">Frontend Developer</p>
+                <div class="member-social">
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+
+            <div class="team-member-card" data-aos="flip-left" data-aos-delay="500">
+                <div class="member-avatar-wrapper">
+                    <div class="member-avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="member-status"></div>
+                </div>
+                <h4 class="member-name">Gia Khanh NGUYEN</h4>
+                <p class="member-role">System Administrator</p>
+                <div class="member-social">
+                    <a href="#" class="social-link"><i class="fab fa-github"></i></a>
+                    <a href="#" class="social-link"><i class="fab fa-linkedin"></i></a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta-section">
+        <div class="cta-container">
+            <div class="cta-content" data-aos="fade-up">
+                <h2 class="cta-title">Ready to Transform Your Infrastructure?</h2>
+                <p class="cta-description">Join thousands of developers who trust ODP for their container orchestration needs</p>
+                <div class="cta-buttons">
+                    {% if session.get('username') %}
+                        <a href="{{ url_for('main.home') }}" class="btn-primary-modern">
+                            <span class="btn-text">Go to Dashboard</span>
+                            <i class="fas fa-arrow-right btn-icon"></i>
+                        </a>
+                    {% else %}
+                        <a href="{{ url_for('auth.show_register') }}" class="btn-primary-modern">
+                            <span class="btn-text">Get Started Free</span>
+                            <i class="fas fa-rocket btn-icon"></i>
+                        </a>
+                        <a href="{{ url_for('auth.show_login') }}" class="btn-secondary-modern">
+                            <span class="btn-text">Sign In</span>
+                            <i class="fas fa-sign-in-alt btn-icon"></i>
+                        </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/about.js') }}"></script>
+{% endblock %}

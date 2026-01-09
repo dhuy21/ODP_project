@@ -43,6 +43,14 @@
                     <span class="nav-link-indicator"></span>
                 </a>
                 
+                <a href="{{ url_for('main.about') }}" class="nav-link {% if request.endpoint == 'main.about' %}nav-link-active{% endif %}" data-page="about">
+                    <span class="nav-link-icon-wrapper">
+                        <i class="fas fa-info-circle nav-link-icon"></i>
+                    </span>
+                    <span class="nav-link-text">About</span>
+                    <span class="nav-link-indicator"></span>
+                </a>
+                
                 {% if session.get('username') %}
                     <a href="{{ url_for('main.home') }}" class="nav-link {% if request.endpoint in ['main.home', 'main.dashboard_home', 'provision.view_reservation', 'terminal.terminal'] %}nav-link-active{% endif %}" data-page="dashboard">
                         <span class="nav-link-icon-wrapper">
@@ -144,6 +152,12 @@
                         <a href="{{ url_for('main.index') }}">
                             <i class="fas fa-home footer-link-icon"></i>
                             <span>Home</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('main.about') }}">
+                            <i class="fas fa-info-circle footer-link-icon"></i>
+                            <span>About</span>
                         </a>
                     </li>
                     {% if session.get('username') %}

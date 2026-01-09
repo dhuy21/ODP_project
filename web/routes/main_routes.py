@@ -17,6 +17,11 @@ def index():
     """Root route - show landing page (accueil)"""
     return render_template('accueil.html')
 
+@main_bp.route('/about')
+def about():
+    """About page - public route"""
+    return render_template('about.html')
+
 
 
 # ============ User Routes ============
