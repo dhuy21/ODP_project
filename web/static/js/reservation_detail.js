@@ -4,13 +4,13 @@ let expiryTimestamp = 0;
 let statsUpdateInterval;
 let reservationStatus = 'active'; // Track reservation status
 let isStatsUpdateActive = true; // Flag to control stats updates
+let hasShownExpiredNotification = false; // Global flag to prevent multiple notifications across all sources
 
 // Initialize countdown timer
 function initializeCountdown(expiresAt) {
     const countdownEl = document.getElementById('countdown');
     if (!countdownEl) return;
 
-    let hasShownExpiredNotification = false; // Flag to prevent multiple notifications
     let countdownInterval = null; // Store interval ID
 
     function updateCountdown() {
@@ -34,10 +34,12 @@ function initializeCountdown(expiresAt) {
             if (!hasShownExpiredNotification) {
                 hasShownExpiredNotification = true;
                 setTimeout(() => {
-                    Notification.warning('Your reservation has expired!', 3000);
+                    Notification.warning('Your reservation has expired! Redirecting...', 2000);
                     setTimeout(() => {
-                        window.location.href = countdownEl.dataset.redirectUrl || '/home';
-                    }, 3000);
+                        // Redirect to dashboard with refresh flag to trigger immediate update
+                        const redirectUrl = countdownEl.dataset.redirectUrl || '/home';
+                        window.location.href = redirectUrl + (redirectUrl.includes('?') ? '&' : '?') + 'refresh=true';
+                    }, 2000);
                 }, 2000);
             }
             return;

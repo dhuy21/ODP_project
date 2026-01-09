@@ -43,7 +43,7 @@
                 </div>
                 <div class="stat-content">
                 <h3>Active Reservations</h3>
-                <div class="stat-value">{{ active_reservations|length }}</div>
+                <div class="stat-value" id="active-reservations-count">{{ active_reservations|length }}</div>
                     <div class="stat-label">Currently running</div>
                 </div>
                 <div class="stat-glow"></div>
@@ -68,7 +68,10 @@
         
         <!-- Active Reservations -->
         {% if active_reservations %}
-    <div class="section-container fade-in-up" data-delay="250">
+        <div id="active-reservations-section" class="section-container fade-in-up" data-delay="250">
+        {% else %}
+        <div id="active-reservations-section" class="section-container fade-in-up" data-delay="250" style="display: none;">
+        {% endif %}
         <div class="section-header">
             <div class="section-title-wrapper">
                 <div class="section-icon">
@@ -79,9 +82,9 @@
             <p class="section-description">Your currently running virtual machines</p>
         </div>
         
-        <div class="reservation-grid">
+        <div class="reservation-grid" id="active-reservations-grid">
                 {% for reservation in active_reservations %}
-            <div class="reservation-card fade-in-up" data-delay="{{ loop.index0 * 50 }}">
+            <div class="reservation-card fade-in-up" data-delay="{{ loop.index0 * 50 }}" data-reservation-id="{{ reservation.id }}">
                 <div class="card-header">
                     <div class="card-title-section">
                         <div class="card-icon">
@@ -121,7 +124,6 @@
                 {% endfor %}
         </div>
     </div>
-    {% endif %}
     
     {% if role != 'admin' %}
     <!-- Operating System Selection -->

@@ -26,7 +26,21 @@ class DashboardController:
         
         # Get user's reservations
         reservations = self.user_db.get_user_reservations(username)
-        active_reservations = [r for r in reservations if r.get('status') == 'active']
+        
+        # Filter active reservations - check both status and expires_at
+        current_time = time.time()
+        active_reservations = []
+        for r in reservations:
+            status = r.get('status')
+            expires_at = r.get('expires_at', 0)
+            
+            # Only include if status is 'active' AND not expired
+            if status == 'active' and current_time < expires_at:
+                active_reservations.append(r)
+            elif status == 'active' and current_time >= expires_at:
+                # Reservation is expired but status hasn't been updated yet
+                # This can happen due to race conditions - filter it out
+                print(f"[DASHBOARD] Filtering out expired reservation {r.get('id', 'unknown')[:8]} that still has 'active' status")
         
         # Generate recent activity
         recent_activity = self._generate_recent_activity(reservations)
@@ -349,3 +363,31 @@ class DashboardController:
                 })
         
         return recent_activity
+
+    def get_active_reservations(self):
+        """API endpoint to get active reservations for current user"""
+        username = session['username']
+        
+        # Get user's reservations
+        reservations = self.user_db.get_user_reservations(username)
+        
+        # Filter active reservations - check both status and expires_at
+        current_time = time.time()
+        active_reservations = []
+        for r in reservations:
+            status = r.get('status')
+            expires_at = r.get('expires_at', 0)
+            
+            # Only include if status is 'active' AND not expired
+            if status == 'active' and current_time < expires_at:
+                active_reservations.append(r)
+            elif status == 'active' and current_time >= expires_at:
+                # Reservation is expired but status hasn't been updated yet
+                # Filter it out
+                print(f"[API] Filtering out expired reservation {r.get('id', 'unknown')[:8]} that still has 'active' status")
+        
+        return jsonify({
+            'status': 'success',
+            'active_reservations': active_reservations,
+            'count': len(active_reservations)
+        })

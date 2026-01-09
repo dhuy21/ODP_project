@@ -196,16 +196,45 @@
         }
         window.socket.on('reservation_expired', function(data) {
             if (data && data.reservation_id) {
-                const count = data.expired_count || 1;
-                const message = count === 1 
-                    ? 'One of your reservations has expired. Refreshing...'
-                    : count + ' of your reservations have expired. Refreshing...';
-                if (typeof Notification !== 'undefined') {
-                    Notification.warning(message, 3000);
+                // Check if we're on reservation detail page
+                const isReservationDetail = window.location.pathname.includes('/reservation/');
+                
+                // Check if we just redirected from reservation detail (has refresh=true in URL)
+                // This means notification was already shown on reservation detail page
+                const urlParams = new URLSearchParams(window.location.search);
+                const justRedirected = urlParams.get('refresh') === 'true';
+                
+                // Check if notification has already been shown (to prevent duplicates)
+                const alreadyShown = typeof hasShownExpiredNotification !== 'undefined' && hasShownExpiredNotification;
+                
+                // Only show notification if:
+                // 1. NOT on reservation detail page (reservation_detail.js handles it there)
+                // 2. NOT just redirected from reservation detail (notification was already shown)
+                // 3. NOT already shown via global flag
+                if (!isReservationDetail && !justRedirected && !alreadyShown) {
+                    const count = data.expired_count || 1;
+                    const message = count === 1 
+                        ? 'One of your reservations has expired.'
+                        : count + ' of your reservations have expired.';
+                    if (typeof Notification !== 'undefined') {
+                        Notification.warning(message, 3000);
+                    }
                 }
-                setTimeout(function() {
-                    location.reload();
-                }, 3000);
+                
+                // Check if we're on the dashboard/home page
+                const isDashboard = window.location.pathname === '/home' || window.location.pathname === '/dashboard';
+                
+                if (isDashboard) {
+                    // If on dashboard, dashboard_home.js will handle the update
+                    // Do nothing here to avoid duplicate calls
+                    // The listener in dashboard_home.js will handle UI update
+                } else if (!isReservationDetail) {
+                    // If on other pages (but not reservation_detail), redirect to dashboard
+                    // reservation_detail.js will handle its own redirect
+                    setTimeout(function() {
+                        window.location.href = '/home?refresh=true';
+                    }, 1000);
+                }
             }
         });
     </script>

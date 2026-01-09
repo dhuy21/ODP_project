@@ -119,3 +119,10 @@ def admin_delete_reservation(reservation_id):
 @admin_required
 def admin_recover_pool():
     return dashboard_controller.admin_recover_pool()
+
+# User API routes
+@main_bp.route('/api/reservations/active', methods=['GET'])
+@login_required
+def get_active_reservations():
+    """API endpoint to get active reservations for current user"""
+    return dashboard_controller.get_active_reservations()
