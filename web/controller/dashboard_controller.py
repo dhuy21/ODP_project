@@ -173,9 +173,11 @@ class DashboardController:
             return jsonify({'status': 'error', 'message': 'Reservation not found'})
         
         owner = reservation['owner']
+        nodes = reservation.get('nodes', [])
         
-        # Release containers
-        self.docker_service.release_containers(owner)
+        # Release ONLY containers for THIS reservation (not all user containers)
+        if nodes:
+            self.docker_service.release_containers_by_nodes(owner, nodes)
         
         # Delete reservation from database
         if not self.user_db.delete_reservation(admin, reservation_id):

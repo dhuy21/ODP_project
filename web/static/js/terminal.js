@@ -32,23 +32,59 @@ socket.on("connect", () => {
 
   console.log(`Connecting to ${node_name} for user ${username}`);
 
-  // Get password from sessionStorage or use default vagrant password
-  let password = sessionStorage.getItem("password");
-  
-  // If no password, try vagrant default
-  if (!password) {
-    password = "vagrant";  // Default vagrant password
-  }
-
-  socket.emit("connect_ssh", {
+  // First, request reservation info from server to get correct password
+  // This is needed because user may have multiple reservations with different passwords
+  socket.emit("request_reservation_info", {
     username: username,
-    node_name: node_name,
-    password: password,
+    node_name: node_name
   });
   
   setTimeout(() => {
     fitAddon.fit();
   }, 100);
+});
+
+// Handle reservation info response and connect with password from server
+socket.on("reservation_info", (data) => {
+  if (data.error) {
+    term.write("\r\n\x1b[31mError: " + data.error + "\x1b[0m\r\n");
+    if (typeof Notification !== 'undefined') {
+      Notification.error(data.error);
+    }
+    return;
+  }
+
+  const reservation_id = data.reservation_id;
+  const username = data.username;
+  const node_name = data.node_name;
+  
+  // Get password from server response (decrypted from database)
+  // This is secure because password is encrypted in database and only sent over HTTPS
+  let password = data.password;
+  
+  // Fallback to sessionStorage only if server doesn't provide password (backward compatibility)
+  if (!password) {
+    password = sessionStorage.getItem(`password_${reservation_id}`);
+  }
+  
+  // Fallback to old global password
+  if (!password) {
+    password = sessionStorage.getItem("password");
+  }
+  
+  // If still no password, try vagrant default
+  if (!password) {
+    password = "vagrant";
+    term.write("\r\n\x1b[33mWarning: No password found, using default 'vagrant'\x1b[0m\r\n");
+  }
+
+  console.log(`Connecting with reservation ${reservation_id}`);
+  
+  socket.emit("connect_ssh", {
+    username: username,
+    node_name: node_name,
+    password: password,
+  });
 });
 
 term.onData((data) => {

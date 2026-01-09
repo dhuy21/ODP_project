@@ -31,11 +31,12 @@ class DockerService:
             return {'success': False, 'error': str(e)}
     
     def check_expired_containers(self):
-        """Check and cleanup expired containers"""
+        """Check and cleanup expired containers (backup cleanup for orphaned nodes)"""
         if not self.client:
             return False
         try:
-            # Find expired nodes
+            # Find expired nodes in pool_nodes table
+            # This is a backup cleanup in case nodes are not released by main expiry logic
             current_time = time.time()
             conn = self.pool_db._get_connection()
             cursor = conn.cursor(dictionary=True)
@@ -47,17 +48,48 @@ class DockerService:
             finally:
                 cursor.close()
                 conn.close()
+            
+            # Release ONLY the specific expired nodes (not all containers of owner)
+            # This preserves other active reservations of the same user
             count = 0
             for node in expired_nodes:
-                print(f"Found expired node: {node['name']} (Owner: {node['owner']})")
-                # Call release to clean container and update DB
-                self.release_containers(node['owner'])
+                node_name = node['name']
+                owner = node['owner']
+                print(f"[BACKUP CLEANUP] Found orphaned expired node: {node_name} (Owner: {owner})")
+                
+                # Clean this specific node only
+                cleanup_success = False
+                try:
+                    container = self.client.containers.get(node_name)
+                    
+                    # Force kill processes
+                    result = container.exec_run(f"pkill -9 -u {owner}")
+                    time.sleep(0.5)
+                    
+                    # Force remove user
+                    result = container.exec_run(f"userdel -r -f {owner}")
+                    if result.exit_code == 0 or b"does not exist" in result.output or result.exit_code == 6:
+                        cleanup_success = True
+                        print(f"[BACKUP CLEANUP] Cleaned user {owner} from {node_name}")
+                    else:
+                        print(f"[BACKUP CLEANUP] Warning cleaning {node_name}: {result.output.decode()}")
+                        cleanup_success = True  # Continue anyway
+                        
+                except Exception as e:
+                    print(f"[BACKUP CLEANUP] Error cleaning container {node_name}: {e}")
+                    cleanup_success = True  # Continue anyway
+                
+                # Release this specific node in DB
+                if cleanup_success:
+                    self.pool_db.release_node(node_name)
+                    print(f"[BACKUP CLEANUP] Released orphaned node: {node_name}")
                 count += 1
+            
             if count > 0:
-                print(f"Cleaned up {count} expired users.")
+                print(f"[BACKUP CLEANUP] Cleaned up {count} orphaned nodes.")
             return True
         except Exception as e:
-            print(f"Error checking expired containers: {e}")
+            print(f"Error in backup cleanup: {e}")
             return False
     
     def health_check(self):
@@ -92,12 +124,25 @@ class DockerService:
                 # B. Configure Container (Equivalent to setup_container_user in bash)
                 try:
                     container = self.client.containers.get(node_name)
-                    # 1. Create user if not exists
-                    container.exec_run(f"useradd -m -s /bin/bash {username}")
-                    # 2. Set password (chpasswd takes input from stdin)
-                    container.exec_run(f"/bin/sh -c 'echo \"{username}:{password}\" | chpasswd'")
-                    # 3. Add to sudo (if needed)
+                    
+                    # 1. Check if user exists, create if not
+                    check_result = container.exec_run(f"id -u {username}")
+                    if check_result.exit_code != 0:
+                        # User doesn't exist, create it
+                        result = container.exec_run(f"useradd -m -s /bin/bash {username}")
+                        if result.exit_code != 0:
+                            raise Exception(f"Failed to create user: {result.output.decode()}")
+                    else:
+                        print(f"User {username} already exists in {node_name}, reusing...")
+                    
+                    # 2. Set/Reset password (works for both new and existing users)
+                    result = container.exec_run(f"/bin/sh -c 'echo \"{username}:{password}\" | chpasswd'")
+                    if result.exit_code != 0:
+                        raise Exception(f"Failed to set password: {result.output.decode()}")
+                    
+                    # 3. Add to sudo (if needed, skip if already in group)
                     container.exec_run(f"usermod -aG sudo {username}")
+                    
                     print(f"Allocated and Configured {node_name} for {username}")
                     allocated_nodes.append({
                         'name': node_name,
@@ -108,7 +153,7 @@ class DockerService:
                     print(f"Failed to configure container {node_name}: {e}")
                     # Rollback DB if configuration fails
                     self.pool_db.release_node(node_name)
-                    return {'success': False, 'error': f"Failed to configure {node_name}"}
+                    return {'success': False, 'error': f"Failed to configure {node_name}: {str(e)}"}
             return {
                 'success': True,
                 'nodes': allocated_nodes
@@ -117,30 +162,101 @@ class DockerService:
             print(f"Allocation error: {e}")
             return {'success': False, 'error': str(e)}
 
+    def release_containers_by_nodes(self, username, nodes):
+        """Release specific containers by node list (for specific reservation)"""
+        if not self.client:
+            return {'success': False, 'error': 'No docker connection'}
+        try:
+            released_count = 0
+            for node in nodes:
+                node_name = node.get('name')
+                if not node_name:
+                    continue
+                
+                # A. Cleanup Container (Deep Clean)
+                cleanup_success = False
+                try:
+                    container = self.client.containers.get(node_name)
+                    
+                    # 1. Kill user processes (force kill if needed)
+                    result = container.exec_run(f"pkill -9 -u {username}")
+                    # pkill returns 1 if no processes found, which is OK
+                    if result.exit_code not in [0, 1]:
+                        print(f"Warning: pkill returned {result.exit_code} for {node_name}")
+                    
+                    # 2. Wait a moment for processes to die
+                    time.sleep(0.5)
+                    
+                    # 3. Remove user and home dir (force if needed)
+                    result = container.exec_run(f"userdel -r -f {username}")
+                    if result.exit_code == 0:
+                        cleanup_success = True
+                        print(f"Successfully cleaned user {username} from {node_name}")
+                    else:
+                        # User might not exist or already deleted
+                        if b"does not exist" in result.output or result.exit_code == 6:
+                            cleanup_success = True
+                            print(f"User {username} already removed from {node_name}")
+                        else:
+                            print(f"Error removing user from {node_name}: {result.output.decode()}")
+                            # Try to continue anyway
+                            cleanup_success = True
+                    
+                except Exception as e:
+                    print(f"Error cleaning container {node_name}: {e}")
+                    # Continue anyway to release node in DB
+                    cleanup_success = True
+                
+                # B. Update DB -> free (only if cleanup succeeded or user didn't exist)
+                if cleanup_success:
+                    self.pool_db.release_node(node_name)
+                    print(f"Released {node_name} for user {username}")
+                    released_count += 1
+                else:
+                    print(f"WARNING: Skipped releasing {node_name} due to cleanup failure")
+            
+            return {'success': True, 'message': f'Released {released_count} nodes'}
+        except Exception as e:
+            return {'success': False, 'error': str(e)}
+
     def release_containers(self, username):
-        """Release containers for a user"""
+        """Release ALL containers for a user (use release_containers_by_nodes for specific reservations)"""
         if not self.client:
             return {'success': False, 'error': 'No docker connection'}
         try:
             # 1. Get user nodes from DB
             user_nodes = self.pool_db.get_nodes_by_owner(username)
+            released_count = 0
             for node in user_nodes:
                 node_name = node['name']
                 # A. Cleanup Container (Deep Clean)
+                cleanup_success = False
                 try:
                     container = self.client.containers.get(node_name)
-                    # Kill user processes
-                    container.exec_run(f"pkill -u {username}")
-                    # Remove user and home dir
-                    container.exec_run(f"userdel -r {username}")
-                    # (Optional) Restart container for full clean
-                    # container.restart()
+                    
+                    # Kill user processes (force)
+                    result = container.exec_run(f"pkill -9 -u {username}")
+                    time.sleep(0.5)
+                    
+                    # Remove user and home dir (force)
+                    result = container.exec_run(f"userdel -r -f {username}")
+                    if result.exit_code == 0 or b"does not exist" in result.output or result.exit_code == 6:
+                        cleanup_success = True
+                    else:
+                        print(f"Warning cleaning {node_name}: {result.output.decode()}")
+                        cleanup_success = True  # Continue anyway
+                        
                 except Exception as e:
                     print(f"Error cleaning container {node_name}: {e}")
+                    cleanup_success = True  # Continue anyway
+                
                 # B. Update DB -> free
-                self.pool_db.release_node(node_name)
-                print(f"Released {node_name}")
-            return {'success': True, 'message': f'Released {len(user_nodes)} nodes'}
+                if cleanup_success:
+                    self.pool_db.release_node(node_name)
+                    print(f"Released {node_name}")
+                    released_count += 1
+            
+            return {'success': True, 'message': f'Released {released_count} nodes'}
         except Exception as e:
             return {'success': False, 'error': str(e)}
 
@@ -214,7 +330,6 @@ class DockerService:
         # 3. Start Containers & Update MySQL
         for i in range(1, pool_size + 1):
             name = f"pool-node-{i}"
-            ip = f"172.30.0.{10 + i}"
             port = 3000 + i - 1
             # Remove old container if exists
             try:
@@ -222,23 +337,23 @@ class DockerService:
                 old.remove(force=True)
             except docker.errors.NotFound:
                 pass
-            # Run new container
+            # Run new container (let Docker auto-assign IP)
             try:
-                self.client.containers.run(
+                container = self.client.containers.run(
                     "pool-node:latest",
                     name=name,
                     detach=True,
                     network=pool_net_name,
                     ports={'22/tcp': port}, # Map port 22 container -> port 3000+ host
-                    restart_policy={"Name": "unless-stopped"},
-                    # Manually assign static IP
-                    networking_config=self.client.api.create_networking_config({
-                        pool_net_name: self.client.api.create_endpoint_config(ipv4_address=ip)
-                    })
+                    restart_policy={"Name": "unless-stopped"}
                 )
-                # 4. IMPORTANT: Write to MySQL
-                self.pool_db.upsert_node(name, ip, port, 'free')
-                print(f"Started {name} at {ip}:{port} -> DB Synced")
+                # Query actual IP from Docker (after creation)
+                container.reload()
+                actual_ip = container.attrs['NetworkSettings']['Networks'][pool_net_name]['IPAddress']
+                
+                # 4. IMPORTANT: Write actual IP to MySQL
+                self.pool_db.upsert_node(name, actual_ip, port, 'free')
+                print(f"Started {name} at {actual_ip}:{port} -> DB Synced")
             except Exception as e:
                 print(f"Failed to start {name}: {e}")
         return {'success': True, 'message': f"Initialized {pool_size} nodes"}

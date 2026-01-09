@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS reservations (
     nodes JSON,         -- [{"name": "pool-node-1", "ip": "..."}]
     final_stats JSON,   -- CPU/RAM
     packages JSON, 
+    vm_password_encrypted VARCHAR(255),  -- Encrypted VM password for SSH access
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 

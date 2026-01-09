@@ -80,11 +80,12 @@ class VMController:
                 vm = VM(node['name'], node['ip'], node['port'], username)
                 reservation.add_node(vm)
             
-            # Save reservation to database
-            self.user_db.add_reservation(username, reservation.to_dict())
+            # Save reservation to database WITH ENCRYPTED PASSWORD
+            self.user_db.add_reservation(username, reservation.to_dict(), vm_password=vm_password)
             
-            # Store allocation info in memory
-            self.client_allocations[username] = {
+            # Store allocation info in memory (for backward compatibility and quick access)
+            # Password is now in database, but keep in memory for performance
+            self.client_allocations[reservation.id] = {  # ✅ Changed from username to reservation.id
                 'nodes': allocated_nodes,
                 'username': username,
                 'password': vm_password,
@@ -100,6 +101,7 @@ class VMController:
             
             return jsonify({
                 'status': 'success',
+                'reservation_id': reservation.id,
                 'redirect': f"/reservation/{reservation.id}"
             })
             
@@ -123,9 +125,15 @@ class VMController:
         if not reservation:
             return redirect(url_for('main.dashboard_home'))
         
+        # Get decrypted password for SSH access (if reservation is active)
+        vm_password = None
+        if reservation.get('status') == 'active':
+            vm_password = self.user_db.get_reservation_password(reservation_id)
+        
         return render_template('reservation_detail.html',
                              username=username,
-                             reservation=reservation)
+                             reservation=reservation,
+                             vm_password=vm_password)
     
     def _save_final_stats_before_status_change(self, username, reservation_id, new_status):
         """Save final stats before changing reservation status"""
@@ -157,20 +165,38 @@ class VMController:
             data = request.json
             reservation_id = data.get('reservation_id')
             
+            if not reservation_id:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Reservation ID required'
+                })
+            
+            # Get reservation to find nodes
+            reservations = self.user_db.get_user_reservations(username)
+            reservation = next((r for r in reservations if r['id'] == reservation_id), None)
+            
+            if not reservation:
+                return jsonify({
+                    'status': 'error',
+                    'message': 'Reservation not found'
+                })
+            
             # Save final stats before releasing
-            if reservation_id:
                 self._save_final_stats_before_status_change(username, reservation_id, 'released')
             
-            # Release containers
-            result = self.docker_service.release_containers(username)
+            # Release ONLY containers for THIS reservation (not all user containers)
+            nodes = reservation.get('nodes', [])
+            if nodes:
+                result = self.docker_service.release_containers_by_nodes(username, nodes)
+                if not result.get('success'):
+                    print(f"[RELEASE ERROR] {result.get('error', 'Unknown error')}")
             
             # Update reservation status
-            if reservation_id:
                 self.user_db.update_reservation_status(username, reservation_id, 'released')
             
-            # Remove from memory
-            if username in self.client_allocations:
-                del self.client_allocations[username]
+            # Remove from memory (using reservation_id as key now)
+            if reservation_id in self.client_allocations:
+                del self.client_allocations[reservation_id]
             
             return jsonify({
                 'status': 'success',

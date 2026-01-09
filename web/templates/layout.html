@@ -199,26 +199,22 @@
                 // Check if we're on reservation detail page
                 const isReservationDetail = window.location.pathname.includes('/reservation/');
                 
-                // Check if we just redirected from reservation detail (has refresh=true in URL)
-                // This means notification was already shown on reservation detail page
-                const urlParams = new URLSearchParams(window.location.search);
-                const justRedirected = urlParams.get('refresh') === 'true';
-                
-                // Check if notification has already been shown (to prevent duplicates)
-                const alreadyShown = typeof hasShownExpiredNotification !== 'undefined' && hasShownExpiredNotification;
+                // Check if we just redirected from expired reservation
+                // dashboard_home.js sets this flag when detecting refresh=true
+                const justRedirected = typeof window.redirectedFromExpiredReservation !== 'undefined' && 
+                                     window.redirectedFromExpiredReservation === true;
                 
                 // Only show notification if:
                 // 1. NOT on reservation detail page (reservation_detail.js handles it there)
-                // 2. NOT just redirected from reservation detail (notification was already shown)
-                // 3. NOT already shown via global flag
-                if (!isReservationDetail && !justRedirected && !alreadyShown) {
-                    const count = data.expired_count || 1;
-                    const message = count === 1 
-                        ? 'One of your reservations has expired.'
-                        : count + ' of your reservations have expired.';
-                    if (typeof Notification !== 'undefined') {
-                        Notification.warning(message, 3000);
-                    }
+                // 2. NOT just redirected from expired reservation (notification was already shown)
+                if (!isReservationDetail && !justRedirected) {
+                const count = data.expired_count || 1;
+                const message = count === 1 
+                    ? 'One of your reservations has expired.'
+                    : count + ' of your reservations have expired.';
+                if (typeof Notification !== 'undefined') {
+                    Notification.warning(message, 3000);
+                }
                 }
                 
                 // Check if we're on the dashboard/home page

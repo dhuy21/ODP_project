@@ -55,6 +55,23 @@
                         {{ reservation.packages|join(', ') if reservation.packages else 'None' }}
                     </div>
                 </div>
+                
+                {% if vm_password and reservation.status == 'active' %}
+                <div class="meta-item ssh-credentials">
+                    <div class="meta-label">
+                        <i class="fas fa-key"></i> SSH Password
+                    </div>
+                    <div class="password-field">
+                        <input type="password" id="sshPassword" value="{{ vm_password }}" readonly>
+                        <button type="button" class="btn-icon" onclick="togglePasswordVisibility()" title="Show/Hide Password">
+                            <i class="fas fa-eye" id="toggleIcon"></i>
+                        </button>
+                        <button type="button" class="btn-icon" onclick="copyPassword()" title="Copy Password">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>
+                </div>
+                {% endif %}
             </div>
         </div>
         
@@ -148,6 +165,36 @@
     // Create wrapper function for the release button
     window.releaseReservation = function() {
         performReleaseReservation('{{ username }}', '{{ reservation.id }}', redirectUrl);
+    };
+    
+    // Password visibility toggle
+    window.togglePasswordVisibility = function() {
+        const passwordInput = document.getElementById('sshPassword');
+        const toggleIcon = document.getElementById('toggleIcon');
+        
+        if (passwordInput.type === 'password') {
+            passwordInput.type = 'text';
+            toggleIcon.classList.remove('fa-eye');
+            toggleIcon.classList.add('fa-eye-slash');
+        } else {
+            passwordInput.type = 'password';
+            toggleIcon.classList.remove('fa-eye-slash');
+            toggleIcon.classList.add('fa-eye');
+        }
+    };
+    
+    // Copy password to clipboard
+    window.copyPassword = function() {
+        const passwordInput = document.getElementById('sshPassword');
+        passwordInput.select();
+        document.execCommand('copy');
+        
+        // Visual feedback
+        if (typeof Notification !== 'undefined') {
+            Notification.success('Password copied to clipboard!');
+        } else {
+            alert('Password copied to clipboard!');
+        }
     };
 </script>
 {% endblock %}

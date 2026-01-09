@@ -7,6 +7,16 @@ POOL_SUBNET="172.30.0.0/24"
 POOL_BASE_PORT=3000
 STATE_FILE="/tmp/pool_state.json"
 
+# Try to use venv python if available, fallback to system python
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "${SCRIPT_DIR}/venv/bin/python3" ]; then
+    PYTHON="${SCRIPT_DIR}/venv/bin/python3"
+elif [ -f "${SCRIPT_DIR}/venv/bin/python" ]; then
+    PYTHON="${SCRIPT_DIR}/venv/bin/python"
+else
+    PYTHON="python3"
+fi
+
 # --- State file updates must be serialized ---
 # We run release/check-expired in parallel. Without locking, concurrent writes can corrupt JSON,
 # causing `status` to show "unknown" for all containers.
@@ -80,7 +90,6 @@ init_pool() {
     # Start pool containers
     for i in $(seq 1 "${POOL_SIZE}"); do
         NAME="pool-node-${i}"
-        IP="172.30.0.$((10+i))"
         PORT=$((POOL_BASE_PORT+i-1))
         
         # Remove existing container if any
@@ -89,9 +98,12 @@ init_pool() {
         echo "   - Starting ${NAME} on port ${PORT}"
         docker run -d --restart unless-stopped \
             --name "${NAME}" \
-            --network "${POOL_NETWORK}" --ip "${IP}" \
+            --network "${POOL_NETWORK}" \
             -p "127.0.0.1:${PORT}:22" \
             pool-node:latest >/dev/null
+        
+        # Query actual IP from Docker (after creation)
+        IP=$(docker inspect -f '{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${NAME}")
         
         # Mark as free in state file
         python3 - "${STATE_FILE}" "${NAME}" "free" "" "0" <<'PY'
@@ -371,7 +383,7 @@ PY
 
 # Show pool status
 show_status() {
-    echo "==> Pool Status"
+    echo "==> Pool Status (from MySQL Database)"
     echo ""
     printf "%-20s %-15s %-10s %-20s %-25s\n" "Container" "IP" "Port" "Status" "Expires"
     echo "--------------------------------------------------------------------------------------------"
@@ -384,36 +396,48 @@ show_status() {
             ip=$(docker inspect --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}' "${name}" 2>/dev/null || echo "-")
             port=$(docker port "${name}" 22 2>/dev/null | cut -d: -f2 || echo "-")
             
-            status=$(python3 - "${STATE_FILE}" "${name}" <<'PY'
-import sys, json
+            # Query MySQL database instead of JSON file
+            read -r status client expiry <<< $("${PYTHON}" - "${name}" 2>/dev/null <<'PY'
+import sys, os
 try:
-    with open(sys.argv[1], 'r') as f:
-        state = json.load(f)
-    print(state.get(sys.argv[2], {}).get("status", "unknown"))
-except:
-    print("unknown")
-PY
-)
-            
-            client=$(python3 - "${STATE_FILE}" "${name}" <<'PY'
-import sys, json
-try:
-    with open(sys.argv[1], 'r') as f:
-        state = json.load(f)
-    print(state.get(sys.argv[2], {}).get("client", ""))
-except:
-    print("")
-PY
-)
-            
-            expiry=$(python3 - "${STATE_FILE}" "${name}" <<'PY'
-import sys, json
-try:
-    with open(sys.argv[1], 'r') as f:
-        state = json.load(f)
-    print(state.get(sys.argv[2], {}).get("expiry", 0))
-except:
-    print(0)
+    import mysql.connector
+    from dotenv import load_dotenv
+    from pathlib import Path
+    
+    # Load .env file from web directory
+    script_dir = os.path.dirname(os.path.abspath(__file__)) if '__file__' in dir() else os.getcwd()
+    env_path = os.path.join(script_dir, 'web', '.env')
+    if not os.path.exists(env_path):
+        env_path = os.path.join(script_dir, '.env')
+    if os.path.exists(env_path):
+        load_dotenv(env_path)
+    
+    # Connect to MySQL
+    conn = mysql.connector.connect(
+        host=os.environ.get('MYSQL_HOST', 'localhost'),
+        user=os.environ.get('MYSQL_USER', 'root'),
+        password=os.environ.get('MYSQL_PASSWORD', ''),
+        database=os.environ.get('MYSQL_DB', 'odp_platform')
+    )
+    cursor = conn.cursor()
+    
+    # Query node info
+    cursor.execute("SELECT status, owner, expiry FROM pool_nodes WHERE name = %s", (sys.argv[1],))
+    result = cursor.fetchone()
+    
+    cursor.close()
+    conn.close()
+    
+    if result:
+        status, owner, expiry = result
+        owner = owner if owner else ""
+        expiry = int(expiry) if expiry else 0
+        print(f"{status} {owner} {expiry}")
+    else:
+        print("free  0")
+except Exception:
+    # Fallback to free if database query fails
+    print("free  0")
 PY
 )
             

@@ -93,8 +93,7 @@ function initFormSubmission() {
                 packages: form.packages.value
             };
             
-            // Store password for terminal use
-            sessionStorage.setItem('password', data.password);
+            // Password will be stored per reservation after creation (not globally)
             
             try {
                 const response = await fetch('/provision', {
@@ -106,6 +105,8 @@ function initFormSubmission() {
                 const result = await response.json();
                 
                 if (result.status === 'success') {
+                    // Password is now stored encrypted in database, no need for sessionStorage
+                    // This improves security and reliability (works even after closing tab)
                 Notification.success('Reservation created successfully! Redirecting...', 3000);
                     setTimeout(() => {
                         window.location.href = result.redirect;
@@ -223,6 +224,10 @@ function initReservationUpdates() {
     // Also check on page load if redirected from reservation_detail
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('refresh') === 'true') {
+        // Set flag to prevent duplicate notification from WebSocket
+        // This flag persists even after URL cleanup
+        window.redirectedFromExpiredReservation = true;
+        
         // Reload immediately on page load if refresh flag is present
         setTimeout(() => {
             // Update both together to maintain synchronization

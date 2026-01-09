@@ -4,6 +4,7 @@ import os
 import hashlib
 from datetime import datetime
 from config.config import Config
+from utils.encryption import PasswordEncryption
 
 class UserDatabase:
     def __init__(self):
@@ -14,6 +15,8 @@ class UserDatabase:
             'password': os.environ.get('MYSQL_PASSWORD', 'root'),  # Change your password
             'database': os.environ.get('MYSQL_DB', 'odp_platform')
         }
+        # Initialize password encryption
+        self.password_encryption = PasswordEncryption()
         # Create default admin user if it doesn't exist
         self._create_default_users()
 
@@ -204,8 +207,8 @@ class UserDatabase:
             if cursor: cursor.close()
             if conn: conn.close()
 
-    def add_reservation(self, username, reservation_data):
-        """Add a reservation to user"""
+    def add_reservation(self, username, reservation_data, vm_password=None):
+        """Add a reservation to user with encrypted VM password"""
         conn = None
         cursor = None
         try:
@@ -216,11 +219,16 @@ class UserDatabase:
             if not user_res:
                 return False
 
+            # Encrypt VM password if provided
+            encrypted_password = None
+            if vm_password:
+                encrypted_password = self.password_encryption.encrypt(vm_password)
+
             sql = """
                 INSERT INTO reservations
                 (id, user_id, vm_count, duration_minutes, status,
-                 created_at, expires_at, nodes, final_stats, packages)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                 created_at, expires_at, nodes, final_stats, packages, vm_password_encrypted)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """
             cursor.execute(sql, (
                 reservation_data['id'],
@@ -232,7 +240,8 @@ class UserDatabase:
                 reservation_data.get('expires_at'),
                 json.dumps(reservation_data.get('nodes', [])),
                 json.dumps(reservation_data.get('final_stats', {})),
-                json.dumps(reservation_data.get('packages', []))
+                json.dumps(reservation_data.get('packages', [])),
+                encrypted_password
             ))
             conn.commit()
             return True
@@ -275,6 +284,30 @@ class UserDatabase:
             )
             conn.commit()
             return True
+        finally:
+            if cursor: cursor.close()
+            if conn: conn.close()
+    
+    def get_reservation_password(self, reservation_id):
+        """Get decrypted VM password for a reservation"""
+        conn = None
+        cursor = None
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute(
+                "SELECT vm_password_encrypted FROM reservations WHERE id = %s",
+                (reservation_id,)
+            )
+            result = cursor.fetchone()
+            
+            if result and result['vm_password_encrypted']:
+                # Decrypt password
+                return self.password_encryption.decrypt(result['vm_password_encrypted'])
+            return None
+        except Exception as e:
+            print(f"Error getting reservation password: {e}")
+            return None
         finally:
             if cursor: cursor.close()
             if conn: conn.close()

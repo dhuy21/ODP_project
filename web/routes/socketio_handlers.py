@@ -11,6 +11,11 @@ def register_socketio_handlers(socketio, ssh_controller, vm_controller):
             username = session['username']
             join_room(username)
     
+    @socketio.on('request_reservation_info')
+    def handle_request_reservation_info(data):
+        """Handle request for reservation info to get correct password"""
+        ssh_controller.handle_request_reservation_info(data)
+    
     @socketio.on('connect_ssh')
     def handle_ssh_connection(data):
         session_id = request.sid

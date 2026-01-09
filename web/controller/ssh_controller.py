@@ -20,6 +20,49 @@ class SSHController:
         
         return render_template('terminal.html', username=username, node_name=node_name)
     
+    def handle_request_reservation_info(self, data):
+        """Handle request for reservation info - returns reservation_id and password from database"""
+        try:
+            username = data['username']
+            node_name = data['node_name']
+            
+            # Check authorization
+            if 'username' not in session or session['username'] != username:
+                emit('reservation_info', {'error': 'Unauthorized'})
+                return
+            
+            # Find which reservation this node belongs to
+            reservations = self.user_db.get_user_reservations(username)
+            
+            for res in reservations:
+                if res.get('status') == 'active':
+                    # Check if not expired
+                    if time.time() < res.get('expires_at', 0):
+                        # Check if this node belongs to this reservation
+                        for node in res.get('nodes', []):
+                            if node['name'] == node_name:
+                                # Found it! Get password from database
+                                reservation_id = res['id']
+                                password = self.user_db.get_reservation_password(reservation_id)
+                                
+                                if not password:
+                                    emit('reservation_info', {'error': 'Password not found for this reservation'})
+                                    return
+                                
+                                emit('reservation_info', {
+                                    'reservation_id': reservation_id,
+                                    'username': username,
+                                    'node_name': node_name,
+                                    'password': password  # Send decrypted password from database
+                                })
+                                return
+            
+            emit('reservation_info', {'error': 'No active reservation found for this container'})
+            
+        except Exception as e:
+            print(f"Error in handle_request_reservation_info: {e}")
+            emit('reservation_info', {'error': str(e)})
+    
     def handle_connect(self, data, session_id, vm_controller):
         """Handle SSH connection"""
         try:
@@ -104,6 +147,10 @@ class SSHController:
     def handle_disconnect(self, session_id):
         """Handle disconnect"""
         self.ssh_service.remove_session(session_id)
+    
+    def disconnect_sessions_by_nodes(self, username, nodes):
+        """Disconnect SSH sessions for specific nodes"""
+        return self.ssh_service.disconnect_sessions_by_nodes(username, nodes)
     
     def disconnect_user_sessions(self, username):
         """Disconnect all sessions for a user"""

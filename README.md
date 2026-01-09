@@ -27,6 +27,14 @@ A comprehensive platform for provisioning and orchestrating containerized resour
 - **Auto-Recovery**: Automatically replaces missing or failed resources
 - **Web-Based Interface**: User-friendly dashboard for managing reservations
 
+### Key Improvements (v2.0)
+
+- **Automatic IP Synchronization**: Container IPs are auto-detected from Docker and synced with database
+- **Secure Password Storage**: VM passwords encrypted with Fernet (AES-128) before database storage
+- **Granular Resource Management**: Release/disconnect resources per reservation, not per user
+- **Real-time UI Updates**: WebSocket-based synchronization for immediate dashboard updates
+- **Robust Container Cleanup**: Force-kill processes and force-delete users for reliable resource release
+
 ## Features
 
 - **User Authentication**: Secure login/registration system with role-based access (Admin/User)
@@ -37,17 +45,20 @@ A comprehensive platform for provisioning and orchestrating containerized resour
 - **Web Terminal**: Built-in SSH terminal for direct VM access
 - **Admin Dashboard**: Comprehensive admin panel for user and resource management
 - **WebSocket Support**: Real-time updates via Socket.IO
+- **Database Synchronization**: Automatic synchronization between Docker containers and MySQL database
+- **Password Encryption**: Secure VM password storage with Fernet encryption
 
 ## Architecture
 
 This project uses a modern **MVC (Model-View-Controller)** architecture:
 
 - **Backend**: Python 3.8+ with Flask framework
-- **Database**: MySQL (replaces JSON file storage)
+- **Database**: MySQL with automatic Docker IP synchronization
 - **Container Management**: Docker SDK for container orchestration
 - **Frontend**: HTML/CSS/JavaScript with Jinja2 templating
 - **Real-time**: Flask-SocketIO for WebSocket communication
 - **SSH**: Paramiko for secure shell connections
+- **Encryption**: Fernet (AES-128) for VM password encryption
 
 
 ## Prerequisites
@@ -103,6 +114,7 @@ pip install -r requirements.txt
 - docker 7.1.2
 - paramiko 3.3.1
 - pyyaml 6.0.1
+- cryptography 41.0.4
 
 ### Step 4: Install and Start MySQL
 
@@ -191,7 +203,7 @@ Edit `web/.env` file:
 # MySQL Database Configuration
 MYSQL_HOST=localhost
 MYSQL_USER=root
-MYSQL_PASSWORD=your_mysql_password
+MYSQL_PASSWORD="your_mysql_password"  # Use quotes if password contains special characters (#, $, etc.)
 MYSQL_DB=odp_platform
 
 # Flask Application Configuration
@@ -205,7 +217,8 @@ FLASK_DEBUG=True
 
 **Important Security Notes:**
 - Change `MYSQL_PASSWORD` to your actual MySQL root password
-- Generate a strong `SECRET_KEY` for production
+- **Use quotes around password** if it contains special characters (e.g., `#`, `$`, `!`)
+- Generate a strong `SECRET_KEY` for production (used for password encryption)
 - Set `FLASK_DEBUG=False` in production environments
 - Never commit `.env` file to version control
 
@@ -231,14 +244,20 @@ python3 init_pool.py
 This will:
 - Create a Docker network (`pool-network`)
 - Create 30 container workers (pool-node-1 to pool-node-30)
-- Initialize the pool in the database
+- Auto-detect container IP addresses from Docker
+- Initialize the pool in the database with actual IPs
 
 **Expected output:**
 ```
 Creating Docker network...
 Creating containers...
+Started pool-node-1 at 172.30.0.2:3000 -> DB Synced
+Started pool-node-2 at 172.30.0.3:3001 -> DB Synced
+...
 Pool initialized successfully!
 ```
+
+**Note:** IP addresses are automatically assigned by Docker and synchronized with the database. No manual IP configuration needed.
 
 ### Step 2: Start the Web Application
 
@@ -329,6 +348,28 @@ http://localhost:5001
 - Connect to VMs via built-in SSH terminal
 - Execute commands directly in containers
 
+### Pool Management CLI
+
+Check pool status from command line:
+
+```bash
+cd src
+./pool_manager.sh status
+```
+
+This will display:
+- Container names and IP addresses (synced with database)
+- Current status (free/allocated)
+- Owner information for allocated containers
+- Expiration time for active reservations
+
+**Other commands:**
+```bash
+./pool_manager.sh init    # Initialize pool (alternative to init_pool.py)
+./pool_manager.sh start   # Start all pool containers
+./pool_manager.sh stop    # Stop all pool containers
+```
+
 ## Project Structure
 
 ```
@@ -344,19 +385,25 @@ src/
 │   ├── models/                # Data models
 │   │   ├── user.py           # User database model
 │   │   ├── vm.py             # VM/Reservation models
-│   │   └── pool.py           # Pool database model
+│   │   ├── pool.py           # Pool database model
+│   │   └── ssh_session.py    # SSH session model
 │   ├── controllers/           # Business logic
 │   │   ├── auth_controller.py
 │   │   ├── vm_controller.py
+│   │   ├── ssh_controller.py
 │   │   └── dashboard_controller.py
 │   ├── routes/                # URL routes
 │   │   ├── auth_routes.py
 │   │   ├── main_routes.py
-│   │   └── provision_routes.py
+│   │   ├── provision_routes.py
+│   │   └── socketio_handlers.py
 │   ├── services/              # External services
 │   │   ├── docker_service.py
 │   │   ├── ssh_service.py
-│   │   └── ansible_service.py
+│   │   ├── ansible_service.py
+│   │   └── stats_service.py
+│   ├── utils/                 # Utility functions
+│   │   └── encryption.py     # Password encryption/decryption
 │   ├── templates/             # HTML templates
 │   ├── static/                # CSS, JS, images
 │   └── data/                  # Legacy JSON data (for migration)
@@ -449,6 +496,56 @@ src/
    pip list | grep python-dotenv
    ```
 
+### Pool Status Mismatch
+
+**Error**: `pool_manager.sh status` shows different data than database
+
+**Cause:** IP addresses not synchronized between Docker containers and database
+
+**Solutions:**
+1. Check actual container IPs:
+   ```bash
+   docker inspect pool-node-1 --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
+   ```
+
+2. Verify database IPs match Docker:
+   ```bash
+   mysql -u root -p odp_platform -e "SELECT name, ip, status FROM pool_nodes LIMIT 5;"
+   ```
+
+3. If mismatch, reinitialize the pool:
+   ```bash
+   python3 init_pool.py
+   ```
+
+**Note:** The system now auto-detects IPs from Docker, ensuring synchronization. Manual IP configuration is no longer required.
+
+### SSH Connection Failed
+
+**Error**: "Failed to connect to SSH" when accessing terminal
+
+**Solutions:**
+1. Verify reservation is still active (not expired)
+2. Check container is running:
+   ```bash
+   docker ps | grep pool-node
+   ```
+3. Verify user exists in container:
+  ```bash
+   docker exec pool-node-1 id your_username
+   ```
+4. Check VM password encryption (requires valid SECRET_KEY in `.env`)
+
+### Password Special Characters Issue
+
+**Error**: MySQL access denied with password containing `#` or other special characters
+
+**Solution:** Quote the password in `.env` file:
+```env
+MYSQL_PASSWORD="myPass#123"  # Correct - with quotes
+# MYSQL_PASSWORD=myPass#123   # Wrong - without quotes
+```
+
 ## Development
 
 ### Running in Development Mode
@@ -493,11 +590,13 @@ Application logs are printed to console. For production, consider:
 
 1. **Change Default Passwords**: Always change default admin password
 2. **Environment Variables**: Never commit `.env` files
-3. **Secret Key**: Use strong, randomly generated secret keys
-4. **Database Access**: Use dedicated database user (not root) in production
-5. **HTTPS**: Use HTTPS in production (configure reverse proxy)
-6. **Firewall**: Restrict access to MySQL port (3306)
-7. **Docker Security**: Keep Docker and containers updated
+3. **Secret Key**: Use strong, randomly generated secret keys (used for VM password encryption)
+4. **Password Encryption**: VM passwords are encrypted using Fernet (AES-128) before database storage
+5. **Database Access**: Use dedicated database user (not root) in production
+6. **HTTPS**: Use HTTPS in production (configure reverse proxy)
+7. **Firewall**: Restrict access to MySQL port (3306)
+8. **Docker Security**: Keep Docker and containers updated
+9. **SSH Security**: VM passwords are transmitted securely via WebSocket and never stored in browser storage
 
 ## Additional Resources
 

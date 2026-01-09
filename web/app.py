@@ -87,39 +87,50 @@ def start_background_tasks(ssh_controller, socketio):
                 expired_batch = []
                 
                 # Collect expired reservations
-                expired_users = set()  # Track users with expired reservations
                 
                 for reservation in active_reservations:
                     expires_at = reservation.get('expires_at', 0)
                     if current_time > expires_at:
                         username = reservation.get('owner')
                         reservation_id = reservation.get('id')
+                        nodes = reservation.get('nodes', [])
                         
                         # Save final stats before marking as expired
                         from services.stats_service import StatsService
                         stats_service = StatsService()
-                        final_stats = stats_service.get_reservation_stats(reservation.get('nodes', []))
+                        final_stats = stats_service.get_reservation_stats(nodes)
                         if final_stats:
                             reservation['final_stats'] = final_stats
                             print(f"[STATS] Saved final stats for expired reservation {reservation_id[:8]}...")
                         
                         expired_batch.append(reservation)
-                        expired_users.add(username)
                         
-                        # Disconnect SSH sessions
-                        ssh_controller.disconnect_user_sessions(username)
+                        # Disconnect SSH sessions ONLY for nodes of this expired reservation
+                        # This preserves SSH sessions for other active reservations of the same user
+                        if nodes:
+                            disconnected = ssh_controller.disconnect_sessions_by_nodes(username, nodes)
+                            if disconnected > 0:
+                                print(f"[SSH] Disconnected {disconnected} SSH sessions for expired reservation {reservation_id[:8]}")
                 
                 # Batch update all expired reservations (single write)
                 if expired_batch:
                     user_db.batch_update_expired(expired_batch)
                     
-                    # Release containers immediately for each user with expired reservations
-                    for username in expired_users:
-                        result = docker_service.release_containers(username)
-                        if result.get('success'):
-                            print(f"[RELEASE] Released containers for expired reservation of user {username}")
+                    # Release containers for EACH expired reservation (not all user containers)
+                    # This ensures only nodes of expired reservations are released
+                    for reservation in expired_batch:
+                        username = reservation.get('owner')
+                        reservation_id = reservation.get('id')
+                        nodes = reservation.get('nodes', [])
+                        
+                        if nodes:
+                            result = docker_service.release_containers_by_nodes(username, nodes)
+                            if result.get('success'):
+                                print(f"[RELEASE] Released {len(nodes)} containers for expired reservation {reservation_id[:8]}")
+                            else:
+                                print(f"[RELEASE ERROR] Failed to release containers for reservation {reservation_id[:8]}: {result.get('error', 'Unknown error')}")
                         else:
-                            print(f"[RELEASE ERROR] Failed to release containers for {username}: {result.get('error', 'Unknown error')}")
+                            print(f"[RELEASE WARNING] No nodes found for reservation {reservation_id[:8]}")
                     
                     # Emit WebSocket events for each expired reservation
                     for reservation in expired_batch:
