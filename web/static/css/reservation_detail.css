@@ -283,15 +283,39 @@
     width: 100%;
 }
 
-.password-field input {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    border: 1px solid #d1d5db;
-    border-radius: 8px;
-    font-family: 'Courier New', monospace;
-    font-size: 0.95rem;
-    background: white;
-    transition: all 0.2s ease;
+.password-input {
+    flex: 1 !important;
+    padding: 0.75rem 1rem !important;
+    border: 1px solid #d1d5db !important;
+    border-radius: 8px !important;
+    font-family: 'Courier New', monospace !important;
+    font-size: 1.2rem !important;
+    background: white !important;
+    color: #059669 !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.1em !important;
+    user-select: all !important;
+    -webkit-user-select: all !important;
+    -moz-user-select: all !important;
+    cursor: text !important;
+}
+
+.password-input:focus {
+    outline: none !important;
+    border-color: #059669 !important;
+    box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.1) !important;
+}
+
+.password-input[type="password"] {
+    font-size: 1.5rem !important;
+    letter-spacing: 0.3em !important;
+}
+
+.password-input::placeholder {
+    font-size: 0.9rem !important;
+    letter-spacing: normal !important;
+    color: #9ca3af !important;
+    font-weight: normal !important;
 }
 
 .password-field input:focus {

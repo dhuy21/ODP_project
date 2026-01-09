@@ -180,4 +180,4 @@ if __name__ == '__main__':
     print("🌐 Server starting on http://0.0.0.0:5001")
     print("="*60)
     
-    socketio.run(app, debug=Config.DEBUG, host='0.0.0.0', port=5001)
+    socketio.run(app, debug=Config.DEBUG, host='0.0.0.0', port=5001, allow_unsafe_werkzeug=True)

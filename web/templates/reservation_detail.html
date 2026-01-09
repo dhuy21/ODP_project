@@ -56,18 +56,37 @@
                     </div>
                 </div>
                 
-                {% if vm_password and reservation.status == 'active' %}
+                {% if reservation.status == 'active' %}
                 <div class="meta-item ssh-credentials">
                     <div class="meta-label">
                         <i class="fas fa-key"></i> SSH Password
+                        {% if vm_password %}
+                        <span style="font-size: 0.7rem; color: #10b981;">(Available)</span>
+                        {% else %}
+                        <span style="font-size: 0.7rem; color: #ef4444;">(Not Available)</span>
+                        {% endif %}
                     </div>
-                    <div class="password-field">
-                        <input type="password" id="sshPassword" value="{{ vm_password }}" readonly>
-                        <button type="button" class="btn-icon" onclick="togglePasswordVisibility()" title="Show/Hide Password">
-                            <i class="fas fa-eye" id="toggleIcon"></i>
+                    <div style="display: flex; gap: 8px; align-items: stretch;">
+                        <input 
+                            type="password" 
+                            id="sshPassword" 
+                            value="{{ vm_password if vm_password else '' }}" 
+                            readonly 
+                            placeholder="{% if not vm_password %}Password not found{% endif %}"
+                            style="flex: 1; padding: 12px 16px; border: 2px solid #10b981; border-radius: 8px 0 0 8px; font-size: 18px; font-weight: 700; color: #059669; background: white; font-family: monospace; min-width: 200px;">
+                        <button 
+                            type="button" 
+                            onclick="togglePasswordVisibility()" 
+                            title="Show/Hide Password"
+                            style="padding: 0 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-eye" id="toggleIcon" style="font-size: 16px;"></i>
                         </button>
-                        <button type="button" class="btn-icon" onclick="copyPassword()" title="Copy Password">
-                            <i class="fas fa-copy"></i>
+                        <button 
+                            type="button" 
+                            onclick="copyPassword()" 
+                            title="Copy to Clipboard"
+                            style="padding: 0 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 0 8px 8px 0; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;">
+                            <i class="fas fa-copy" style="font-size: 16px;"></i>
                         </button>
                     </div>
                 </div>
@@ -196,5 +215,20 @@
             alert('Password copied to clipboard!');
         }
     };
+    
+    // Add hover effects to buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        const buttons = document.querySelectorAll('button[onclick*="Password"]');
+        buttons.forEach(btn => {
+            btn.addEventListener('mouseenter', function() {
+                this.style.transform = 'translateY(-2px)';
+                this.style.boxShadow = '0 4px 12px rgba(5, 150, 105, 0.4)';
+            });
+            btn.addEventListener('mouseleave', function() {
+                this.style.transform = 'translateY(0)';
+                this.style.boxShadow = 'none';
+            });
+        });
+    });
 </script>
 {% endblock %}
