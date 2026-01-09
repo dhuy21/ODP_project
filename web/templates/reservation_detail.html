@@ -1,234 +1,278 @@
-{% extends "layout.html" %}
-
-{% block title %}Reservation Details - {{ reservation.id[:8] }}{% endblock %}
-
-{% block styles %}
-<link rel="stylesheet" href="{{ url_for('static', filename='css/reservation_detail.css') }}">
-{% endblock %}
-
-{% block content %}
-<meta name="reservation-id" content="{{ reservation.id }}">
+{% extends "layout.html" %} {% block title %}Reservation Details - {{
+reservation.id[:8] }}{% endblock %} {% block styles %}
+<link
+  rel="stylesheet"
+  href="{{ url_for('static', filename='css/reservation_detail.css') }}"
+/>
+{% endblock %} {% block content %}
+<meta name="reservation-id" content="{{ reservation.id }}" />
 <div class="reservation-detail">
-    <a href="{{ url_for('main.dashboard_home') }}" class="back-button">
-        ← Back to Dashboard
-    </a>
-        
-        <div class="reservation-header">
-            <h1><i class="fas fa-server"></i> Reservation Details</h1>
-            <code>
-                ID: {{ reservation.id }}
-            </code>
-            
-            {% if reservation.status == 'active' %}
-            <div class="countdown-timer">
-                <div class="countdown-label"><i class="fas fa-clock"></i> Time Remaining</div>
-                <div id="countdown" class="countdown-value" 
-                     data-expires="{{ reservation.expires_at }}">
-                    Calculating...
-                </div>
-            </div>
-            {% endif %}
-            
-            <div class="reservation-meta">
-                <div class="meta-item">
-                    <div class="meta-label">Status</div>
-                    <div class="meta-value">
-                        <span class="badge badge-{% if reservation.status == 'active' %}success{% elif reservation.status == 'expired' %}warning{% else %}info{% endif %}">
-                            {{ reservation.status }}
-                        </span>
-                    </div>
-                </div>
-                
-                <div class="meta-item">
-                    <div class="meta-label">Virtual Machines</div>
-                    <div class="meta-value">{{ reservation.vm_count }}</div>
-                </div>
-                
-                <div class="meta-item">
-                    <div class="meta-label">Duration</div>
-                    <div class="meta-value">{{ reservation.duration }} min</div>
-                </div>
-                
-                <div class="meta-item">
-                    <div class="meta-label">Packages</div>
-                    <div class="meta-value small-text">
-                        {{ reservation.packages|join(', ') if reservation.packages else 'None' }}
-                    </div>
-                </div>
-                
-                {% if reservation.status == 'active' %}
-                <div class="meta-item ssh-credentials">
-                    <div class="meta-label">
-                        <i class="fas fa-key"></i> SSH Password
-                        {% if vm_password %}
-                        <span style="font-size: 0.7rem; color: #10b981;">(Available)</span>
-                        {% else %}
-                        <span style="font-size: 0.7rem; color: #ef4444;">(Not Available)</span>
-                        {% endif %}
-                    </div>
-                    <div style="display: flex; gap: 8px; align-items: stretch;">
-                        <input 
-                            type="password" 
-                            id="sshPassword" 
-                            value="{{ vm_password if vm_password else '' }}" 
-                            readonly 
-                            placeholder="{% if not vm_password %}Password not found{% endif %}"
-                            style="flex: 1; padding: 12px 16px; border: 2px solid #10b981; border-radius: 8px 0 0 8px; font-size: 18px; font-weight: 700; color: #059669; background: white; font-family: monospace; min-width: 200px;">
-                        <button 
-                            type="button" 
-                            onclick="togglePasswordVisibility()" 
-                            title="Show/Hide Password"
-                            style="padding: 0 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-eye" id="toggleIcon" style="font-size: 16px;"></i>
-                        </button>
-                        <button 
-                            type="button" 
-                            onclick="copyPassword()" 
-                            title="Copy to Clipboard"
-                            style="padding: 0 16px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border: none; border-radius: 0 8px 8px 0; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center;">
-                            <i class="fas fa-copy" style="font-size: 16px;"></i>
-                        </button>
-                    </div>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-        
-        <div class="data-table-container">
-            <div class="table-header">
-                <h2><i class="fas fa-desktop"></i> Your Virtual Machines</h2>
-            </div>
-            
-            <div class="nodes-grid padded">
-                {% for node in reservation.nodes %}
-                <div class="node-card">
-                    <div class="node-header">
-                        <div>
-                            <div class="node-name">{{ node.name }}</div>
-                            <span class="badge badge-success success-margin">
-                                Running
-                            </span>
-                        </div>
-                    </div>
-                    
-                    <div class="node-info">
-                        <div class="node-info-item">
-                            <i class="fas fa-globe"></i> <strong>IP:</strong> {{ node.ip }}
-                        </div>
-                        <div class="node-info-item">
-                            <i class="fas fa-plug"></i> <strong>SSH Port:</strong> {{ node.port }}
-                        </div>
-                        <div class="node-info-item">
-                            <i class="fas fa-hdd"></i> <strong>Platform:</strong> Ubuntu 22.04
-                        </div>
+  <a href="{{ url_for('main.dashboard_home') }}" class="back-button">
+    ← Back to Dashboard
+  </a>
 
-                        <div class="stats-container">
-                            <div class="stats-row">
-                                <span class="stats-label">CPU Usage:</span>
-                                <span class="stats-value" id="cpu-{{ node.name }}">
-                                    <span class="loading-stats">Loading...</span>
-                                </span>
-                            </div>
-                            <div class="stats-row">
-                                <span class="stats-label">Memory:</span>
-                                <span class="stats-value" id="mem-{{ node.name }}">
-                                    <span class="loading-stats">Loading...</span>
-                                </span>
-                            </div>
-                            <div class="stats-row">
-                                <span class="stats-label">Memory %:</span>
-                                <span class="stats-value" id="mem-perc-{{ node.name }}">
-                                    <span class="loading-stats">Loading...</span>
-                                </span>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {% if reservation.status == 'active' %}
-                    <a href="{{ url_for('terminal.terminal', username=username, node_name=node.name) }}" 
-                       class="btn btn-primary full-width">
-                        <i class="fas fa-terminal"></i> Open Terminal
-                    </a>
-                    {% else %}
-                    <button class="btn disabled-btn" disabled>
-                        <i class="fas fa-lock"></i> Reservation Inactive
-                    </button>
-                    {% endif %}
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-        
-        {% if reservation.status == 'active' %}
-        <div class="action-buttons">
-            <button id="release-btn" onclick="releaseReservation()" class="btn btn-danger">
-                <i class="fas fa-trash"></i> <span class="btn-text">Release Resources</span>
-            </button>
-        </div>
-        {% endif %}
+  <div class="reservation-header">
+    <h1><i class="fas fa-server"></i> Reservation Details</h1>
+    <code> ID: {{ reservation.id }} </code>
+
+    {% if reservation.status == 'active' %}
+    <div class="countdown-timer">
+      <div class="countdown-label">
+        <i class="fas fa-clock"></i> Time Remaining
+      </div>
+      <div
+        id="countdown"
+        class="countdown-value"
+        data-expires="{{ reservation.expires_at }}"
+      >
+        Calculating...
+      </div>
     </div>
-{% endblock %}
+    {% endif %}
 
-{% block scripts %}
+    <div class="reservation-meta">
+      <div class="meta-item">
+        <div class="meta-label">Status</div>
+        <div class="meta-value">
+          <span
+            class="badge badge-{% if reservation.status == 'active' %}success{% elif reservation.status == 'expired' %}warning{% else %}info{% endif %}"
+          >
+            {{ reservation.status }}
+          </span>
+        </div>
+      </div>
+
+      <div class="meta-item">
+        <div class="meta-label">Virtual Machines</div>
+        <div class="meta-value">{{ reservation.vm_count }}</div>
+      </div>
+
+      <div class="meta-item">
+        <div class="meta-label">Duration</div>
+        <div class="meta-value">{{ reservation.duration }} min</div>
+      </div>
+
+      <div class="meta-item">
+        <div class="meta-label">Packages</div>
+        <div class="meta-value small-text">
+          {{ reservation.packages|join(', ') if reservation.packages else 'None'
+          }}
+        </div>
+      </div>
+
+      {% if reservation.status == 'active' %}
+      <div class="meta-item ssh-credentials">
+        <div class="meta-label">
+          <i class="fas fa-key"></i> SSH Password {% if vm_password %}
+          <span style="font-size: 0.7rem; color: #10b981">(Available)</span>
+          {% else %}
+          <span style="font-size: 0.7rem; color: #ef4444">(Not Available)</span>
+          {% endif %}
+        </div>
+        <div style="display: flex; gap: 8px; align-items: stretch">
+          <input
+            type="password"
+            id="sshPassword"
+            value="{{ vm_password if vm_password else '' }}"
+            readonly
+            placeholder="{% if not vm_password %}Password not found{% endif %}"
+            style="
+              flex: 1;
+              padding: 12px 16px;
+              border: 2px solid #10b981;
+              border-radius: 8px 0 0 8px;
+              font-size: 18px;
+              font-weight: 700;
+              color: #059669;
+              background: white;
+              font-family: monospace;
+              min-width: 200px;
+            "
+          />
+          <button
+            type="button"
+            onclick="togglePasswordVisibility()"
+            title="Show/Hide Password"
+            style="
+              padding: 0 16px;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              color: white;
+              border: none;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <i class="fas fa-eye" id="toggleIcon" style="font-size: 16px"></i>
+          </button>
+          <button
+            type="button"
+            onclick="copyPassword()"
+            title="Copy to Clipboard"
+            style="
+              padding: 0 16px;
+              background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+              color: white;
+              border: none;
+              border-radius: 0 8px 8px 0;
+              cursor: pointer;
+              transition: all 0.3s ease;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+            "
+          >
+            <i class="fas fa-copy" style="font-size: 16px"></i>
+          </button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="data-table-container">
+    <div class="table-header">
+      <h2><i class="fas fa-desktop"></i> Your Virtual Machines</h2>
+    </div>
+
+    <div class="nodes-grid padded">
+      {% for node in reservation.nodes %}
+      <div class="node-card">
+        <div class="node-header">
+          <div>
+            <div class="node-name">{{ node.name }}</div>
+            <span class="badge badge-success success-margin"> Running </span>
+          </div>
+        </div>
+
+        <div class="node-info">
+          <div class="node-info-item">
+            <i class="fas fa-globe"></i> <strong>IP:</strong> {{ node.ip }}
+          </div>
+          <div class="node-info-item">
+            <i class="fas fa-plug"></i> <strong>SSH Port:</strong> {{ node.port
+            }}
+          </div>
+          <div class="node-info-item">
+            <i class="fas fa-hdd"></i> <strong>Platform:</strong> Ubuntu 22.04
+          </div>
+
+          <div class="stats-container">
+            <div class="stats-row">
+              <span class="stats-label">CPU Usage:</span>
+              <span class="stats-value" id="cpu-{{ node.name }}">
+                <span class="loading-stats">Loading...</span>
+              </span>
+            </div>
+            <div class="stats-row">
+              <span class="stats-label">Memory:</span>
+              <span class="stats-value" id="mem-{{ node.name }}">
+                <span class="loading-stats">Loading...</span>
+              </span>
+            </div>
+            <div class="stats-row">
+              <span class="stats-label">Memory %:</span>
+              <span class="stats-value" id="mem-perc-{{ node.name }}">
+                <span class="loading-stats">Loading...</span>
+              </span>
+            </div>
+          </div>
+        </div>
+
+        {% if reservation.status == 'active' %}
+        <a
+          href="{{ url_for('terminal.terminal', username=username, node_name=node.name) }}"
+          class="btn btn-primary full-width"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <i class="fas fa-terminal"></i> Open Terminal
+        </a>
+        {% else %}
+        <button class="btn disabled-btn" disabled>
+          <i class="fas fa-lock"></i> Reservation Inactive
+        </button>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  {% if reservation.status == 'active' %}
+  <div class="action-buttons">
+    <button
+      id="release-btn"
+      onclick="releaseReservation()"
+      class="btn btn-danger"
+    >
+      <i class="fas fa-trash"></i>
+      <span class="btn-text">Release Resources</span>
+    </button>
+  </div>
+  {% endif %}
+</div>
+{% endblock %} {% block scripts %}
 <script src="{{ url_for('static', filename='js/reservation_detail.js') }}"></script>
 <script>
-    // Initialize countdown timer
-    const expiresAt = {{ reservation.expires_at|int }};
-    const redirectUrl = '{{ url_for("main.dashboard_home") }}';
-    initializeCountdown(expiresAt, redirectUrl);
-    
-    // Get reservation ID from meta tag for stats updates
-    const reservationId = document.querySelector('meta[name="reservation-id"]').content;
-    updateStats(reservationId);
-    
-    // Create wrapper function for the release button
-    window.releaseReservation = function() {
-        performReleaseReservation('{{ username }}', '{{ reservation.id }}', redirectUrl);
-    };
-    
-    // Password visibility toggle
-    window.togglePasswordVisibility = function() {
-        const passwordInput = document.getElementById('sshPassword');
-        const toggleIcon = document.getElementById('toggleIcon');
-        
-        if (passwordInput.type === 'password') {
-            passwordInput.type = 'text';
-            toggleIcon.classList.remove('fa-eye');
-            toggleIcon.classList.add('fa-eye-slash');
-        } else {
-            passwordInput.type = 'password';
-            toggleIcon.classList.remove('fa-eye-slash');
-            toggleIcon.classList.add('fa-eye');
-        }
-    };
-    
-    // Copy password to clipboard
-    window.copyPassword = function() {
-        const passwordInput = document.getElementById('sshPassword');
-        passwordInput.select();
-        document.execCommand('copy');
-        
-        // Visual feedback
-        if (typeof Notification !== 'undefined') {
-            Notification.success('Password copied to clipboard!');
-        } else {
-            alert('Password copied to clipboard!');
-        }
-    };
-    
-    // Add hover effects to buttons
-    document.addEventListener('DOMContentLoaded', function() {
-        const buttons = document.querySelectorAll('button[onclick*="Password"]');
-        buttons.forEach(btn => {
-            btn.addEventListener('mouseenter', function() {
-                this.style.transform = 'translateY(-2px)';
-                this.style.boxShadow = '0 4px 12px rgba(5, 150, 105, 0.4)';
-            });
-            btn.addEventListener('mouseleave', function() {
-                this.style.transform = 'translateY(0)';
-                this.style.boxShadow = 'none';
-            });
-        });
-    });
+  // Initialize countdown timer
+  const expiresAt = {{ reservation.expires_at|int }};
+  const redirectUrl = '{{ url_for("main.dashboard_home") }}';
+  initializeCountdown(expiresAt, redirectUrl);
+
+  // Get reservation ID from meta tag for stats updates
+  const reservationId = document.querySelector('meta[name="reservation-id"]').content;
+  updateStats(reservationId);
+
+  // Create wrapper function for the release button
+  window.releaseReservation = function() {
+      performReleaseReservation('{{ username }}', '{{ reservation.id }}', redirectUrl);
+  };
+
+  // Password visibility toggle
+  window.togglePasswordVisibility = function() {
+      const passwordInput = document.getElementById('sshPassword');
+      const toggleIcon = document.getElementById('toggleIcon');
+
+      if (passwordInput.type === 'password') {
+          passwordInput.type = 'text';
+          toggleIcon.classList.remove('fa-eye');
+          toggleIcon.classList.add('fa-eye-slash');
+      } else {
+          passwordInput.type = 'password';
+          toggleIcon.classList.remove('fa-eye-slash');
+          toggleIcon.classList.add('fa-eye');
+      }
+  };
+
+  // Copy password to clipboard
+  window.copyPassword = function() {
+      const passwordInput = document.getElementById('sshPassword');
+      passwordInput.select();
+      document.execCommand('copy');
+
+      // Visual feedback
+      if (typeof Notification !== 'undefined') {
+          Notification.success('Password copied to clipboard!');
+      } else {
+          alert('Password copied to clipboard!');
+      }
+  };
+
+  // Add hover effects to buttons
+  document.addEventListener('DOMContentLoaded', function() {
+      const buttons = document.querySelectorAll('button[onclick*="Password"]');
+      buttons.forEach(btn => {
+          btn.addEventListener('mouseenter', function() {
+              this.style.transform = 'translateY(-2px)';
+              this.style.boxShadow = '0 4px 12px rgba(5, 150, 105, 0.4)';
+          });
+          btn.addEventListener('mouseleave', function() {
+              this.style.transform = 'translateY(0)';
+              this.style.boxShadow = 'none';
+          });
+      });
+  });
 </script>
 {% endblock %}
