@@ -82,20 +82,16 @@
                         </td>
                         <td>
                             <div class="actions-cell">
-                                {% if user.username != 'admin' %}
-                                <button class="btn btn-warning btn-sm btn-icon" data-action="toggle-role" data-username="{{ user.username }}" data-role="{{ user.role }}" title="Toggle Role">
-                                    <i class="fas fa-sync-alt"></i>
-                                    <span>Role</span>
-                                </button>
-                                <button class="btn btn-danger btn-sm btn-icon" data-action="delete-user" data-username="{{ user.username }}" title="Delete User">
-                                    <i class="fas fa-trash"></i>
-                                    <span>Delete</span>
-                                </button>
-                                {% else %}
+                                {% if user.role == 'admin' %}
                                 <span class="protected-badge">
                                     <i class="fas fa-shield-alt"></i>
-                                    <span>Protected</span>
+                                    <span>Admin Protected</span>
                                 </span>
+                                {% else %}
+                                <button class="btn btn-danger btn-sm btn-icon" data-action="delete-user" data-username="{{ user.username }}" title="Delete User & Release Resources">
+                                    <i class="fas fa-trash"></i>
+                                    <span>Delete User</span>
+                                </button>
                                 {% endif %}
                             </div>
                         </td>
@@ -183,6 +179,7 @@
 {% endblock %}
 
 {% block scripts %}
+<script src="{{ url_for('static', filename='js/modal.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin_panel.js') }}"></script>
 <script src="{{ url_for('static', filename='js/admin_users.js') }}"></script>
 {% endblock %}

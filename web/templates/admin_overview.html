@@ -17,9 +17,12 @@
             </div>
         </div>
         <div class="stat-content">
-            <h3><i class="fas fa-circle-notch"></i> Total Users</h3>
+            <h3><i class="fas fa-circle-notch"></i> Total Accounts</h3>
         <div class="value">{{ stats.total_users }}</div>
-            <div class="stat-label">Registered users</div>
+            <div class="stat-label">
+                <i class="fas fa-user-shield"></i> {{ stats.admin_count }} admin{{ 's' if stats.admin_count > 1 else '' }} • 
+                <i class="fas fa-user"></i> {{ stats.user_count }} user{{ 's' if stats.user_count > 1 else '' }}
+            </div>
         </div>
         <div class="stat-glow"></div>
     </div>

@@ -1,5 +1,21 @@
 /* Admin Reservations Page Specific Styles */
 
+.view-only-badge {
+    color: #64748b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 1rem;
+    background: #f1f5f9;
+    border-radius: 12px;
+}
+
+.view-only-badge i {
+    color: #94a3b8;
+}
+
 .data-table-container {
     width: 100%;
     max-width: 100%;
@@ -65,15 +81,6 @@ table tbody tr:hover {
     transform: translateX(2px);
 }
 
-table tbody tr:hover::before {
-    content: '';
-    position: absolute;
-    left: 0;
-    top: 0;
-    bottom: 0;
-    width: 4px;
-    background: #059669;
-}
 
 /* Reservation count highlight */
 .reservation-count {

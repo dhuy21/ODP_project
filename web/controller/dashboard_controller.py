@@ -126,28 +126,83 @@ class DashboardController:
         """Create user as admin"""
         from flask import request
         data = request.json
+        
+        # Validate role - only 'user' or 'admin' allowed
+        role = data.get('role', 'user')
+        if role not in ['user', 'admin']:
+            return jsonify({
+                'status': 'error',
+                'message': f'Invalid role: {role}. Only "user" or "admin" are allowed.'
+            })
+        
         result = self.user_db.register_user(
             data['username'],
             data['email'],
             data['password'],
-            role=data.get('role', 'user')
+            role=role
         )
         return jsonify(result)
     
     def admin_delete_user(self, username):
-        """Delete user as admin"""
+        """Delete user as admin - Force release ALL reservations"""
+        # Prevent deleting admin account
         if username == 'admin':
             return jsonify({
                 'status': 'error',
-                'message': 'Cannot delete admin user'
+                'message': 'Cannot delete the system admin account'
             })
         
-        if self.user_db.delete_user(username):
-            # Release their containers
-            self.docker_service.release_containers(username)
-            return jsonify({'status': 'success', 'message': f'User {username} deleted'})
+        # Prevent admins from deleting other admins
+        user_info = self.user_db.get_user(username)
+        if user_info and user_info.get('role') == 'admin':
+            return jsonify({
+                'status': 'error',
+                'message': 'Cannot delete admin users. Only regular users can be deleted.'
+            })
         
-        return jsonify({'status': 'error', 'message': 'User not found'})
+        try:
+            # 1. Get ALL reservations of this user (active and non-active)
+            user_reservations = self.user_db.get_user_reservations(username)
+            active_reservations = [r for r in user_reservations if r.get('status') == 'active']
+            
+            # 2. Force release ALL active reservations
+            released_count = 0
+            for reservation in active_reservations:
+                reservation_id = reservation.get('id')
+                nodes = reservation.get('nodes', [])
+                
+                if nodes:
+                    # Save final stats before release
+                    self._save_final_stats_before_status_change(username, reservation_id, 'deleted')
+                    
+                    # Release containers for this reservation
+                    result = self.docker_service.release_containers_by_nodes(username, nodes)
+                    if result.get('success'):
+                        released_count += len(nodes)
+                        print(f"[ADMIN DELETE] Released {len(nodes)} containers for reservation {reservation_id[:8]}")
+                    
+                    # Disconnect SSH sessions for this reservation
+                    from services.ssh_service import SSHService
+                    ssh_service = SSHService()
+                    disconnected = ssh_service.disconnect_sessions_by_nodes(username, nodes)
+                    if disconnected > 0:
+                        print(f"[ADMIN DELETE] Disconnected {disconnected} SSH sessions")
+                
+                # Update reservation status to 'deleted'
+                self.user_db.update_reservation_status(username, reservation_id, 'deleted')
+            
+            # 3. Delete user from database (will cascade delete reservations via FK)
+            if self.user_db.delete_user(username):
+                return jsonify({
+                    'status': 'success',
+                    'message': f'User {username} deleted. Released {released_count} containers and {len(active_reservations)} reservations.'
+                })
+            else:
+                return jsonify({'status': 'error', 'message': 'Failed to delete user'})
+                
+        except Exception as e:
+            print(f"[ADMIN DELETE ERROR] {e}")
+            return jsonify({'status': 'error', 'message': f'Error deleting user: {str(e)}'})
     
     def admin_update_role(self, username):
         """Update user role"""
@@ -155,13 +210,27 @@ class DashboardController:
         data = request.json
         role = data.get('role', 'user')
         
+        # Validate role
         if role not in ['user', 'admin']:
             return jsonify({'status': 'error', 'message': 'Invalid role'})
+        
+        # Prevent changing admin account
+        if username == 'admin':
+            return jsonify({'status': 'error', 'message': 'Cannot change system admin role'})
+        
+        # Get current user info
+        user_info = self.user_db.get_user(username)
+        if not user_info:
+            return jsonify({'status': 'error', 'message': 'User not found'})
+        
+        # Prevent demoting other admins
+        if user_info.get('role') == 'admin' and role == 'user':
+            return jsonify({'status': 'error', 'message': 'Cannot demote admin users. Only regular users can have their roles changed.'})
         
         if self.user_db.update_user_role(username, role):
             return jsonify({'status': 'success', 'message': f'Role updated to {role}'})
         
-        return jsonify({'status': 'error', 'message': 'User not found'})
+        return jsonify({'status': 'error', 'message': 'Failed to update role'})
     
     def admin_delete_reservation(self, reservation_id):
         """Delete reservation as admin"""
@@ -205,8 +274,12 @@ class DashboardController:
         """Admin overview/dashboard page"""
         username = session['username']
         
-        # Get all users
+        # Get all users (returns dict with username as key)
         all_users = self.user_db.get_all_users()
+        
+        # Count admins and regular users
+        admin_count = len([user_data for user_data in all_users.values() if user_data.get('role') == 'admin'])
+        user_count = len([user_data for user_data in all_users.values() if user_data.get('role') == 'user'])
         
         # Get all reservations
         all_reservations = self.user_db.get_all_reservations()
@@ -220,6 +293,8 @@ class DashboardController:
         
         stats = {
             'total_users': len(all_users),
+            'admin_count': admin_count,
+            'user_count': user_count,
             'active_reservations': len(active_reservations),
             'total_containers': pool_status.get('total', 30),
             'available_containers': pool_status.get('free', 0)
