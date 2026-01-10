@@ -60,7 +60,6 @@ This project uses a modern **MVC (Model-View-Controller)** architecture:
 - **SSH**: Paramiko for secure shell connections
 - **Encryption**: Fernet (AES-128) for VM password encryption
 
-
 ## Prerequisites
 
 Before installing, ensure you have the following installed:
@@ -107,6 +106,7 @@ pip install -r requirements.txt
 ```
 
 **Required packages:**
+
 - Flask 2.3.3
 - Flask-SocketIO 5.3.6
 - mysql-connector-python 8.3.0
@@ -119,6 +119,7 @@ pip install -r requirements.txt
 ### Step 4: Install and Start MySQL
 
 **On Ubuntu/Debian:**
+
 ```bash
 sudo apt-get update
 sudo apt-get install mysql-server
@@ -127,6 +128,7 @@ sudo systemctl enable mysql
 ```
 
 **On macOS (using Homebrew):**
+
 ```bash
 brew install mysql
 brew services start mysql
@@ -143,6 +145,7 @@ docker-compose --version
 ```
 
 Ensure Docker daemon is running:
+
 ```bash
 docker ps
 ```
@@ -173,6 +176,7 @@ mysql -u root -p -e "USE odp_platform; SHOW TABLES;"
 ```
 
 You should see:
+
 - `users`
 - `reservations`
 - `pool_nodes`
@@ -216,6 +220,7 @@ FLASK_DEBUG=True
 ```
 
 **Important Security Notes:**
+
 - Change `MYSQL_PASSWORD` to your actual MySQL root password
 - **Use quotes around password** if it contains special characters (e.g., `#`, `$`, `!`)
 - Generate a strong `SECRET_KEY` for production (used for password encryption)
@@ -242,12 +247,14 @@ python3 init_pool.py
 ```
 
 This will:
+
 - Create a Docker network (`pool-network`)
 - Create 30 container workers (pool-node-1 to pool-node-30)
 - Auto-detect container IP addresses from Docker
 - Initialize the pool in the database with actual IPs
 
 **Expected output:**
+
 ```
 Creating Docker network...
 Creating containers...
@@ -267,6 +274,7 @@ python3 app.py
 ```
 
 **Expected output:**
+
 ```
 ============================================================
 Starting ODP Platform (MVC Architecture)
@@ -301,10 +309,12 @@ http://localhost:5001
 ### For Regular Users
 
 1. **Register/Login**
+
    - Click "Register" to create a new account
    - Or login with existing credentials
 
 2. **Create a Reservation**
+
    - Navigate to Dashboard
    - Enter number of VMs needed
    - Set duration (in minutes)
@@ -312,6 +322,7 @@ http://localhost:5001
    - Click "Provision"
 
 3. **Manage Reservations**
+
    - View active reservations on Dashboard
    - Check reservation details and statistics
    - Access VMs via Web Terminal
@@ -324,15 +335,18 @@ http://localhost:5001
 ### For Administrators
 
 1. **Admin Dashboard**
+
    - Access `/admin/overview` for system overview
    - View total users, active reservations, pool status
 
 2. **User Management**
+
    - Access `/admin/users` to manage users
    - Create, delete, or modify user roles
    - View user statistics
 
 3. **Reservation Management**
+
    - Access `/admin/reservations` to view all reservations
    - Force release or delete reservations
    - Monitor system-wide resource usage
@@ -358,12 +372,14 @@ cd src
 ```
 
 This will display:
+
 - Container names and IP addresses (synced with database)
 - Current status (free/allocated)
 - Owner information for allocated containers
 - Expiration time for active reservations
 
 **Other commands:**
+
 ```bash
 ./pool_manager.sh init    # Initialize pool (alternative to init_pool.py)
 ./pool_manager.sh start   # Start all pool containers
@@ -419,7 +435,9 @@ src/
 **Error**: `Can't connect to MySQL server`
 
 **Solutions:**
+
 1. Verify MySQL is running:
+
    ```bash
    sudo systemctl status mysql  # Linux
    brew services list           # macOS
@@ -436,12 +454,15 @@ src/
 **Error**: `Cannot connect to Docker daemon`
 
 **Solutions:**
+
 1. Start Docker service:
+
    ```bash
    sudo systemctl start docker  # Linux
    ```
 
 2. Add user to docker group:
+
    ```bash
    sudo usermod -aG docker $USER
    ```
@@ -456,7 +477,9 @@ src/
 **Error**: `Address already in use`
 
 **Solutions:**
+
 1. Find process using port 5001:
+
    ```bash
    lsof -i :5001  # macOS/Linux
    netstat -ano | findstr :5001  # Windows
@@ -469,12 +492,15 @@ src/
 **Error**: Containers not initializing
 
 **Solutions:**
+
 1. Check Docker network:
+
    ```bash
    docker network ls | grep pool-network
    ```
 
 2. Reinitialize pool:
+
    ```bash
    python3 init_pool.py
    ```
@@ -489,6 +515,7 @@ src/
 **Error**: Configuration not found
 
 **Solutions:**
+
 1. Verify `.env` file exists in `web/` directory
 2. Check file permissions
 3. Verify `python-dotenv` is installed:
@@ -503,12 +530,15 @@ src/
 **Cause:** IP addresses not synchronized between Docker containers and database
 
 **Solutions:**
+
 1. Check actual container IPs:
+
    ```bash
    docker inspect pool-node-1 --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
    ```
 
 2. Verify database IPs match Docker:
+
    ```bash
    mysql -u root -p odp_platform -e "SELECT name, ip, status FROM pool_nodes LIMIT 5;"
    ```
@@ -525,15 +555,18 @@ src/
 **Error**: "Failed to connect to SSH" when accessing terminal
 
 **Solutions:**
+
 1. Verify reservation is still active (not expired)
 2. Check container is running:
    ```bash
    docker ps | grep pool-node
    ```
 3. Verify user exists in container:
-  ```bash
-   docker exec pool-node-1 id your_username
-   ```
+
+```bash
+ docker exec pool-node-1 id your_username
+```
+
 4. Check VM password encryption (requires valid SECRET_KEY in `.env`)
 
 ### Password Special Characters Issue
@@ -541,6 +574,7 @@ src/
 **Error**: MySQL access denied with password containing `#` or other special characters
 
 **Solution:** Quote the password in `.env` file:
+
 ```env
 MYSQL_PASSWORD="myPass#123"  # Correct - with quotes
 # MYSQL_PASSWORD=myPass#123   # Wrong - without quotes
@@ -582,6 +616,7 @@ SELECT * FROM pool_nodes WHERE status = 'free';
 ### Logging
 
 Application logs are printed to console. For production, consider:
+
 - Using Python's `logging` module
 - Configuring log rotation
 - Setting up log aggregation
