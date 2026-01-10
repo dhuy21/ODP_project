@@ -9,19 +9,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initFormSubmission();
 });
 
-// ========== ENTRY ANIMATIONS ==========
-function initEntryAnimations() {
-    const elements = document.querySelectorAll('.fade-in-scale, .fade-in-up, .fade-in');
-    
-    elements.forEach((element, index) => {
-        const delay = parseInt(element.dataset.delay) || (index * 100);
-        
-        setTimeout(() => {
-            element.classList.add('animate');
-        }, delay);
-    });
-}
-
 // ========== PASSWORD TOGGLES ==========
 function initPasswordToggles() {
     const passwordToggle = document.getElementById('passwordToggle');

@@ -1,6 +1,6 @@
-# ODP - Orchestration & Deployment Platform
+# ODP - Outils de déploiement de plateformes
 
-A comprehensive platform for provisioning and orchestrating containerized resources (workers) that allows clients to reserve and deploy resources, monitor their status, and automatically replace missing resources to maintain a defined service level.
+A comprehensive platform for automated provisioning, orchestration, and management of containerized resources with automatic monitoring and recovery capabilities.
 
 ## Table of Contents
 
@@ -9,6 +9,8 @@ A comprehensive platform for provisioning and orchestrating containerized resour
 - [Architecture](#architecture)
 - [Prerequisites](#prerequisites)
 - [Installation](#installation)
+  - [For Linux/macOS](#for-linuxmacos)
+  - [For Windows (WSL2)](#for-windows-wsl2)
 - [Database Setup](#database-setup)
 - [Configuration](#configuration)
 - [Running the Application](#running-the-application)
@@ -19,7 +21,7 @@ A comprehensive platform for provisioning and orchestrating containerized resour
 
 ## Project Overview
 
-**ODP (Orchestration & Deployment Platform)** is an automated "Pentest" platform that provides:
+**ODP (Outils de déploiement de plateformes)** is an automated "Pentest" platform that provides:
 
 - **Resource Pool Management**: Maintains a pool of containerized workers (VMs)
 - **Reservation System**: Allows users to reserve and deploy virtual machines
@@ -45,8 +47,6 @@ A comprehensive platform for provisioning and orchestrating containerized resour
 - **Web Terminal**: Built-in SSH terminal for direct VM access
 - **Admin Dashboard**: Comprehensive admin panel for user and resource management
 - **WebSocket Support**: Real-time updates via Socket.IO
-- **Database Synchronization**: Automatic synchronization between Docker containers and MySQL database
-- **Password Encryption**: Secure VM password storage with Fernet encryption
 
 ## Architecture
 
@@ -73,18 +73,22 @@ Before installing, ensure you have the following installed:
 
 - **RAM**: Minimum 4GB (8GB+ recommended for running multiple containers)
 - **Disk Space**: At least 10GB free space
-- **OS**: Linux, macOS, or Windows (with WSL2)
+- **OS**:
+  - **Linux/macOS**: Native installation
+  - **Windows**: Requires WSL2 (Windows Subsystem for Linux)
 
 ## Installation
 
-### Step 1: Clone the Repository
+### For Linux/macOS
+
+#### Step 1: Clone the Repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/osgmehdi/ODP_project
 cd ODP_project/src
 ```
 
-### Step 2: Create Virtual Environment
+#### Step 2: Create Virtual Environment
 
 ```bash
 # Create virtual environment
@@ -98,7 +102,7 @@ source venv/bin/activate
 venv\Scripts\activate
 ```
 
-### Step 3: Install Python Dependencies
+#### Step 3: Install Python Dependencies
 
 ```bash
 pip install --upgrade pip
@@ -116,7 +120,7 @@ pip install -r requirements.txt
 - pyyaml 6.0.1
 - cryptography 41.0.4
 
-### Step 4: Install and Start MySQL
+#### Step 4: Install and Start MySQL
 
 **On Ubuntu/Debian:**
 
@@ -137,7 +141,7 @@ brew services start mysql
 **On Windows:**
 Download and install MySQL from [mysql.com](https://dev.mysql.com/downloads/mysql/)
 
-### Step 5: Verify Docker Installation
+#### Step 5: Verify Docker Installation
 
 ```bash
 docker --version
@@ -149,6 +153,95 @@ Ensure Docker daemon is running:
 ```bash
 docker ps
 ```
+
+### For Windows (WSL2)
+
+This guide describes the steps to configure and run this project on Windows using WSL2 (Windows Subsystem for Linux).
+
+#### Step 1: Windows Prerequisites
+
+Before starting, install and configure the following on Windows:
+
+- **WSL2**: Run `wsl --install` in PowerShell (admin)
+- **Linux Distribution**: Install Ubuntu 22.04 LTS or 24.04 LTS from Microsoft Store
+- **Docker Desktop for Windows**: Install from [docker.com](https://www.docker.com/products/docker-desktop/)
+- **WSL Integration in Docker Desktop**: Settings > Resources > WSL Integration, enable your Ubuntu distribution
+
+#### Step 2: WSL Environment Setup
+
+Open your Ubuntu terminal (e.g., _Ubuntu 22.04 LTS_) and follow these steps:
+
+##### Update and Install System Dependencies
+
+```bash
+sudo apt update && sudo apt upgrade -y
+sudo apt install -y ansible python3-pip python3-venv dos2unix python3-passlib
+```
+
+##### Prepare Project Files
+
+Place files in ~/ODP_project, then:
+
+```bash
+cd ~/ODP_project
+dos2unix allocates.sh
+dos2unix Docker/ssh/entrypoint.sh
+dos2unix pool_manager.sh
+dos2unix kill_pool.sh
+chmod +x allocates.sh
+chmod +x Docker/ssh/entrypoint.sh
+chmod +x pool_manager.sh
+chmod +x kill_pool.sh
+```
+
+##### Configure SSH Key
+
+The project uses an insecure Vagrant SSH key to access containers:
+
+```bash
+mkdir -p ~/.vagrant.d
+curl -L https://raw.githubusercontent.com/hashicorp/vagrant/master/keys/vagrant -o ~/.vagrant.d/insecure_private_key
+chmod 600 ~/.vagrant.d/insecure_private_key
+```
+
+##### Create Python Virtual Environment
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+> The command prompt should now start with (venv).
+
+#### Step 3: Additional Configuration
+
+Before launching the application, also follow these steps from the general sections:
+
+- **Database Setup**: See [Database Setup](#database-setup) section
+- **Configuration**: See [Configuration](#configuration) section to create the `.env` file
+- **Pool Initialization**: See [Running the Application - Step 1](#step-1-initialize-the-container-pool) to initialize container pool
+
+#### Step 4: Launch the Project
+
+Ensure virtual environment is active (reactivate if needed with `source venv/bin/activate`), then start Flask:
+
+```bash
+cd ~/ODP_project  # If needed
+source venv/bin/activate  # If you closed the terminal
+python3 web/app.py
+```
+
+#### Step 5: Usage
+
+- Open a web browser on Windows
+- Go to http://localhost:5001 or http://127.0.0.1:5001
+- Fill out the form to create infrastructure
+- Wait until provisioning completes
+- You will be redirected to a dashboard to access web terminals for your containers
+
+> **Note**: For more usage details, see [Usage Guide](#usage-guide).
 
 ## Database Setup
 
@@ -250,8 +343,7 @@ This will:
 
 - Create a Docker network (`pool-network`)
 - Create 30 container workers (pool-node-1 to pool-node-30)
-- Auto-detect container IP addresses from Docker
-- Initialize the pool in the database with actual IPs
+- Auto-detect container IP addresses from Docker and sync with database
 
 **Expected output:**
 
@@ -264,7 +356,7 @@ Started pool-node-2 at 172.30.0.3:3001 -> DB Synced
 Pool initialized successfully!
 ```
 
-**Note:** IP addresses are automatically assigned by Docker and synchronized with the database. No manual IP configuration needed.
+**Note:** No manual IP configuration needed - IPs are automatically assigned and synchronized.
 
 ### Step 2: Start the Web Application
 
@@ -625,13 +717,12 @@ Application logs are printed to console. For production, consider:
 
 1. **Change Default Passwords**: Always change default admin password
 2. **Environment Variables**: Never commit `.env` files
-3. **Secret Key**: Use strong, randomly generated secret keys (used for VM password encryption)
-4. **Password Encryption**: VM passwords are encrypted using Fernet (AES-128) before database storage
-5. **Database Access**: Use dedicated database user (not root) in production
-6. **HTTPS**: Use HTTPS in production (configure reverse proxy)
-7. **Firewall**: Restrict access to MySQL port (3306)
-8. **Docker Security**: Keep Docker and containers updated
-9. **SSH Security**: VM passwords are transmitted securely via WebSocket and never stored in browser storage
+3. **Secret Key**: Use strong, randomly generated secret keys (required for VM password encryption)
+4. **Database Access**: Use dedicated database user (not root) in production
+5. **HTTPS**: Use HTTPS in production (configure reverse proxy)
+6. **Firewall**: Restrict access to MySQL port (3306)
+7. **Docker Security**: Keep Docker and containers updated
+8. **SSH Security**: VM passwords are transmitted securely via WebSocket and never stored in browser storage
 
 ## Additional Resources
 

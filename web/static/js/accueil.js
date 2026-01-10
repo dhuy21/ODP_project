@@ -44,31 +44,6 @@ function initVantaWaves() {
     }
 }
 
-// ========== ENTRY ANIMATIONS (Page Load) ==========
-function initEntryAnimations() {
-    // Get all elements with animation classes
-    const animatedElements = document.querySelectorAll(
-        '.fade-in, .fade-in-up, .fade-in-left, .fade-in-right, .fade-in-scale, .fade-in-rotate, .slide-in-bottom'
-    );
-    
-    // Check which elements are in viewport on page load
-    const viewportHeight = window.innerHeight;
-    
-    animatedElements.forEach((element, index) => {
-        const rect = element.getBoundingClientRect();
-        const isInViewport = rect.top < viewportHeight && rect.bottom > 0;
-        
-        if (isInViewport) {
-            // Element is in viewport, animate it with delay
-            const delay = parseInt(element.dataset.delay) || (index * 100);
-            
-            setTimeout(() => {
-                element.classList.add('animate');
-            }, delay);
-        }
-    });
-}
-
 // ========== SCROLL ANIMATIONS ==========
 function initScrollAnimations() {
     const observerOptions = {

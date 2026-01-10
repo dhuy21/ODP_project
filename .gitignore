@@ -20,7 +20,8 @@ ENV/
 *~
 
 # Project specific
-Ansible/
+Ansible/*
+!Ansible/playbook.yml
 handoff/
 requests/
 

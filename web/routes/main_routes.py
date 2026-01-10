@@ -57,7 +57,6 @@ def reservation_history():
 @admin_required
 def admin_panel():
     """Redirect to admin overview"""
-    from flask import redirect, url_for
     return redirect(url_for('main.admin_overview'))
 
 @main_bp.route('/admin/overview')
