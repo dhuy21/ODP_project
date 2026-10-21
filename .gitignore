@@ -72,3 +72,8 @@ wheels/
 .vagrant/
 
 web/.env
+
+# Documentation
+*.md
+!/README.md
+docs/

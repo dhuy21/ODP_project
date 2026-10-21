@@ -14,6 +14,7 @@ A comprehensive platform for automated provisioning, orchestration, and manageme
 - [Database Setup](#database-setup)
 - [Configuration](#configuration)
 - [Running the Application](#running-the-application)
+- [Single-server deployment](#single-server-deployment)
 - [Usage Guide](#usage-guide)
 - [Project Structure](#project-structure)
 - [Troubleshooting](#troubleshooting)
@@ -64,9 +65,10 @@ This project uses a modern **MVC (Model-View-Controller)** architecture:
 
 Before installing, ensure you have the following installed:
 
-- **Python 3.8+** (Python 3.12 recommended)
+- **Python 3.12** (the pins in `requirements.txt` target 3.12; 3.8+ is the floor the code was written for)
 - **MySQL Server 5.7+** or **MariaDB 10.3+**
-- **Docker** and **Docker Compose**
+- **Docker** (the daemon must be running; the web process uses the Docker socket)
+- **Ansible** (only for package installation during a reservation)
 - **Git** (for cloning the repository)
 
 ### System Requirements
@@ -84,9 +86,11 @@ Before installing, ensure you have the following installed:
 #### Step 1: Clone the Repository
 
 ```bash
-git clone https://github.com/osgmehdi/ODP_project
-cd ODP_project/src
+git clone https://github.com/dhuy21/ODP_project
+cd ODP_project
 ```
+
+There is no `src/` directory. Every command below runs from this root unless it says otherwise.
 
 #### Step 2: Create Virtual Environment
 
@@ -115,7 +119,7 @@ pip install -r requirements.txt
 - Flask-SocketIO 5.3.6
 - mysql-connector-python 8.3.0
 - python-dotenv 1.0.1
-- docker 7.1.2
+- docker 7.1.0
 - paramiko 3.3.1
 - pyyaml 6.0.1
 - cryptography 41.0.4
@@ -141,18 +145,15 @@ brew services start mysql
 **On Windows:**
 Download and install MySQL from [mysql.com](https://dev.mysql.com/downloads/mysql/)
 
-#### Step 5: Verify Docker Installation
+#### Step 5: Verify Docker and Ansible
 
 ```bash
 docker --version
-docker-compose --version
-```
-
-Ensure Docker daemon is running:
-
-```bash
 docker ps
+ansible --version
 ```
+
+`docker ps` must succeed for the user who will run `init_pool.py` and `web/app.py`. On Linux that user needs to be in the `docker` group. The web process talks to the Docker socket directly.
 
 ### For Windows (WSL2)
 
@@ -252,6 +253,10 @@ python3 web/app.py
 mysql -u root -p < database/db_schema.sql
 ```
 
+On Ubuntu, `root` often authenticates through the system account. If the command above is rejected, use `sudo mysql < database/db_schema.sql`.
+
+`database/db_schema.sql` starts with `DROP DATABASE IF EXISTS odp_platform`. Importing it again deletes every user, reservation, and pool row. Use it to create an empty database, not to upgrade one that already has data.
+
 Or manually:
 
 ```bash
@@ -288,9 +293,10 @@ python3 database/migrate_data.py
 ### Step 1: Create Environment File
 
 ```bash
-cd web
-cp exemple.env .env
+cp web/config/exemple.env web/.env
 ```
+
+`web/config/config.py` loads `web/.env`. A copy left inside `web/config/` is ignored.
 
 ### Step 2: Configure Environment Variables
 
@@ -332,38 +338,48 @@ The application will automatically load the `.env` file. Check the console outpu
 
 ### Step 1: Initialize the Container Pool
 
-Before starting the web application, initialize the Docker container pool:
+The image file on disk is `Docker/ssh/dockerfile`. `init_pool.py` asks the Docker SDK for `Dockerfile`. Rename it once, from the project root:
 
 ```bash
-# From project root (src/)
+mv Docker/ssh/dockerfile Docker/ssh/Dockerfile
 python3 init_pool.py
 ```
 
+Run this from the project root. The build path is `./Docker/ssh`, which is relative to the current directory.
+
 This will:
 
-- Create a Docker network (`pool-network`)
-- Create 30 container workers (pool-node-1 to pool-node-30)
-- Auto-detect container IP addresses from Docker and sync with database
+- Create the Docker network `pool-network` (`172.30.0.0/24`)
+- Build `pool-node:latest` from `Docker/ssh`
+- Start `pool-node-1` through `pool-node-30`
+- Publish container port 22 on host ports **3000–3029**, on every interface
+- Write each container IP and port into `pool_nodes`
+
+Host ports 3000 and upward must be free. Thirty containers is the value hardcoded in `init_pool.py` and in `Config.POOL_SIZE`.
 
 **Expected output:**
 
 ```
-Creating Docker network...
-Creating containers...
+Starting ODP Pool Initialization...
+==> Initializing pool with 30 containers...
+Created network pool-network
+Building base image (pool-node:latest)...
 Started pool-node-1 at 172.30.0.2:3000 -> DB Synced
 Started pool-node-2 at 172.30.0.3:3001 -> DB Synced
-...
-Pool initialized successfully!
+Pool initialized successfully.
 ```
 
-**Note:** No manual IP configuration needed - IPs are automatically assigned and synchronized.
+IPs come from Docker. Nothing in the repo assigns them by hand.
 
 ### Step 2: Start the Web Application
 
+With the virtualenv active, from the project root:
+
 ```bash
-cd web
-python3 app.py
+python3 web/app.py
 ```
+
+`python3 web/app.py` works because Python puts `web/` on the module path. `init_pool.py` still has to be started from the root.
 
 **Expected output:**
 
@@ -395,6 +411,71 @@ http://localhost:5001
 - **Password**: `admin`
 
 **Important**: Change the admin password immediately after first login!
+
+## Single-server deployment
+
+ODP runs on one Linux machine: one Flask process, one MySQL database, and the Docker daemon that owns the worker pool. This repository does not install Nginx, systemd, or a restricted database account. Those pieces sit on the host, around the code. The steps below are that host layout.
+
+### What the code already does
+
+- `python3 web/app.py` listens on `0.0.0.0:5001`. Socket.IO uses `threading`. `FLASK_HOST` in `exemple.env` is a comment; `app.py` does not read it.
+- MySQL holds `odp_platform`.
+- `python3 init_pool.py` builds `pool-node:latest`, creates `pool-network` (`172.30.0.0/24`), starts 30 containers, and publishes SSH on host ports 3000–3029 on every interface.
+- The same process holds the Docker socket, expires reservations, and shells out to Ansible. A reservation creates a Linux user inside the chosen containers, with the password typed in the form, and adds that user to `sudo`.
+- `vagrant/` is a three-container prototype (`labnode:22.04`, ports 2200–2202, `linux/arm64` only). The web application never calls it.
+
+### What you add on the host
+
+1. **Give ODP its own machine.** Through the Docker socket the process can start containers and run commands inside them. That is administrator control of the machine. Do not run unrelated services next to it.
+
+2. **Publish HTTPS only.** Terminate TLS with Nginx or Caddy on port 443 and proxy to `127.0.0.1:5001`, including the WebSocket upgrade. The application still binds every interface, so the firewall has to refuse 5001, 3306, and 3000–3029 from outside. Lab SSH is then reached through the web terminal. Closing those ports is host configuration; the repository does not contain a proxy or a firewall script.
+
+3. **Run one process.** A systemd unit with `EnvironmentFile` pointing at `web/.env` (mode `600`) is the usual service wrapper. Set `FLASK_DEBUG=False` and keep `SECRET_KEY` stable. Fernet uses that key for VM passwords; a new key cannot decrypt passwords already stored. There is no Redis queue in this code, so one process is the setup that keeps Socket.IO rooms. Several Gunicorn workers would split those rooms.
+
+4. **Use a database user that is not `root`.** Grant it rights on `odp_platform` only, and put that account in `web/.env`. Keep MySQL on localhost and take backups. Do not import `database/db_schema.sql` on a server that already has data.
+
+5. **Size the pool for the RAM you have.** Thirty nodes is a constant in `web/config/config.py` (`POOL_SIZE`) and in `init_pool.py`. Change both together. Build `pool-node:latest` before the service is opened; the application does not rebuild the image on each reservation.
+
+6. **Treat the pool network as shared.** Every worker is on `172.30.0.0/24`, so one lab can reach another. A network per reservation is not implemented. Ansible writes the reservation password into an inventory file under `Ansible/`; that directory is gitignored except `playbook.yml`.
+
+Example systemd unit. Create it on the server. It is not part of this repository:
+
+```ini
+[Unit]
+Description=ODP web
+After=network.target mysql.service docker.service
+
+[Service]
+WorkingDirectory=/opt/odp
+EnvironmentFile=/opt/odp/web/.env
+ExecStart=/opt/odp/venv/bin/python3 web/app.py
+Restart=on-failure
+User=odp
+
+[Install]
+WantedBy=multi-user.target
+```
+
+The `odp` user must be allowed to talk to the Docker socket.
+
+Example Nginx site, also created on the server:
+
+```nginx
+server {
+    listen 443 ssl;
+    server_name odp.example.com;
+
+    location / {
+        proxy_pass http://127.0.0.1:5001;
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection "upgrade";
+        proxy_set_header Host $host;
+    }
+}
+```
+
+The `Upgrade` headers are what the web terminal and the reservation events need.
 
 ## Usage Guide
 
@@ -454,70 +535,41 @@ http://localhost:5001
 - Connect to VMs via built-in SSH terminal
 - Execute commands directly in containers
 
-### Pool Management CLI
+### Pool state the web app actually reads
 
-Check pool status from command line:
+The dashboard and `/provision` read the `pool_nodes` table. `python3 init_pool.py` is the command that fills that table.
 
-```bash
-cd src
-./pool_manager.sh status
-```
+`pool_manager.sh` and `start.sh` keep a separate JSON file at `/tmp/pool_state.json`. They do not insert rows into MySQL. `./pool_manager.sh status` can therefore disagree with the admin pool page even when both are looking at the same containers. `start.sh` calls `pool_manager.sh` and then Flask, so a pool created only that way is invisible to the application.
 
-This will display:
-
-- Container names and IP addresses (synced with database)
-- Current status (free/allocated)
-- Owner information for allocated containers
-- Expiration time for active reservations
-
-**Other commands:**
-
-```bash
-./pool_manager.sh init    # Initialize pool (alternative to init_pool.py)
-./pool_manager.sh start   # Start all pool containers
-./pool_manager.sh stop    # Stop all pool containers
-```
+`pool_manager.sh` also publishes SSH on `127.0.0.1` only. `init_pool.py` publishes the same ports on every interface. Use `init_pool.py` when the goal is to run the web application.
 
 ## Project Structure
 
 ```
-src/
+ODP_project/
 ├── database/
-│   ├── db_schema.sql          # Database schema
-│   └── migrate_data.py        # Data migration script
+│   ├── db_schema.sql          # Creates odp_platform (drops it first)
+│   └── migrate_data.py        # Optional import from legacy JSON
+├── Docker/ssh/                # Image for pool-node (Ubuntu 22.04 + sshd)
+├── Ansible/playbook.yml       # apt install of packages requested at reserve time
+├── vagrant/                   # Old 3-node prototype; the web app does not call it
 ├── web/
-│   ├── app.py                 # Flask application entry point
+│   ├── app.py                 # Flask entry point, port 5001
 │   ├── config/
-│   │   ├── config.py          # Application configuration
-│   │   └── exemple.env       # Environment variables template
-│   ├── models/                # Data models
-│   │   ├── user.py           # User database model
-│   │   ├── vm.py             # VM/Reservation models
-│   │   ├── pool.py           # Pool database model
-│   │   └── ssh_session.py    # SSH session model
-│   ├── controllers/           # Business logic
-│   │   ├── auth_controller.py
-│   │   ├── vm_controller.py
-│   │   ├── ssh_controller.py
-│   │   └── dashboard_controller.py
-│   ├── routes/                # URL routes
-│   │   ├── auth_routes.py
-│   │   ├── main_routes.py
-│   │   ├── provision_routes.py
-│   │   └── socketio_handlers.py
-│   ├── services/              # External services
-│   │   ├── docker_service.py
-│   │   ├── ssh_service.py
-│   │   ├── ansible_service.py
-│   │   └── stats_service.py
-│   ├── utils/                 # Utility functions
-│   │   └── encryption.py     # Password encryption/decryption
-│   ├── templates/             # HTML templates
-│   ├── static/                # CSS, JS, images
-│   └── data/                  # Legacy JSON data (for migration)
-├── init_pool.py               # Pool initialization script
-├── requirements.txt           # Python dependencies
-└── README.md                  # This file
+│   │   ├── config.py
+│   │   └── exemple.env        # Copy to web/.env
+│   ├── controller/            # auth, dashboard, vm, ssh
+│   ├── models/                # user, vm, pool, ssh_session
+│   ├── routes/
+│   ├── services/              # docker, ssh, ansible, stats
+│   ├── middlewares/
+│   ├── utils/encryption.py
+│   ├── templates/
+│   └── static/
+├── init_pool.py               # Build image, start 30 containers, write MySQL
+├── pool_manager.sh            # Shell pool; state file only, not MySQL
+├── requirements.txt
+└── README.md
 ```
 
 ## Troubleshooting
@@ -617,30 +669,19 @@ src/
 
 ### Pool Status Mismatch
 
-**Error**: `pool_manager.sh status` shows different data than database
+**Error**: `pool_manager.sh status` shows different data than the admin pool page
 
-**Cause:** IP addresses not synchronized between Docker containers and database
+**Cause:** `pool_manager.sh` reads `/tmp/pool_state.json`. The web application reads `pool_nodes` in MySQL. They are two stores.
 
 **Solutions:**
 
-1. Check actual container IPs:
+1. Fill MySQL with `python3 init_pool.py`. The admin page will stay empty if the pool was created only by `pool_manager.sh`.
+2. When a node is in both places but the IP differs, compare Docker with MySQL and run `init_pool.py` again. That script reads the address Docker assigned and writes it to `pool_nodes`.
 
-   ```bash
-   docker inspect pool-node-1 --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
-   ```
-
-2. Verify database IPs match Docker:
-
-   ```bash
-   mysql -u root -p odp_platform -e "SELECT name, ip, status FROM pool_nodes LIMIT 5;"
-   ```
-
-3. If mismatch, reinitialize the pool:
-   ```bash
-   python3 init_pool.py
-   ```
-
-**Note:** The system now auto-detects IPs from Docker, ensuring synchronization. Manual IP configuration is no longer required.
+```bash
+docker inspect pool-node-1 --format='{{range .NetworkSettings.Networks}}{{.IPAddress}}{{end}}'
+mysql -u root -p odp_platform -e "SELECT name, ip, status FROM pool_nodes LIMIT 5;"
+```
 
 ### SSH Connection Failed
 
@@ -677,11 +718,11 @@ MYSQL_PASSWORD="myPass#123"  # Correct - with quotes
 ### Running in Development Mode
 
 ```bash
-# Set debug mode in .env
+# Set debug mode in web/.env
 FLASK_DEBUG=True
 
-# Run with auto-reload
-python3 app.py
+# From the project root, virtualenv active
+python3 web/app.py
 ```
 
 ### Database Migrations
@@ -689,10 +730,7 @@ python3 app.py
 When schema changes are made:
 
 1. Update `database/db_schema.sql`
-2. Run migration:
-   ```bash
-   mysql -u root -p odp_platform < database/db_schema.sql
-   ```
+2. Apply the change with a targeted `ALTER TABLE`. Do not re-import `database/db_schema.sql` on a database you want to keep: that file drops `odp_platform` and recreates it empty.
 
 ### Testing Database Queries
 
@@ -714,6 +752,8 @@ Application logs are printed to console. For production, consider:
 - Setting up log aggregation
 
 ## Security Considerations
+
+Items 4–6 are host configuration. The commands and unit files are in [Single-server deployment](#single-server-deployment). This repository does not contain Nginx, systemd, or a database grant script.
 
 1. **Change Default Passwords**: Always change default admin password
 2. **Environment Variables**: Never commit `.env` files
