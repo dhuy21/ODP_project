@@ -153,6 +153,33 @@ def take_free_nodes(count: int, username: str, expiry: float):
     return [{"name": row["name"], "ip": row["ip"], "port": int(row["port"])} for row in rows]
 
 
+def save_free_node(name: str, ip: str, port: int) -> None:
+    """Store one pool container as free. An existing row is reset to free."""
+    committed = False
+    try:
+        with connect() as conn:
+            conn.execute(
+                """
+                INSERT INTO pool_nodes (name, ip, port, status, owner, expiry)
+                VALUES (%s, %s, %s, 'free', NULL, 0)
+                ON CONFLICT (name) DO UPDATE
+                SET ip = EXCLUDED.ip,
+                    port = EXCLUDED.port,
+                    status = 'free',
+                    owner = NULL,
+                    expiry = 0
+                """,
+                (name, ip, port),
+            )
+            conn.commit()
+            committed = True
+    except (psycopg.OperationalError, psycopg.InterfaceError) as exc:
+        if committed:
+            logger.exception("the node was saved but the database connection failed while closing")
+            return
+        raise DatabaseUnavailable from exc
+
+
 def free_nodes(names: list[str], owner: str) -> None:
     """Return this owner's nodes to the pool. Nodes owned by someone else stay put."""
     if not names:
