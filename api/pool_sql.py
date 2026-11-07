@@ -75,7 +75,7 @@ def next_node_expiry() -> float | None:
 
 
 def get_pool_status():
-    """Same counts as the Flask pool status: total plus free and allocated."""
+    """Return the total number of pool nodes plus the free and allocated counts."""
     rows = fetch_all("SELECT status, COUNT(*) AS count FROM pool_nodes GROUP BY status")
     stats = {"total": 0, "free": 0, "allocated": 0}
     for row in rows:
@@ -151,6 +151,21 @@ def take_free_nodes(count: int, username: str, expiry: float):
     if shortage is not None:
         raise shortage
     return [{"name": row["name"], "ip": row["ip"], "port": int(row["port"])} for row in rows]
+
+
+def delete_pool_node(name: str) -> None:
+    """Remove one pool row. Missing names are left alone."""
+    committed = False
+    try:
+        with connect() as conn:
+            conn.execute("DELETE FROM pool_nodes WHERE name = %s", (name,))
+            conn.commit()
+            committed = True
+    except (psycopg.OperationalError, psycopg.InterfaceError) as exc:
+        if committed:
+            logger.exception("the node was removed but the database connection failed while closing")
+            return
+        raise DatabaseUnavailable from exc
 
 
 def save_free_node(name: str, ip: str, port: int) -> None:

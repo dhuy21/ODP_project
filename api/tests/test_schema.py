@@ -1,17 +1,7 @@
-from pathlib import Path
-
 import pytest
 
 from api.migrate import apply_pending, check_recorded, migration_files
 from api.settings import get_settings
-
-ROOT = Path(__file__).resolve().parents[2]
-
-
-def test_numbered_schema_matches_reference():
-    reference = (ROOT / "database" / "postgres_schema.sql").read_text(encoding="utf-8")
-    numbered = (ROOT / "database" / "postgres" / "001_init.sql").read_text(encoding="utf-8")
-    assert numbered == reference
 
 
 def test_edited_migration_is_rejected():

@@ -2,5 +2,5 @@ import hashlib
 
 
 def hash_password(password: str) -> str:
-    """Same digest Flask stores: SHA-256 hex of the UTF-8 password."""
+    """Hash a password as a SHA-256 hex digest of its UTF-8 bytes."""
     return hashlib.sha256(password.encode()).hexdigest()

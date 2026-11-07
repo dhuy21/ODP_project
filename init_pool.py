@@ -7,13 +7,15 @@ Run from the repository root with the API virtualenv:
 
 import platform
 import sys
+from pathlib import Path
 
 import docker
 from docker.errors import NotFound
 
 from api.errors import DatabaseUnavailable
-from api.pool_sql import save_free_node
+from api.pool_sql import delete_pool_node, save_free_node
 
+ROOT = Path(__file__).resolve().parent
 POOL_SIZE = 30
 NETWORK = "pool-network"
 SUBNET = "172.30.0.0/24"
@@ -27,8 +29,7 @@ def main() -> None:
     except Exception:
         print("Error: Cannot connect to Docker. Is it running?")
         sys.exit(1)
-    _ensure_network(client)
-    if not _build_image(client):
+    if not _ensure_network(client) or not _build_image(client):
         sys.exit(1)
     failed = 0
     for index in range(1, POOL_SIZE + 1):
@@ -40,14 +41,22 @@ def main() -> None:
     print(f"Pool initialized with {POOL_SIZE} free nodes.")
 
 
-def _ensure_network(client) -> None:
+def _ensure_network(client) -> bool:
     try:
         client.networks.get(NETWORK)
     except NotFound:
-        ipam_pool = docker.types.IPAMPool(subnet=SUBNET)
-        ipam = docker.types.IPAMConfig(pool_configs=[ipam_pool])
-        client.networks.create(NETWORK, driver="bridge", ipam=ipam)
+        try:
+            ipam_pool = docker.types.IPAMPool(subnet=SUBNET)
+            ipam = docker.types.IPAMConfig(pool_configs=[ipam_pool])
+            client.networks.create(NETWORK, driver="bridge", ipam=ipam)
+        except Exception as exc:
+            print(f"Could not create {NETWORK}: {exc}")
+            return False
         print(f"Created network {NETWORK}")
+    except Exception as exc:
+        print(f"Could not read {NETWORK}: {exc}")
+        return False
+    return True
 
 
 def _build_image(client) -> bool:
@@ -56,7 +65,8 @@ def _build_image(client) -> bool:
     print(f"Building pool-node:latest for {docker_platform}...")
     try:
         client.images.build(
-            path="./Docker/ssh",
+            path=str(ROOT / "Docker" / "ssh"),
+            dockerfile="dockerfile",
             tag="pool-node:latest",
             platform=docker_platform,
             rm=True,
@@ -75,6 +85,9 @@ def _start_node(client, index: int) -> bool:
         old.remove(force=True)
     except NotFound:
         pass
+    except Exception as exc:
+        print(f"Failed to replace {name}: {exc}")
+        return False
     try:
         container = client.containers.run(
             "pool-node:latest",
@@ -84,20 +97,55 @@ def _start_node(client, index: int) -> bool:
             ports={"22/tcp": port},
             restart_policy={"Name": "unless-stopped"},
         )
+    except Exception as exc:
+        print(f"Failed to start {name}: {exc}")
+        _remove_named(client, name)
+        _clear_row(name)
+        return False
+    try:
         container.reload()
         ip = container.attrs["NetworkSettings"]["Networks"][NETWORK]["IPAddress"]
         if not isinstance(ip, str) or ip == "":
             print(f"Failed to start {name}: Docker did not assign an address")
+            _remove_container(container)
+            _clear_row(name)
             return False
         save_free_node(name, ip, port)
     except DatabaseUnavailable:
         print(f"Failed to save {name}: database unavailable")
+        _remove_container(container)
+        _clear_row(name)
         return False
     except Exception as exc:
         print(f"Failed to start {name}: {exc}")
+        _remove_container(container)
+        _clear_row(name)
         return False
     print(f"Started {name} at {ip}:{port}")
     return True
+
+
+def _clear_row(name: str) -> None:
+    try:
+        delete_pool_node(name)
+    except DatabaseUnavailable:
+        print(f"Failed to clear {name}: database unavailable")
+
+
+def _remove_named(client, name: str) -> None:
+    try:
+        _remove_container(client.containers.get(name))
+    except NotFound:
+        pass
+    except Exception as exc:
+        print(f"Could not remove {name}: {exc}")
+
+
+def _remove_container(container) -> None:
+    try:
+        container.remove(force=True)
+    except Exception as exc:
+        print(f"Could not remove {container.name}: {exc}")
 
 
 if __name__ == "__main__":

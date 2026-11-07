@@ -131,7 +131,7 @@ def find_user_role(username: str) -> str | None:
 
 
 def ensure_default_admin() -> None:
-    """Insert admin / admin when that username is missing. Matches Flask."""
+    """Insert the default admin / admin account when that username is missing."""
     committed = False
     try:
         with connect() as conn:

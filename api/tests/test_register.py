@@ -6,7 +6,7 @@ from api.passwords import hash_password
 from api.responses import FIELD_TOO_LONG, USERNAME_TAKEN
 
 
-def test_password_hash_matches_flask():
+def test_password_hash_is_sha256_hex():
     import hashlib
 
     assert hash_password("admin") == hashlib.sha256(b"admin").hexdigest()

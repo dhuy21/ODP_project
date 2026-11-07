@@ -7,7 +7,7 @@ from api.settings import get_settings
 
 
 def fernet_key() -> bytes:
-    """Same Fernet key Flask derives when ENCRYPTION_KEY is unset."""
+    """Derive a Fernet key from the configured ENCRYPTION_KEY or its default."""
     settings = get_settings()
     if settings.encryption_key:
         return settings.encryption_key.encode()

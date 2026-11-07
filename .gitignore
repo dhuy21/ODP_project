@@ -46,10 +46,6 @@ logs/
 *.sqlite
 *.sqlite3
 
-# Flask
-instance/
-.webassets-cache
-
 # Distribution / packaging
 .Python
 build/
@@ -71,7 +67,6 @@ wheels/
 # Vagrant
 .vagrant/
 
-web/.env
 api/.env
 
 # Documentation
