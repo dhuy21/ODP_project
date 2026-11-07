@@ -47,12 +47,18 @@ def _install(
         return
     try:
         _write_private(inventory, _inventory_yaml(username, nodes, password, packages))
-        subprocess.run(
+        completed = subprocess.run(
             ["ansible-playbook", "-i", str(inventory), str(PLAYBOOK)],
             cwd=PLAYBOOK.parent.parent,
-            timeout=300,
+            timeout=900,
             check=False,
         )
+        if completed.returncode != 0:
+            logger.error(
+                "package install for reservation %s failed with status %s",
+                reservation_id,
+                completed.returncode,
+            )
     finally:
         inventory.unlink(missing_ok=True)
 
@@ -84,7 +90,10 @@ def _inventory_yaml(
         lines.append(f"      ansible_ssh_pass: {quoted}")
         lines.append(f"      ansible_become_pass: {quoted}")
     lines.append("  vars:")
-    lines.append("    ansible_ssh_common_args: " + _yaml_string("-o StrictHostKeyChecking=no"))
+    lines.append(
+        "    ansible_ssh_common_args: "
+        + _yaml_string("-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null")
+    )
     lines.append(f"    packages: {_yaml_string(','.join(packages))}")
     return "\n".join(lines) + "\n"
 

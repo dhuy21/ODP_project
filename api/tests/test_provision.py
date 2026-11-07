@@ -567,6 +567,7 @@ def test_inventory_quotes_the_password_and_is_private(tmp_path, monkeypatch):
     def fake_run(*args, **kwargs):
         captured["text"] = inventory.read_text(encoding="utf-8")
         captured["mode"] = inventory.stat().st_mode & 0o777
+        return subprocess.CompletedProcess(args, 0)
 
     monkeypatch.setattr(subprocess, "run", fake_run)
     _install(
@@ -620,6 +621,7 @@ def test_inventory_quotes_names_ansible_would_read_as_booleans():
     assert text.startswith('"on":\n')
     assert '    "yes":\n' in text
     assert 'ansible_user: "on"' in text
+    assert "UserKnownHostsFile=/dev/null" in text
 
 
 def test_taking_nodes_survives_a_database_close_after_commit(monkeypatch):
