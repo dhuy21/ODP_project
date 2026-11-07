@@ -1,0 +1,36 @@
+"""Account names that must not be registered or created inside a container."""
+
+RESERVED_USERNAMES = frozenset(
+    {
+        "root",
+        "admin",
+        "vagrant",
+        "ubuntu",
+        "daemon",
+        "bin",
+        "sys",
+        "sync",
+        "games",
+        "man",
+        "lp",
+        "mail",
+        "news",
+        "uucp",
+        "proxy",
+        "www-data",
+        "backup",
+        "list",
+        "irc",
+        "gnats",
+        "nobody",
+        "systemd-network",
+        "systemd-resolve",
+        "messagebus",
+        "syslog",
+        "docker",
+        "sudo",
+        "wheel",
+        "operator",
+        "adm",
+    }
+)

@@ -1,0 +1,9 @@
+fastapi==0.115.6
+uvicorn==0.34.0
+psycopg[binary]==3.2.10
+python-dotenv==1.0.1
+itsdangerous==2.2.0
+cryptography==41.0.4
+docker==7.1.0
+python-socketio==5.18.1
+paramiko==5.1.0

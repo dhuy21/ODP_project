@@ -1,0 +1,39 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  color: #1c2430;
+  background: #f4f6f8;
+  font-family: Georgia, 'Times New Roman', serif;
+}
+
+body {
+  margin: 0;
+}
+
+#app {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+
+#app:has(.app-root-wide) {
+  display: block;
+}
+
+.app-root-wide {
+  width: 100%;
+  min-height: 100vh;
+}
+
+.error {
+  margin: 0;
+  color: #8d1d1d;
+}
+
+.notice {
+  color: #1d5c32;
+}
