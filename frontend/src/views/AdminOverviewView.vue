@@ -96,7 +96,7 @@ onMounted(async () => {
               </div>
             </div>
           </div>
-          <section v-if="overview" class="section-container">
+          <section v-if="overview" class="section-container admin-links">
             <RouterLink class="btn btn-primary btn-os-select" :to="{ name: 'admin-users' }">
               <span>User Management</span>
               <i class="fas fa-arrow-right"></i>
@@ -126,5 +126,11 @@ onMounted(async () => {
 .dashboard-shell .error {
   margin: 1rem 2rem;
   color: #8d1d1d;
+}
+
+.dashboard-shell .admin-links {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 </style>

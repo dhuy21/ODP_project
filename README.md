@@ -8,6 +8,7 @@ Open [http://127.0.0.1:5173](http://127.0.0.1:5173) after the two processes belo
 
 - [How a request moves](#how-a-request-moves)
 - [What you need](#what-you-need)
+- [Check before you start](#check-before-you-start)
 - [Database](#database)
 - [Run](#run)
 - [Container pool](#container-pool)
@@ -51,6 +52,30 @@ The API process starts one expiry thread. That thread is the only thing that sho
 - Ansible on the host, only when a reservation installs packages
 
 Commands below start from the repository root, except the frontend commands, which start in `frontend/`.
+
+## Check before you start
+
+Run these from the repository root. The version lines should print a version. Each `ss` line always prints a header. A row under that header means the port is already taken.
+
+```bash
+python3 --version
+node --version
+docker info >/dev/null && echo "docker ok"
+ansible-playbook --version
+ss -tln 'sport >= :3000 and sport <= :3029'
+ss -tln 'sport = :5432 or sport = :8000 or sport = :5173'
+```
+
+| Check | Needed for | If it fails |
+| --- | --- | --- |
+| `python3` is 3.12 or newer | API virtualenv and `api.migrate` | Create the virtualenv with a newer Python |
+| `node` is 22 | Vite | Install Node.js 22 before `npm install` |
+| `docker ok` | Postgres container and the pool | Start Docker and give this user access to the Docker socket |
+| `ansible-playbook` prints a version | Installing apt packages such as `vim` inside a reserved machine | `sudo apt install ansible`, then reserve again. Without it, the reservation is still stored and the terminal still opens. The package is not installed |
+| Nothing listening on 3000–3029 | `pool-node-1` … `pool-node-30` | Free that port, then run `init_pool.py` again. A taken port skips that node |
+| 5432, 8000, and 5173 | Postgres, the API, and Vite | Stop the process already bound there before the matching step below |
+
+Ansible is the only optional line. Skip it when no reservation will install packages.
 
 ## Database
 
@@ -226,7 +251,7 @@ A normal user can release their own active reservation from the detail page. The
 
 The expiry thread in the API process marks a due `active` reservation `expired`, removes the Linux user, and returns the nodes to `free`. Opening a terminal past `expires_at` sends `Reservation expired` and closes SSH. It does not type a warning into the remote shell.
 
-If `packages` is non-empty, Ansible runs on the host after the reservation is stored, with a private inventory file that is removed when the job ends. The HTTP response is already success by then. A failure to start that background job does not change the response. The playbook is `Ansible/playbook.yml`.
+If `packages` is non-empty, Ansible runs on the host after the reservation is stored, with a private inventory file that is removed when the job ends. The HTTP response is already success by then. A failure to start that background job does not change the response. The playbook is `Ansible/playbook.yml`. The host must have `ansible-playbook` on `PATH` before the reservation is created. Confirm that with the check above. The pool image itself does not contain `vim` or other packages you type into the form.
 
 Account passwords are stored as SHA-256 hex digests. Machine passwords are stored with Fernet. Neither is returned by the JSON routes above.
 
